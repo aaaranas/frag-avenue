@@ -1,0 +1,20 @@
+{
+  "name": "Frag Avenue",
+  "short_name": "Frag Ave",
+  "description": "Your fragrance wardrobe, quantified.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f6f4",
+  "theme_color": "#16150f",
+  "categories": ["lifestyle", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

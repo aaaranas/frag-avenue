@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+/*
+ * Frag Avenue design tokens.
+ * Editorial, restrained, fragrance-oriented. No gradients, no glass, no glow.
+ * Typography carries the mood: serif for display, sans for interface.
+ */
+@theme {
+  --font-sans:
+    var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-serif: var(--font-serif), ui-serif, Georgia, "Times New Roman", serif;
+
+  /* Ink palette — warm off-black to bone. Deliberately restrained. */
+  --color-paper: #f5f3ee;
+  --color-vellum: #eeeae1;
+  --color-rule: #d8d3c7;
+  --color-ink-50: #f5f3ee;
+  --color-ink-100: #eeeae1;
+  --color-ink-200: #d8d3c7;
+  --color-ink-300: #b8b1a1;
+  --color-ink-400: #8f887a;
+  --color-ink-500: #6b6558;
+  --color-ink-600: #4d483d;
+  --color-ink-700: #322e26;
+  --color-ink-800: #1e1c17;
+  --color-ink-900: #141310;
+
+  /* Single accent — a fixative amber. Used sparingly. */
+  --color-accent: #7a5230;
+  --color-accent-soft: #a67a51;
+
+  /* Semantics */
+  --color-good: #4d6b3a;
+  --color-warn: #8a6923;
+  --color-bad: #8f3a2b;
+}
+
+/* ------------------------------------------------------------------ */
+/* Light mode (default) & dark mode                                    */
+/* ------------------------------------------------------------------ */
+
+:root {
+  color-scheme: light;
+  --bg: var(--color-paper);
+  --bg-elev: #fbfaf7;
+  --fg: var(--color-ink-900);
+  --fg-muted: var(--color-ink-500);
+  --fg-faint: var(--color-ink-400);
+  --rule: var(--color-rule);
+  --rule-strong: var(--color-ink-300);
+  --focus: color-mix(in oklab, var(--color-accent) 60%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #0e0d09;
+    --bg-elev: #171510;
+    --fg: #eae6dc;
+    --fg-muted: #a7a293;
+    --fg-faint: #6b6558;
+    --rule: #2a2720;
+    --rule-strong: #3d3a30;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Base                                                                */
+/* ------------------------------------------------------------------ */
+
+html,
+body {
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-accent) 25%, transparent);
+  color: var(--fg);
+}
+
+/* Consistent, restrained focus ring across all interactive elements. */
+:where(a, button, [role="button"], input, select, textarea):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Native controls should inherit the palette, not the system look. */
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* Kill iOS auto-fill lemon-yellow. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--fg);
+  transition: background-color 9999s ease-out 0s;
+}
+
+/* ------------------------------------------------------------------ */
+/* Utilities                                                           */
+/* ------------------------------------------------------------------ */
+
+.font-serif {
+  font-family: var(--font-serif);
+  font-feature-settings: "liga", "dlig";
+}
+
+.font-italic {
+  font-style: italic;
+}
+
+/* iOS PWA bottom safe area */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Editorial eyebrow — used above every page heading */
+.eyebrow {
+  color: var(--fg-faint);
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Editorial rule — full width hairline. Border-t/border-b of --rule. */
+.hair {
+  border-color: var(--rule);
+}
+
+/* Restrained hover for links inside body copy */
+.link-editorial {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in oklab, var(--fg) 30%, transparent);
+  transition: text-decoration-color 200ms;
+}
+.link-editorial:hover {
+  text-decoration-color: var(--fg);
+}

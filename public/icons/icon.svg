@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Frag Avenue">
+  <rect width="512" height="512" fill="#16150f"/>
+  <text
+    x="256"
+    y="332"
+    text-anchor="middle"
+    font-family="Cormorant Garamond, Georgia, serif"
+    font-size="320"
+    font-style="italic"
+    font-weight="500"
+    fill="#f7f6f4"
+  >F</text>
+  <rect x="176" y="390" width="160" height="4" fill="#7a5230"/>
+</svg>

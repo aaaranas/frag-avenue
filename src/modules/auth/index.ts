@@ -1,0 +1,7 @@
+// Client-safe public surface of the auth module.
+// Server-only session helpers (`currentUser`, `requireUser`) live in
+// `@/modules/auth/session` — importing them from the barrel would drag
+// the `server-only` marker into client bundles.
+export { signInAction, signUpAction, signOutAction } from "./actions";
+export type { FormState } from "./actions";
+export type { SessionUser } from "./session";

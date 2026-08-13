@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: frag-avenue-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: frag
+      POSTGRES_PASSWORD: frag
+      POSTGRES_DB: frag_avenue
+    ports:
+      # Host port 55432 (not 5432) to avoid clashing with a native Postgres
+      # install that some Windows/Linux hosts already run on 5432.
+      - "55432:5432"
+    volumes:
+      - frag_avenue_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U frag -d frag_avenue"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  frag_avenue_pg:

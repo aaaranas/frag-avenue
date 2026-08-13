@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(pnpm *)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm exec *)",
+      "Bash(pnpm typecheck *)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm lint *)",
+      "Bash(Measure-Object -Line)",
+      "Bash(Select-Object -ExpandProperty Lines)",
+      "Bash(pnpm format:check)",
+      "Bash(pnpm format *)",
+      "Bash(DATABASE_URL=\"postgresql://frag:frag@localhost:5432/frag_avenue?schema=public\" AUTH_SECRET=\"test-only-secret-not-real-1234567890abc\" pnpm build)",
+      "Bash(pnpm add *)",
+      "Bash(node -e \"const yaml=require\\('yaml'\\);const fs=require\\('fs'\\);const doc=yaml.parse\\(fs.readFileSync\\('.github/workflows/ci.yml','utf8'\\)\\);console.log\\('jobs:', Object.keys\\(doc.jobs\\).join\\(', '\\)\\);console.log\\('e2e services:', Object.keys\\(doc.jobs.e2e.services||{}\\).join\\(','\\)\\);console.log\\('e2e step count:', doc.jobs.e2e.steps.length\\);\")",
+      "Bash(node *)",
+      "Bash(docker info *)",
+      "Bash(docker compose *)",
+      "PowerShell(Test-Path *)",
+      "Bash(pnpm db:up)",
+      "Bash(docker exec *)",
+      "Bash(pnpm prisma *)",
+      "Bash(docker port *)",
+      "Bash(rm -f /tmp/jar.txt)",
+      "Bash(curl -s -c /tmp/jar.txt -o /tmp/signup.html http://localhost:3000/sign-up)",
+      "Bash(DATABASE_URL=\"postgresql://frag:frag@localhost:55432/frag_avenue?schema=public\" AUTH_SECRET=\"test-only-secret-not-real-1234567890abc\" pnpm build)"
+    ]
+  }
+}
