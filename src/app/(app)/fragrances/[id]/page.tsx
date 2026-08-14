@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { findFragranceById } from "@/modules/fragrances";
+import { Bottle } from "@/components/bottle/bottle";
 import { Chip } from "@/components/ui/chip";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { primaryAccordColor } from "@/lib/accord-colors";
 import { AddToCollectionForm } from "./add-to-collection-form";
 
 type Params = Promise<{ id: string }>;
@@ -22,9 +24,12 @@ export default async function FragranceDetailPage({ params }: { params: Params }
   const top = f.notes.filter((n) => n.layer === "TOP").map((n) => n.note.name);
   const middle = f.notes.filter((n) => n.layer === "MIDDLE").map((n) => n.note.name);
   const base = f.notes.filter((n) => n.layer === "BASE").map((n) => n.note.name);
+  const color = primaryAccordColor(
+    f.accords.map((a) => ({ name: a.accord.name, strength: a.strength })),
+  );
 
   return (
-    <article className="mx-auto max-w-4xl">
+    <article className="mx-auto max-w-5xl">
       <Link
         href="/fragrances"
         className="text-xs tracking-[0.14em] text-[color:var(--fg-faint)] uppercase hover:text-[color:var(--fg)]"
@@ -32,48 +37,57 @@ export default async function FragranceDetailPage({ params }: { params: Params }
         ← Fragrances
       </Link>
 
-      <header className="mt-8 border-b border-[color:var(--rule)] pb-10">
-        <Eyebrow>{f.brand.name}</Eyebrow>
-        <h1 className="mt-3 font-serif text-5xl leading-[1.05] tracking-tight md:text-6xl">
-          {f.name}
-        </h1>
-        <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-2 text-xs tracking-wide text-[color:var(--fg-muted)]">
-          <MetaItem label="Concentration" value={f.concentration} />
-          {f.releaseYear ? <MetaItem label="Released" value={f.releaseYear.toString()} /> : null}
-          {f.perfumer ? <MetaItem label="Perfumer" value={f.perfumer} /> : null}
-          <MetaItem label="Class" value={genderLabel(f.gender)} />
-        </dl>
-      </header>
-
-      <div className="grid gap-12 pt-10 md:grid-cols-[1.4fr_1fr] md:gap-16">
-        <div className="min-w-0">
-          <section>
-            <Eyebrow>Composition</Eyebrow>
-            <div className="mt-4 flex flex-col divide-y divide-[color:var(--rule)] border-y border-[color:var(--rule)]">
-              <NoteRow label="Top" notes={top} />
-              <NoteRow label="Heart" notes={middle} />
-              <NoteRow label="Base" notes={base} />
-            </div>
-          </section>
+      {/* Hero */}
+      <header className="mt-8 grid gap-8 border-b border-[color:var(--rule)] pb-12 md:grid-cols-[1fr_1.5fr] md:gap-12">
+        <div className="flex items-end justify-center md:sticky md:top-8 md:self-start">
+          <Bottle
+            color={color}
+            concentration={f.concentration}
+            size={220}
+            className="drop-shadow-[0_18px_28px_rgba(0,0,0,0.16)]"
+          />
+        </div>
+        <div>
+          <Eyebrow>{f.brand.name}</Eyebrow>
+          <h1 className="mt-3 font-serif text-5xl leading-[1.05] tracking-tight md:text-6xl">
+            {f.name}
+          </h1>
+          <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 text-xs tracking-wide text-[color:var(--fg-muted)]">
+            <MetaItem label="Concentration" value={f.concentration} />
+            {f.releaseYear ? <MetaItem label="Released" value={f.releaseYear.toString()} /> : null}
+            {f.perfumer ? <MetaItem label="Perfumer" value={f.perfumer} /> : null}
+            <MetaItem label="Class" value={genderLabel(f.gender)} />
+          </dl>
 
           {f.accords.length > 0 ? (
-            <section className="mt-10">
+            <div className="mt-8">
               <Eyebrow>Accords</Eyebrow>
-              <ul className="mt-4 flex flex-wrap gap-2">
+              <ul className="mt-3 flex flex-wrap gap-2">
                 {f.accords.map((a) => (
                   <li key={a.accord.id}>
                     <Chip title={`Strength ${a.strength}/5`}>
                       {a.accord.name}
-                      <span className="ml-2 text-[color:var(--fg-faint)]">
+                      <span className="ml-1.5 text-[color:var(--fg-faint)]">
                         {"·".repeat(a.strength)}
                       </span>
                     </Chip>
                   </li>
                 ))}
               </ul>
-            </section>
+            </div>
           ) : null}
         </div>
+      </header>
+
+      <div className="grid gap-12 pt-10 md:grid-cols-[1.4fr_1fr] md:gap-16">
+        <section>
+          <Eyebrow>Composition</Eyebrow>
+          <div className="mt-4 flex flex-col divide-y divide-[color:var(--rule)] border-y border-[color:var(--rule)]">
+            <NoteRow label="Top" notes={top} />
+            <NoteRow label="Heart" notes={middle} />
+            <NoteRow label="Base" notes={base} />
+          </div>
+        </section>
 
         <aside className="min-w-0">
           <section className="rounded-sm border border-[color:var(--rule)] p-5">

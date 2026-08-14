@@ -37,3 +37,6 @@ prisma/*.db-journal
 *.log
 npm-debug.log*
 pnpm-debug.log*
+
+*.tsbuildinfo
+.claude/settings.local.json

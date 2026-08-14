@@ -50,6 +50,7 @@ export type Recommendation = {
   collectionItemId: string;
   fragranceName: string;
   brandName: string;
+  accords: AccordVec;
   displayScore: number | null;
   rawScore: number;
   subScores: SubScores;
@@ -137,6 +138,7 @@ export function recommend(input: RecommendationInput, limit = 3): Recommendation
       collectionItemId: c.collectionItemId,
       fragranceName: c.fragranceName,
       brandName: c.brandName,
+      accords: c.accords,
       rawScore: raw,
       displayScore: cold ? null : Math.round(raw * 100),
       subScores,

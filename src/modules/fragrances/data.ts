@@ -1,4 +1,5 @@
 import "server-only";
+import type { $Enums } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { FragranceListInput } from "./schema";
 import { buildFragranceListWhere, paginationOffset } from "./query";
@@ -6,10 +7,11 @@ import { buildFragranceListWhere, paginationOffset } from "./query";
 export type FragranceListItem = {
   id: string;
   name: string;
-  concentration: string;
+  concentration: $Enums.Concentration;
   gender: string;
   releaseYear: number | null;
   brand: { id: string; name: string };
+  accords: Array<{ strength: number; accord: { name: string } }>;
 };
 
 export type FragranceListResult = {
@@ -37,6 +39,14 @@ export async function listFragrances(input: FragranceListInput): Promise<Fragran
         gender: true,
         releaseYear: true,
         brand: { select: { id: true, name: true } },
+        accords: {
+          orderBy: { strength: "desc" },
+          take: 3,
+          select: {
+            strength: true,
+            accord: { select: { name: true } },
+          },
+        },
       },
     }),
   ]);

@@ -3,9 +3,11 @@ import { z } from "zod";
 import { requireUser } from "@/modules/auth/session";
 import { getRecommendations } from "@/modules/recommendations/data";
 import { OCCASIONS } from "@/modules/wear-logs";
+import { Bottle } from "@/components/bottle/bottle";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Chip } from "@/components/ui/chip";
+import { primaryAccordColor } from "@/lib/accord-colors";
 import { AdvisorControls } from "./advisor-controls";
 
 type SearchParams = Promise<{
@@ -72,8 +74,19 @@ export default async function AdvisorPage({ searchParams }: { searchParams: Sear
               key={r.collectionItemId}
               className="rounded-sm border border-[color:var(--rule)] p-6 md:p-7"
             >
-              <div className="flex items-start justify-between gap-6">
-                <div className="min-w-0 flex-1">
+              <div className="grid grid-cols-[auto_1fr_auto] items-start gap-5 md:gap-7">
+                <Link
+                  href={`/fragrances/${r.fragranceId}`}
+                  className="shrink-0 transition-transform hover:-translate-y-1"
+                >
+                  <Bottle
+                    color={primaryAccordColor(r.accords)}
+                    size={72}
+                    className="drop-shadow-[0_6px_12px_rgba(0,0,0,0.12)]"
+                  />
+                </Link>
+
+                <div className="min-w-0">
                   <div className="flex items-baseline gap-3">
                     <span className="font-serif text-lg text-[color:var(--color-accent)] italic tabular-nums">
                       {String(i + 1).padStart(2, "0")}
@@ -91,6 +104,7 @@ export default async function AdvisorPage({ searchParams }: { searchParams: Sear
                     </Link>
                   </h2>
                 </div>
+
                 <div className="shrink-0 text-right">
                   {r.displayScore !== null ? (
                     <div>

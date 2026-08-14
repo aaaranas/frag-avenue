@@ -6,8 +6,10 @@ import {
   totalPages,
   type FragranceListResult,
 } from "@/modules/fragrances";
+import { Bottle } from "@/components/bottle/bottle";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
+import { primaryAccordColor } from "@/lib/accord-colors";
 import { SearchInput } from "./search-input";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -25,53 +27,73 @@ export default async function FragrancesPage({ searchParams }: { searchParams: S
   });
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-5xl">
       <PageHeader eyebrow="Catalogue" title="Fragrances" />
 
-      <div className="mb-6 max-w-md">
+      <div className="mb-8 max-w-md">
         <SearchInput initialQ={input.q ?? ""} />
       </div>
 
-      <Suspense key={`${input.q ?? ""}-${input.page}`} fallback={<ListSkeleton />}>
-        <ResultList input={input} />
+      <Suspense key={`${input.q ?? ""}-${input.page}`} fallback={<GridSkeleton />}>
+        <ResultGrid input={input} />
       </Suspense>
     </div>
   );
 }
 
-async function ResultList({ input }: { input: FragranceListInput }) {
+async function ResultGrid({ input }: { input: FragranceListInput }) {
   const result = await listFragrances(input);
   if (result.items.length === 0) return <EmptyStateWithQ q={input.q} />;
   return (
     <>
-      <List result={result} />
+      <Grid result={result} />
       <Pager result={result} q={input.q} />
     </>
   );
 }
 
-function List({ result }: { result: FragranceListResult }) {
+function Grid({ result }: { result: FragranceListResult }) {
   return (
-    <ul className="flex flex-col divide-y divide-[color:var(--rule)] border-y border-[color:var(--rule)]">
-      {result.items.map((f) => (
-        <li key={f.id}>
-          <Link
-            href={`/fragrances/${f.id}`}
-            className="flex items-baseline justify-between gap-4 px-2 py-4 transition-colors hover:bg-[color:var(--bg-elev)]"
-          >
-            <div className="min-w-0">
-              <p className="text-[10px] tracking-[0.18em] text-[color:var(--fg-faint)] uppercase">
+    <ul className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 md:gap-x-8 md:gap-y-14 lg:grid-cols-4">
+      {result.items.map((f) => {
+        const color = primaryAccordColor(
+          f.accords.map((a) => ({ name: a.accord.name, strength: a.strength })),
+        );
+        return (
+          <li key={f.id}>
+            <Link
+              href={`/fragrances/${f.id}`}
+              className="group flex flex-col items-center text-center transition-transform hover:-translate-y-1"
+            >
+              <div className="relative flex h-48 items-end justify-center">
+                <Bottle
+                  color={color}
+                  concentration={f.concentration}
+                  size={100}
+                  className="drop-shadow-[0_6px_12px_rgba(0,0,0,0.1)] group-hover:drop-shadow-[0_10px_18px_rgba(0,0,0,0.16)]"
+                />
+                <div
+                  aria-hidden
+                  className="absolute bottom-0 left-1/2 h-px w-24 -translate-x-1/2 bg-[color:var(--rule-strong)]"
+                />
+              </div>
+              <p className="mt-5 text-[10px] tracking-[0.18em] text-[color:var(--fg-faint)] uppercase">
                 {f.brand.name}
               </p>
-              <p className="mt-1 font-serif text-lg leading-snug italic">{f.name}</p>
-            </div>
-            <div className="shrink-0 text-[11px] tracking-wide text-[color:var(--fg-muted)]">
-              {f.concentration}
-              {f.releaseYear ? ` · ${f.releaseYear}` : ""}
-            </div>
-          </Link>
-        </li>
-      ))}
+              <p className="mt-1 font-serif text-base leading-snug italic">{f.name}</p>
+              <p className="mt-1 text-[11px] text-[color:var(--fg-muted)]">
+                {f.concentration}
+                {f.releaseYear ? (
+                  <>
+                    <span className="mx-1.5 text-[color:var(--fg-faint)]">·</span>
+                    <span className="tabular-nums">{f.releaseYear}</span>
+                  </>
+                ) : null}
+              </p>
+            </Link>
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -90,7 +112,7 @@ function Pager({ result, q }: { result: FragranceListResult; q?: string }) {
   };
 
   return (
-    <nav aria-label="Pagination" className="mt-6 flex items-center justify-between text-xs">
+    <nav aria-label="Pagination" className="mt-12 flex items-center justify-between text-xs">
       <p className="text-[color:var(--fg-muted)]">
         Page {result.page} of {pages} · {result.total} total
       </p>
@@ -134,13 +156,14 @@ function EmptyStateWithQ({ q }: { q?: string }) {
   );
 }
 
-function ListSkeleton() {
+function GridSkeleton() {
   return (
-    <ul className="flex animate-pulse flex-col divide-y divide-[color:var(--rule)] border-y border-[color:var(--rule)]">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <li key={i} className="px-2 py-4">
-          <div className="h-3 w-24 rounded bg-[color:var(--rule)]" />
-          <div className="mt-2 h-4 w-56 rounded bg-[color:var(--rule)]" />
+    <ul className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 md:gap-x-8 md:gap-y-14 lg:grid-cols-4">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <li key={i} className="flex animate-pulse flex-col items-center">
+          <div className="h-40 w-24 rounded bg-[color:var(--rule)]" />
+          <div className="mt-5 h-3 w-24 rounded bg-[color:var(--rule)]" />
+          <div className="mt-2 h-4 w-32 rounded bg-[color:var(--rule)]" />
         </li>
       ))}
     </ul>

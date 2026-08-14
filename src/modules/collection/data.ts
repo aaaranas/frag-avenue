@@ -20,13 +20,30 @@ export function listCollectionForUser(userId: string) {
       currency: true,
       condition: true,
       personalRating: true,
+      personalNotes: true,
+      purchaseDate: true,
       createdAt: true,
       fragrance: {
         select: {
           id: true,
           name: true,
           concentration: true,
+          releaseYear: true,
+          perfumer: true,
           brand: { select: { id: true, name: true } },
+          notes: {
+            select: {
+              layer: true,
+              note: { select: { id: true, name: true } },
+            },
+          },
+          accords: {
+            orderBy: { strength: "desc" },
+            select: {
+              strength: true,
+              accord: { select: { id: true, name: true } },
+            },
+          },
         },
       },
     },
