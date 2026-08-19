@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { logWearAction, type FormState } from "@/modules/wear-logs";
 import { WearFormFields, type WearFieldDefaults } from "../wear-form-fields";
+import { Button } from "@/components/ui/button";
 
 const INITIAL: FormState = { ok: false };
 
@@ -26,13 +27,9 @@ export function LogWearForm({
 
       <WearFormFields defaults={defaults} state={state} />
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="mt-2 rounded-sm bg-[color:var(--fg)] px-5 py-3 text-sm font-medium tracking-wide text-[color:var(--bg)] transition hover:opacity-90 disabled:opacity-60"
-      >
+      <Button type="submit" disabled={pending}>
         {pending ? "Logging…" : "Log wear"}
-      </button>
+      </Button>
     </form>
   );
 }

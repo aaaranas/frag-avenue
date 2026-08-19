@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { updateWearAction, type FormState } from "@/modules/wear-logs";
 import { WearFormFields, type WearFieldDefaults } from "../../wear-form-fields";
+import { Button } from "@/components/ui/button";
 
 const INITIAL: FormState = { ok: false };
 
@@ -27,13 +28,9 @@ export function EditWearForm({
         <input type="hidden" name="collectionItemId" value={collectionItemId} />
       ) : null}
       <WearFormFields defaults={defaults} state={state} />
-      <button
-        type="submit"
-        disabled={pending}
-        className="mt-2 rounded-sm bg-[color:var(--fg)] px-5 py-3 text-sm font-medium tracking-wide text-[color:var(--bg)] transition hover:opacity-90 disabled:opacity-60"
-      >
+      <Button type="submit" disabled={pending}>
         {pending ? "Saving…" : "Save changes"}
-      </button>
+      </Button>
     </form>
   );
 }

@@ -3,13 +3,12 @@
 import { useActionState } from "react";
 import { updateCollectionItemAction, type FormState } from "@/modules/collection";
 import { Field } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 
 const INITIAL: FormState = { ok: false };
 
-const selectClass =
-  "rounded-sm border border-[color:var(--rule-strong)] bg-[color:var(--bg)] px-3 py-2 text-sm text-[color:var(--fg)] hover:border-[color:var(--fg-muted)] focus:border-[color:var(--color-accent)] focus:outline-none transition-colors";
-const labelClass =
-  "text-[11px] font-medium tracking-[0.14em] uppercase text-[color:var(--fg-muted)]";
+const selectClass = "field-input";
+const labelClass = "field-label";
 
 type Defaults = {
   bottleSizeMl: number;
@@ -142,7 +141,7 @@ export function EditCollectionForm({ itemId, defaults }: { itemId: string; defau
           rows={4}
           maxLength={2000}
           defaultValue={defaults.personalNotes}
-          className="rounded-sm border border-[color:var(--rule-strong)] bg-[color:var(--bg)] px-3 py-2 text-sm text-[color:var(--fg)] transition-colors hover:border-[color:var(--fg-muted)] focus:border-[color:var(--color-accent)] focus:outline-none"
+          className="rounded-sm border border-[color:var(--rule-strong)] bg-[color:var(--bg)] px-3 py-2 text-sm text-[color:var(--fg)] transition-colors hover:border-[color:var(--fg-muted)] focus:border-[color:var(--accent-amber)] focus:outline-none"
         />
       </div>
 
@@ -152,13 +151,9 @@ export function EditCollectionForm({ itemId, defaults }: { itemId: string; defau
         </p>
       ) : null}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="mt-2 rounded-sm bg-[color:var(--fg)] px-5 py-3 text-sm font-medium tracking-wide text-[color:var(--bg)] transition hover:opacity-90 disabled:opacity-60"
-      >
+      <Button type="submit" disabled={pending}>
         {pending ? "Saving…" : "Save changes"}
-      </button>
+      </Button>
     </form>
   );
 }

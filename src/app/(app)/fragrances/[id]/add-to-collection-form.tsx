@@ -3,13 +3,12 @@
 import { useActionState } from "react";
 import { addToCollectionAction, type FormState } from "@/modules/collection";
 import { Field } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 
 const INITIAL: FormState = { ok: false };
 
-const selectClass =
-  "rounded-sm border border-[color:var(--rule-strong)] bg-[color:var(--bg)] px-3 py-2 text-sm text-[color:var(--fg)] hover:border-[color:var(--fg-muted)] focus:border-[color:var(--color-accent)] focus:outline-none transition-colors";
-const labelClass =
-  "text-[11px] font-medium tracking-[0.14em] uppercase text-[color:var(--fg-muted)]";
+const selectClass = "field-input";
+const labelClass = "field-label";
 
 export function AddToCollectionForm({
   fragranceId,
@@ -73,13 +72,9 @@ export function AddToCollectionForm({
         </p>
       ) : null}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="mt-2 rounded-sm bg-[color:var(--fg)] px-5 py-2.5 text-sm font-medium tracking-wide text-[color:var(--bg)] transition hover:opacity-90 disabled:opacity-60"
-      >
+      <Button type="submit" disabled={pending}>
         {pending ? "Saving…" : "Save to my collection"}
-      </button>
+      </Button>
     </form>
   );
 }

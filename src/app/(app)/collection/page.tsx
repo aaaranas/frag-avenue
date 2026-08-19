@@ -4,6 +4,7 @@ import { listCollectionForUser } from "@/modules/collection/data";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { BottleLegend } from "@/components/bottle/bottle-legend";
+import { Button } from "@/components/ui/button";
 import { CollectionShelf } from "./collection-shelf";
 
 export default async function CollectionPage() {
@@ -17,12 +18,9 @@ export default async function CollectionPage() {
         title="Collection"
         subtitle={items.length > 0 ? "Click a bottle to see its notes and details." : undefined}
         actions={
-          <Link
-            href="/fragrances"
-            className="rounded-sm border border-[color:var(--rule-strong)] px-3 py-1.5 text-xs tracking-wide hover:bg-[color:var(--bg-elev)]"
-          >
-            Browse catalogue
-          </Link>
+          <Button asChild variant="outline">
+            <Link href="/fragrances">Browse catalogue</Link>
+          </Button>
         }
       />
 

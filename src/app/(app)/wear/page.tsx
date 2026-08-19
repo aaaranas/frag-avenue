@@ -4,6 +4,7 @@ import { requireUser } from "@/modules/auth/session";
 import { listWearsForUser, type WearListRow } from "@/modules/wear-logs/data";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
 
 type SearchParams = Promise<{ page?: string }>;
 
@@ -48,12 +49,9 @@ export default async function WearJournalPage({ searchParams }: { searchParams: 
         eyebrow="Journal"
         title="Wear history"
         actions={
-          <Link
-            href="/wear/new"
-            className="rounded-sm bg-[color:var(--fg)] px-4 py-2 text-xs font-medium tracking-wide text-[color:var(--bg)]"
-          >
-            Log a wear
-          </Link>
+          <Button asChild>
+            <Link href="/wear/new">Log a wear</Link>
+          </Button>
         }
       />
 

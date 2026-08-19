@@ -1,83 +1,181 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 /*
- * Frag Avenue design tokens.
- * Editorial, restrained, fragrance-oriented. No gradients, no glass, no glow.
- * Typography carries the mood: serif for display, sans for interface.
+ * Frag Avenue design tokens — "apothecary".
+ *
+ * Warm paper, near-black ink, a deep bottle green as the structural colour, and
+ * a fixative amber for emphasis. The green is what stops the interface reading
+ * as monochrome; it carries primary actions, active states, and section rules.
+ * Amber is rationed — it marks the single most important number on a screen.
+ *
+ * Two type families do different jobs: the serif is for names and titles, the
+ * sans for anything you read as data. See `.numeric`.
  */
 @theme {
   --font-sans:
     var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-serif: var(--font-serif), ui-serif, Georgia, "Times New Roman", serif;
 
-  /* Ink palette — warm off-black to bone. Restrained, but not washed out:
-     every step from 500 up clears WCAG AA on paper at body sizes. */
+  /* Ink — warm off-black to bone. Every step from 500 up clears AA on paper. */
   --color-paper: #f4f1ea;
-  --color-vellum: #ebe7dc;
-  --color-rule: #d5cfc0;
-  --color-ink-50: #f4f1ea;
-  --color-ink-100: #ebe7dc;
-  --color-ink-200: #d5cfc0;
-  --color-ink-300: #aca392;
-  --color-ink-400: #8f887a;
-  --color-ink-500: #6b6558; /* 5.3:1 on paper */
-  --color-ink-600: #4d483d; /* 8.4:1 on paper */
-  --color-ink-700: #322e26;
-  --color-ink-800: #1e1c17;
-  --color-ink-900: #141310;
+  --color-vellum: #eae5d9;
+  --color-rule: #d7d1c2;
+  --color-ink-100: #eae5d9;
+  --color-ink-200: #d7d1c2;
+  --color-ink-300: #a9a08d;
+  --color-ink-400: #857d6d;
+  --color-ink-500: #676153; /* 5.6:1 on paper */
+  --color-ink-600: #4a4539; /* 8.7:1 on paper */
+  --color-ink-700: #302c24;
+  --color-ink-800: #1d1b16;
+  --color-ink-900: #14130f;
 
-  /* Single accent — a fixative amber, warmed up so it reads as a colour rather
-     than as another grey. 5.7:1 on paper, so it is safe for text. */
-  --color-accent: #8f4f24;
-  --color-accent-soft: #b8783f;
-  --color-accent-wash: #f0e6da;
+  /* Bottle green — the structural colour. */
+  --color-green-900: #1e352f;
+  --color-green-700: #2f5147; /* 8.0:1 on paper */
+  --color-green-500: #4a7a6c;
+  --color-green-200: #c3d5cd;
+  --color-green-50: #e4ece8;
+
+  /* Fixative amber — emphasis only. */
+  --color-amber-700: #9c5524; /* 5.0:1 on paper */
+  --color-amber-500: #bd7434;
+  --color-amber-200: #ecd3b8;
+  --color-amber-50: #f7ecdf;
 
   /* Semantics */
-  --color-good: #4d6b3a;
+  --color-good: #3f6b4a;
   --color-warn: #8a6923;
   --color-bad: #8f3a2b;
 }
 
 /* ------------------------------------------------------------------ */
-/* Light mode (default) & dark mode                                    */
+/* Semantic tokens                                                     */
 /* ------------------------------------------------------------------ */
 
-/*
- * Text colours are two steps darker than they used to be. The old --fg-faint
- * (#8f887a) sat at 3.2:1 on paper and was used for every eyebrow, label, and
- * table header at 10–11px — below AA, and the main reason the interface read as
- * washed out rather than quiet. Restraint should come from scale and spacing,
- * not from text you can barely see.
- */
 :root {
   color-scheme: light;
+
+  /* Frag Avenue surface + text roles */
   --bg: var(--color-paper);
-  --bg-elev: #fbfaf7;
-  --bg-sunken: #ece8de;
+  --bg-elev: #faf8f3;
+  --bg-sunken: var(--color-vellum);
   --fg: var(--color-ink-900);
-  --fg-muted: var(--color-ink-600); /* 8.4:1 */
-  --fg-faint: var(--color-ink-500); /* 5.3:1 */
+  --fg-muted: var(--color-ink-600); /* 8.7:1 */
+  --fg-faint: var(--color-ink-500); /* 5.6:1 */
   --rule: var(--color-rule);
   --rule-strong: var(--color-ink-300);
-  --accent: var(--color-accent);
-  --accent-wash: var(--color-accent-wash);
-  --focus: color-mix(in oklab, var(--color-accent) 70%, transparent);
+
+  --brand: var(--color-green-700);
+  --brand-fg: #f6f4ee;
+  --brand-wash: var(--color-green-50);
+  --brand-line: var(--color-green-200);
+
+  --accent-amber: var(--color-amber-700);
+  --accent-wash: var(--color-amber-50);
+  --accent-line: var(--color-amber-200);
+
+  /* Kept for the pre-existing call sites that reference it directly. */
+  --color-accent: var(--color-amber-700);
+
+  --focus: color-mix(in oklab, var(--color-green-700) 65%, transparent);
+  --radius: 0.5rem;
+
+  /* shadcn/ui contract — mapped onto the palette above rather than
+     shipped as a separate grey scale, so the two systems cannot drift. */
+  --background: var(--bg);
+  --foreground: var(--fg);
+  --card: var(--bg-elev);
+  --card-foreground: var(--fg);
+  --popover: var(--bg-elev);
+  --popover-foreground: var(--fg);
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-fg);
+  --secondary: var(--bg-sunken);
+  --secondary-foreground: var(--fg);
+  --muted: var(--bg-sunken);
+  --muted-foreground: var(--fg-muted);
+  --accent: var(--brand-wash);
+  --accent-foreground: var(--color-green-900);
+  --destructive: var(--color-bad);
+  --destructive-foreground: #fdf6f4;
+  --border: var(--rule);
+  --input: var(--rule-strong);
+  --ring: var(--brand);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --bg: #0e0d09;
-    --bg-elev: #17150f;
+
+    --bg: #100f0b;
+    --bg-elev: #191710;
     --bg-sunken: #0a0906;
     --fg: #ece8de;
-    --fg-muted: #b5af9f; /* 9.4:1 */
-    --fg-faint: #8b8474; /* 5.2:1 — was #6b6558 at 3.3:1 */
-    --rule: #2e2b23;
-    --rule-strong: #464236;
-    --accent: #d08b4e;
-    --accent-wash: #241a10;
+    --fg-muted: #b7b1a1; /* 9.6:1 */
+    --fg-faint: #8d8676; /* 5.4:1 */
+    --rule: #2f2c24;
+    --rule-strong: #474337;
+
+    --brand: #6f9c8c;
+    --brand-fg: #0e1613;
+    --brand-wash: #17241f;
+    --brand-line: #2c443b;
+
+    --accent-amber: #d08b4e;
+    --accent-wash: #251a10;
+    --accent-line: #4a3520;
+
+    --color-accent: #d08b4e;
+
+    --focus: color-mix(in oklab, #6f9c8c 70%, transparent);
+
+    --card: var(--bg-elev);
+    --popover: var(--bg-elev);
+    --primary: var(--brand);
+    --primary-foreground: var(--brand-fg);
+    --secondary: #221f18;
+    --secondary-foreground: var(--fg);
+    --muted: #221f18;
+    --accent: var(--brand-wash);
+    --accent-foreground: #cfe0d9;
+    --destructive: #b8503c;
+    --input: var(--rule-strong);
+    --ring: var(--brand);
   }
+}
+
+/*
+ * Tailwind v4 resolves utilities like `bg-primary` and `text-muted-foreground`
+ * from these. `inline` means they follow the :root values above, so dark mode
+ * needs no second mapping.
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
 /* ------------------------------------------------------------------ */
@@ -96,18 +194,16 @@ body {
 }
 
 ::selection {
-  background: color-mix(in oklab, var(--color-accent) 25%, transparent);
+  background: color-mix(in oklab, var(--brand) 22%, transparent);
   color: var(--fg);
 }
 
-/* Consistent, restrained focus ring across all interactive elements. */
 :where(a, button, [role="button"], input, select, textarea):focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
   border-radius: 2px;
 }
 
-/* Native controls should inherit the palette, not the system look. */
 input,
 textarea,
 select,
@@ -116,7 +212,6 @@ button {
   color: inherit;
 }
 
-/* Kill iOS auto-fill lemon-yellow. */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
@@ -125,14 +220,13 @@ input:-webkit-autofill:focus {
 }
 
 /* ------------------------------------------------------------------ */
-/* Utilities                                                           */
+/* Type                                                                */
 /* ------------------------------------------------------------------ */
 
 /*
- * Cormorant Garamond ships old-style (text) figures by default: `1` is drawn at
- * x-height and reads as a small-cap I, and 3/4/5/7/9 descend below the baseline.
- * In running prose that is handsome. In "127 sprays" it is a bug — the dashboard
- * genuinely rendered `I 27`. Ask for lining figures wherever the serif is used.
+ * Cormorant Garamond ships old-style figures by default: `1` is drawn at
+ * x-height and reads as a small-cap I, and 3/4/5/7/9 descend. Handsome in
+ * prose, a bug in "127 sprays" — the dashboard genuinely rendered `I 27`.
  */
 .font-serif {
   font-family: var(--font-serif);
@@ -141,10 +235,9 @@ input:-webkit-autofill:focus {
 }
 
 /*
- * Data numerals use the sans, not the serif. Inter's figures are upright, even
- * in colour, and have real tabular support, so columns line up and a 1 cannot be
- * mistaken for a letter. The serif carries names and titles; the sans carries
- * anything you are meant to compare.
+ * Data numerals use the sans. Inter's figures are upright, even in colour, and
+ * tabular, so columns align and a 1 cannot be mistaken for a letter. The serif
+ * carries names; the sans carries anything you are meant to compare.
  */
 .numeric {
   font-family: var(--font-sans);
@@ -153,11 +246,71 @@ input:-webkit-autofill:focus {
   letter-spacing: -0.01em;
 }
 
-.font-italic {
-  font-style: italic;
+/*
+ * Small caps label. Previously every label on every page used the same 10px
+ * uppercase 0.22em treatment, which flattened the hierarchy — a section
+ * heading and a table column read identically. This is now reserved for
+ * column headers and metadata, and section headings use real headings.
+ */
+.label-caps {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
 }
 
-/* iOS PWA bottom safe area */
+/* ------------------------------------------------------------------ */
+/* Forms                                                               */
+/* ------------------------------------------------------------------ */
+
+/*
+ * One definition for every text input, number input, and select in the app.
+ * These two rules were previously copy-pasted as string constants into five
+ * separate form files, so the inputs drifted and none of them picked up a
+ * palette change.
+ *
+ * Labels are sentence case rather than 0.14em uppercase: with every label,
+ * heading, and column header set in tracked caps, nothing on a form read as
+ * more or less important than anything else.
+ */
+.field-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--fg-muted);
+}
+
+.field-input {
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--rule-strong);
+  background-color: var(--bg-elev);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--fg);
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+.field-input::placeholder {
+  color: var(--fg-faint);
+}
+.field-input:hover {
+  border-color: var(--fg-faint);
+}
+.field-input:focus,
+.field-input:focus-visible {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 22%, transparent);
+}
+.field-input[aria-invalid="true"] {
+  border-color: var(--destructive);
+}
+.field-input[aria-invalid="true"]:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--destructive) 22%, transparent);
+}
+
+/* iOS PWA safe areas */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -165,34 +318,21 @@ input:-webkit-autofill:focus {
   padding-top: env(safe-area-inset-top);
 }
 
-/* Editorial eyebrow — used above every page heading */
-.eyebrow {
-  color: var(--fg-faint);
-  font-size: 0.6875rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  font-weight: 500;
-}
-
-/* Editorial rule — full width hairline. Border-t/border-b of --rule. */
-.hair {
-  border-color: var(--rule);
-}
-
-/* Restrained hover for links inside body copy */
 .link-editorial {
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
-  text-decoration-color: color-mix(in oklab, var(--fg) 30%, transparent);
+  text-decoration-color: color-mix(in oklab, var(--brand) 45%, transparent);
   transition: text-decoration-color 200ms;
 }
 .link-editorial:hover {
-  text-decoration-color: var(--fg);
+  text-decoration-color: var(--brand);
 }
 
-/* Collection shelf detail panel reveal. Local keyframe so the shelf does not
-   pull in a Tailwind animation plugin for a single transition. */
+/* ------------------------------------------------------------------ */
+/* Motion                                                              */
+/* ------------------------------------------------------------------ */
+
 @keyframes reveal-down {
   from {
     opacity: 0;

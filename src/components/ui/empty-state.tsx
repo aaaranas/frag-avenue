@@ -1,7 +1,9 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Editorial empty state — a serif line inside a bordered frame, not a busy card.
+ * Empty state — a serif line on a sunken panel. Sits on the muted surface rather
+ * than an outlined box so it reads as "nothing here yet" rather than as a card
+ * whose contents failed to load.
  */
 export function EmptyState({
   title,
@@ -15,14 +17,16 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "rounded-sm border border-[color:var(--rule)] px-6 py-10 text-center",
+        "rounded-lg border border-[color:var(--rule)] bg-[color:var(--bg-sunken)] px-6 py-12 text-center",
         className,
       )}
     >
       {title ? (
-        <p className="font-serif text-xl leading-tight text-[color:var(--fg)]">{title}</p>
+        <p className="font-serif text-2xl leading-tight text-[color:var(--fg)]">{title}</p>
       ) : null}
-      <div className="mt-2 text-sm text-[color:var(--fg-muted)]">{children}</div>
+      <div className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-[color:var(--fg-muted)]">
+        {children}
+      </div>
     </div>
   );
 }

@@ -2,7 +2,8 @@
 
 import { Fragment, useEffect, useState } from "react";
 import Link from "next/link";
-import { X } from "lucide-react";
+import { ArrowRight, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Bottle } from "@/components/bottle/bottle";
 import { Chip } from "@/components/ui/chip";
 import { Eyebrow } from "@/components/ui/eyebrow";
@@ -298,25 +299,20 @@ function DetailPanel({ item, onClose }: { item: CollectionListItem; onClose: () 
               </p>
             ) : null}
 
-            <div className="mt-6 flex flex-wrap gap-2">
-              <Link
-                href={{ pathname: "/wear/new", query: { collectionItemId: item.id } }}
-                className="rounded-sm bg-[color:var(--fg)] px-4 py-2 text-xs font-medium tracking-wide text-[color:var(--bg)]"
-              >
-                Log wear
-              </Link>
-              <Link
-                href={`/collection/${item.id}/edit`}
-                className="rounded-sm border border-[color:var(--rule-strong)] px-4 py-2 text-xs hover:bg-[color:var(--bg)]"
-              >
-                Edit
-              </Link>
-              <Link
-                href={`/fragrances/${item.fragrance.id}`}
-                className="ml-auto self-center text-xs text-[color:var(--fg-muted)] hover:text-[color:var(--fg)]"
-              >
-                Fragrance page →
-              </Link>
+            <div className="mt-6 flex flex-wrap items-center gap-2">
+              <Button asChild size="sm">
+                <Link href={{ pathname: "/wear/new", query: { collectionItemId: item.id } }}>
+                  Log wear
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/collection/${item.id}/edit`}>Edit</Link>
+              </Button>
+              <Button asChild variant="ghost" size="sm" className="ml-auto">
+                <Link href={`/fragrances/${item.fragrance.id}`}>
+                  Fragrance page <ArrowRight />
+                </Link>
+              </Button>
             </div>
           </div>
         </div>

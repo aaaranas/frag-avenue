@@ -1,10 +1,13 @@
 import Link from "next/link";
+import { ArrowRight, Plus } from "lucide-react";
 import { requireUser } from "@/modules/auth/session";
 import { getDashboardStats, type RecentWear } from "@/modules/analytics/data";
 import { formatMoney, type MoneyByCurrency, type NeglectedFragrance } from "@/modules/analytics";
 import { PageHeader } from "@/components/ui/page-header";
 import { Stat } from "@/components/ui/stat";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const metadata = { title: "Dashboard" };
 export const dynamic = "force-dynamic";
@@ -55,12 +58,16 @@ export default async function DashboardPage() {
         title="Today"
         actions={
           hasCollection ? (
-            <Link
-              href="/advisor"
-              className="rounded-sm bg-[color:var(--fg)] px-4 py-2 text-xs font-medium tracking-wide text-[color:var(--bg)]"
-            >
-              What should I wear?
-            </Link>
+            <>
+              <Button asChild variant="outline">
+                <Link href="/wear/new">
+                  <Plus /> Log a wear
+                </Link>
+              </Button>
+              <Button asChild>
+                <Link href="/advisor">What should I wear?</Link>
+              </Button>
+            </>
           ) : null
         }
       />
@@ -99,28 +106,39 @@ export default async function DashboardPage() {
             </dl>
           </section>
 
-          <div className="mt-16 grid gap-12 md:grid-cols-2 md:gap-16">
-            <MostWorn rows={stats.topWorn90d} />
-            <Neglected rows={stats.neglected} />
-          </div>
+          {/*
+            Recent activity is the tallest block, so it anchors the left column
+            and the two short summaries stack beside it. Laid out side by side
+            as three equal sections, the page ended half empty.
+          */}
+          <div className="mt-10 grid gap-6 lg:grid-cols-[1.35fr_1fr] lg:items-start">
+            {/* Each panel stays a labelled region: the Card is presentational,
+                so the landmark and its accessible name live on the section. */}
+            <section aria-labelledby="recent-heading">
+              <Card>
+                <CardHeader className="border-b border-[color:var(--rule)] pb-4">
+                  <CardTitle id="recent-heading" className="font-serif text-lg font-normal">
+                    Recent activity
+                  </CardTitle>
+                  <div className="col-start-2 row-span-2 row-start-1 self-center justify-self-end">
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href="/wear">
+                        All wears <ArrowRight />
+                      </Link>
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <RecentActivity rows={stats.recentWears} now={now} />
+                </CardContent>
+              </Card>
+            </section>
 
-          <section aria-labelledby="recent-heading" className="mt-16">
-            <div className="mb-4 flex items-baseline justify-between border-b border-[color:var(--rule)] pb-3">
-              <h2
-                id="recent-heading"
-                className="text-[10px] font-medium tracking-[0.22em] text-[color:var(--fg-faint)] uppercase"
-              >
-                Recent activity
-              </h2>
-              <Link
-                href="/wear"
-                className="text-xs text-[color:var(--fg-muted)] hover:text-[color:var(--fg)]"
-              >
-                View all →
-              </Link>
+            <div className="flex flex-col gap-6">
+              <MostWorn rows={stats.topWorn90d} />
+              <Neglected rows={stats.neglected} />
             </div>
-            <RecentActivity rows={stats.recentWears} now={now} />
-          </section>
+          </div>
         </>
       )}
     </div>
@@ -142,37 +160,43 @@ function MostWorn({
 }) {
   return (
     <section aria-labelledby="most-worn-heading">
-      <h2
-        id="most-worn-heading"
-        className="mb-3 border-b border-[color:var(--rule)] pb-3 text-[10px] font-medium tracking-[0.22em] text-[color:var(--fg-faint)] uppercase"
-      >
-        Most worn · 90 days
-      </h2>
-      {rows.length === 0 ? (
-        <p className="text-sm text-[color:var(--fg-muted)]">No wears in the last 90 days.</p>
-      ) : (
-        <ol className="flex flex-col">
-          {rows.map((r, i) => (
-            <li key={r.fragranceId}>
-              <Link
-                href={`/fragrances/${r.fragranceId}`}
-                className="flex items-baseline gap-4 py-3 transition-colors hover:bg-[color:var(--bg-elev)]"
-              >
-                <span className="w-4 font-serif text-lg text-[color:var(--color-accent)] italic tabular-nums">
-                  {i + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] tracking-[0.14em] text-[color:var(--fg-faint)] uppercase">
-                    {r.brand}
-                  </p>
-                  <p className="truncate text-sm">{r.name}</p>
-                </div>
-                <span className="text-sm text-[color:var(--fg-muted)] tabular-nums">{r.wears}</span>
-              </Link>
-            </li>
-          ))}
-        </ol>
-      )}
+      <Card>
+        <CardHeader className="border-b border-[color:var(--rule)] pb-4">
+          <CardTitle id="most-worn-heading" className="font-serif text-lg font-normal">
+            Most worn
+          </CardTitle>
+          <p className="label-caps">Last 90 days</p>
+        </CardHeader>
+        <CardContent>
+          {rows.length === 0 ? (
+            <p className="py-2 text-sm text-[color:var(--fg-muted)]">
+              No wears in the last 90 days.
+            </p>
+          ) : (
+            <ol className="-mx-2 flex flex-col">
+              {rows.map((r, i) => (
+                <li key={r.fragranceId}>
+                  <Link
+                    href={`/fragrances/${r.fragranceId}`}
+                    className="flex items-center gap-3 rounded-md px-2 py-2.5 transition-colors hover:bg-[color:var(--brand-wash)]"
+                  >
+                    <span className="numeric flex size-6 shrink-0 items-center justify-center rounded-full bg-[color:var(--brand-wash)] text-xs font-medium text-[color:var(--brand)]">
+                      {i + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="label-caps truncate">{r.brand}</p>
+                      <p className="truncate text-sm">{r.name}</p>
+                    </div>
+                    <span className="numeric shrink-0 text-sm text-[color:var(--fg-muted)]">
+                      {r.wears}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          )}
+        </CardContent>
+      </Card>
     </section>
   );
 }
@@ -180,64 +204,64 @@ function MostWorn({
 function Neglected({ rows }: { rows: NeglectedFragrance[] }) {
   return (
     <section aria-labelledby="neglected-heading">
-      <h2
-        id="neglected-heading"
-        className="mb-3 border-b border-[color:var(--rule)] pb-3 text-[10px] font-medium tracking-[0.22em] text-[color:var(--fg-faint)] uppercase"
-      >
-        Neglected
-      </h2>
-      {rows.length === 0 ? (
-        <p className="text-sm text-[color:var(--fg-muted)]">
-          Nothing neglected — everything in your wardrobe has been worn recently or is newly bought.
-        </p>
-      ) : (
-        <ol className="flex flex-col">
-          {rows.map((r) => (
-            <li key={r.fragranceId}>
-              <Link
-                href={`/fragrances/${r.fragranceId}`}
-                className="flex items-baseline gap-4 py-3 transition-colors hover:bg-[color:var(--bg-elev)]"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] tracking-[0.14em] text-[color:var(--fg-faint)] uppercase">
-                    {r.brand}
-                  </p>
-                  <p className="truncate text-sm">{r.name}</p>
-                </div>
-                <span className="shrink-0 text-xs text-[color:var(--fg-muted)] tabular-nums">
-                  {r.daysSinceLastWear === null ? "never" : `${r.daysSinceLastWear}d ago`}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ol>
-      )}
+      <Card>
+        <CardHeader className="border-b border-[color:var(--rule)] pb-4">
+          <CardTitle id="neglected-heading" className="font-serif text-lg font-normal">
+            Neglected
+          </CardTitle>
+          <p className="label-caps">Owned 90d+, unworn 60d+</p>
+        </CardHeader>
+        <CardContent>
+          {rows.length === 0 ? (
+            <p className="py-2 text-sm text-[color:var(--fg-muted)]">
+              Nothing neglected. Everything has been worn recently or is newly bought.
+            </p>
+          ) : (
+            <ol className="-mx-2 flex flex-col">
+              {rows.map((r) => (
+                <li key={r.fragranceId}>
+                  <Link
+                    href={`/fragrances/${r.fragranceId}`}
+                    className="flex items-center gap-3 rounded-md px-2 py-2.5 transition-colors hover:bg-[color:var(--accent-wash)]"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="label-caps truncate">{r.brand}</p>
+                      <p className="truncate text-sm">{r.name}</p>
+                    </div>
+                    <span className="numeric shrink-0 text-xs text-[color:var(--accent-amber)]">
+                      {r.daysSinceLastWear === null ? "never worn" : `${r.daysSinceLastWear}d ago`}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          )}
+        </CardContent>
+      </Card>
     </section>
   );
 }
 
 function RecentActivity({ rows, now }: { rows: RecentWear[]; now: Date }) {
   if (rows.length === 0) {
-    return <p className="text-sm text-[color:var(--fg-muted)]">No wears logged yet.</p>;
+    return <p className="py-2 text-sm text-[color:var(--fg-muted)]">No wears logged yet.</p>;
   }
   return (
     <ul className="flex flex-col divide-y divide-[color:var(--rule)]">
       {rows.map((r) => (
-        <li key={r.id} className="flex items-baseline gap-4 py-3">
-          <span className="w-14 shrink-0 text-xs text-[color:var(--fg-faint)] tabular-nums">
+        <li key={r.id} className="flex items-center gap-4 py-3 first:pt-1">
+          <span className="numeric w-14 shrink-0 text-xs text-[color:var(--fg-faint)]">
             {formatRelative(r.wornAt, now)}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] tracking-[0.14em] text-[color:var(--fg-faint)] uppercase">
-              {r.brandName}
-            </p>
+            <p className="label-caps truncate">{r.brandName}</p>
             <p className="truncate text-sm">
               <Link href={`/fragrances/${r.fragranceId}`} className="link-editorial">
                 {r.fragranceName}
               </Link>
             </p>
           </div>
-          <span className="text-xs text-[color:var(--fg-muted)] tabular-nums">
+          <span className="numeric shrink-0 text-xs text-[color:var(--fg-muted)]">
             {r.sprays} sprays
           </span>
         </li>

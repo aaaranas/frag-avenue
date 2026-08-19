@@ -76,7 +76,7 @@ export function PrimaryNav() {
                     active
                       ? "text-[color:var(--fg)]"
                       : "text-[color:var(--fg-faint)] hover:text-[color:var(--fg)]",
-                    item.primary && !active && "text-[color:var(--color-accent)]",
+                    item.primary && !active && "text-[color:var(--accent-amber)]",
                   )}
                 >
                   {active ? (
@@ -122,7 +122,7 @@ export function PrimaryNav() {
                   {active ? (
                     <span
                       aria-hidden
-                      className="absolute top-1/2 -left-8 h-4 w-[2px] -translate-y-1/2 bg-[color:var(--color-accent)]"
+                      className="absolute top-1/2 -left-8 h-4 w-[2px] -translate-y-1/2 bg-[color:var(--accent-amber)]"
                     />
                   ) : null}
                   <item.icon

@@ -10,10 +10,8 @@ type Props = {
   initialCondition: string;
 };
 
-const selectClass =
-  "rounded-sm border border-[color:var(--rule-strong)] bg-[color:var(--bg)] px-3 py-2 text-sm text-[color:var(--fg)] hover:border-[color:var(--fg-muted)] focus:border-[color:var(--color-accent)] focus:outline-none transition-colors";
-const labelClass =
-  "text-[11px] font-medium tracking-[0.14em] uppercase text-[color:var(--fg-muted)]";
+const selectClass = "field-input";
+const labelClass = "field-label";
 
 export function AdvisorControls({ initialOccasion, initialTemp, initialCondition }: Props) {
   const router = useRouter();

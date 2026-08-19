@@ -1,6 +1,7 @@
 import { requireUser } from "@/modules/auth/session";
 import { signOutAction } from "@/modules/auth";
 import { PageHeader } from "@/components/ui/page-header";
+import { Button } from "@/components/ui/button";
 
 export default async function ProfilePage() {
   const user = await requireUser("/profile");
@@ -22,12 +23,9 @@ export default async function ProfilePage() {
         }}
         className="mt-10"
       >
-        <button
-          type="submit"
-          className="rounded-sm border border-[color:var(--rule-strong)] px-4 py-2 text-sm hover:bg-[color:var(--bg-elev)]"
-        >
+        <Button type="submit" variant="outline">
           Sign out
-        </button>
+        </Button>
       </form>
     </div>
   );

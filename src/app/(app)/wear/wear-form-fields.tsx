@@ -5,12 +5,9 @@ import { OCCASIONS, ENVIRONMENTS, type WEATHER_CONDITIONS } from "@/modules/wear
 import { Field } from "@/components/ui/field";
 import { WeatherFieldset } from "./weather-fieldset";
 
-const selectClass =
-  "rounded-sm border border-[color:var(--rule-strong)] bg-[color:var(--bg)] px-3 py-2 text-sm text-[color:var(--fg)] hover:border-[color:var(--fg-muted)] focus:border-[color:var(--color-accent)] focus:outline-none transition-colors";
-const labelClass =
-  "text-[11px] font-medium tracking-[0.14em] uppercase text-[color:var(--fg-muted)]";
-const legendClass =
-  "text-[10px] font-medium tracking-[0.22em] uppercase text-[color:var(--fg-faint)]";
+const selectClass = "field-input";
+const labelClass = "field-label";
+const legendClass = "field-label";
 
 export type WearFieldDefaults = {
   wornAt: string; // "YYYY-MM-DDTHH:mm"
@@ -155,7 +152,7 @@ export function WearFormFields({
           rows={3}
           maxLength={2000}
           defaultValue={defaults.notes}
-          className="rounded-sm border border-[color:var(--rule-strong)] bg-[color:var(--bg)] px-3 py-2 text-sm text-[color:var(--fg)] transition-colors hover:border-[color:var(--fg-muted)] focus:border-[color:var(--color-accent)] focus:outline-none"
+          className="rounded-sm border border-[color:var(--rule-strong)] bg-[color:var(--bg)] px-3 py-2 text-sm text-[color:var(--fg)] transition-colors hover:border-[color:var(--fg-muted)] focus:border-[color:var(--accent-amber)] focus:outline-none"
           placeholder="Anything worth remembering about this wear…"
         />
       </div>

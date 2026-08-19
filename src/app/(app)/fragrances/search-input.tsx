@@ -46,7 +46,7 @@ export function SearchInput({ initialQ }: { initialQ: string }) {
         placeholder="Search by fragrance or brand…"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        className="w-full rounded-sm border border-[color:var(--rule-strong)] bg-[color:var(--bg)] py-2 pr-3 pl-9 text-sm transition-colors hover:border-[color:var(--fg-muted)] focus:border-[color:var(--color-accent)] focus:outline-none"
+        className="field-input pl-9"
       />
     </div>
   );

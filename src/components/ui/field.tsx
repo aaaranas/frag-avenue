@@ -7,8 +7,12 @@ type FieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
 };
 
 /**
- * Minimal accessible input. Label sits above; error takes its slot below.
- * No decorative frames — the input is a subtle bordered rectangle.
+ * Accessible text input. Label above, error in its own slot below.
+ *
+ * Appearance comes from the shared `.field-input` / `.field-label` utilities so
+ * this control and the hand-built selects on the wear and collection forms
+ * cannot drift apart. The invalid state is driven off `aria-invalid`, which the
+ * input already sets — no second source of truth for "this field is wrong".
  */
 export function Field({ id, label, error, hint, className, ...rest }: FieldProps) {
   const inputId = id ?? rest.name;
@@ -17,23 +21,14 @@ export function Field({ id, label, error, hint, className, ...rest }: FieldProps
   const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
   return (
     <div className="flex flex-col gap-1.5">
-      <label
-        htmlFor={inputId}
-        className="text-[11px] font-medium tracking-[0.14em] text-[color:var(--fg-muted)] uppercase"
-      >
+      <label htmlFor={inputId} className="field-label">
         {label}
       </label>
       <input
         id={inputId}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
-        className={cn(
-          "rounded-sm border bg-[color:var(--bg)] px-3 py-2 text-sm text-[color:var(--fg)] transition-colors placeholder:text-[color:var(--fg-faint)]",
-          "border-[color:var(--rule-strong)] hover:border-[color:var(--fg-muted)]",
-          "focus:border-[color:var(--color-accent)] focus:outline-none",
-          error && "border-red-700/60 focus:border-red-700 dark:border-red-500/60",
-          className,
-        )}
+        className={cn("field-input", className)}
         {...rest}
       />
       {hint && !error ? (

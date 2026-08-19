@@ -1,8 +1,12 @@
+import { Badge } from "./badge";
 import { cn } from "@/lib/utils";
 
 /**
- * Chip — used for accord tags, filter pills, small labels.
- * Restrained: no filled backgrounds, just a hairline border.
+ * Accord tag. A thin wrapper over the shadcn Badge so the existing call sites
+ * keep their name, but the appearance comes from one place.
+ *
+ * Filled with the brand wash rather than outlined — a row of hairline-outlined
+ * pills disappeared into the page rules around them.
  */
 export function Chip({
   children,
@@ -14,14 +18,15 @@ export function Chip({
   title?: string;
 }) {
   return (
-    <span
+    <Badge
       title={title}
+      variant="secondary"
       className={cn(
-        "inline-flex items-center rounded-sm border border-[color:var(--rule-strong)] px-2.5 py-1 text-xs tracking-wide",
+        "border-[color:var(--brand-line)] bg-[color:var(--brand-wash)] px-2.5 py-1 font-normal text-[color:var(--accent-foreground)] capitalize",
         className,
       )}
     >
       {children}
-    </span>
+    </Badge>
   );
 }

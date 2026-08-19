@@ -3,9 +3,10 @@ import { test, expect } from "@playwright/test";
 test("landing page loads for a signed-out visitor", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Your wardrobe");
-  // Signed out, the hero call to action is sign-up, not "enter the app".
-  await expect(page.getByRole("link", { name: /create your account/i })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("You own the collection");
+  // Signed out, the hero call to action is sign-up, not "open the app".
+  await expect(page.getByRole("link", { name: /start your wardrobe/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /open the app/i })).toHaveCount(0);
 });
 
 test("the landing page routes a signed-out visitor to sign-in", async ({ page }) => {

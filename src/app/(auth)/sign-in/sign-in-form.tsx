@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { signInAction, type FormState } from "@/modules/auth";
 import { Field } from "@/components/ui/field";
+import { Button } from "@/components/ui/button";
 
 const INITIAL: FormState = { ok: false };
 
@@ -33,13 +34,9 @@ export function SignInForm({ next }: { next?: string }) {
           {state.message}
         </p>
       ) : null}
-      <button
-        type="submit"
-        disabled={pending}
-        className="mt-2 rounded-sm bg-[color:var(--fg)] px-5 py-3 text-sm font-medium tracking-wide text-[color:var(--bg)] transition hover:opacity-90 disabled:opacity-60"
-      >
+      <Button type="submit" disabled={pending}>
         {pending ? "Signing in…" : "Sign in"}
-      </button>
+      </Button>
     </form>
   );
 }

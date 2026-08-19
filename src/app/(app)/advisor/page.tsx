@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { z } from "zod";
 import { requireUser } from "@/modules/auth/session";
 import { getRecommendations } from "@/modules/recommendations/data";
@@ -7,6 +8,8 @@ import { Bottle } from "@/components/bottle/bottle";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Chip } from "@/components/ui/chip";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { SHAPE_LABEL, fillLabel } from "@/lib/bottle-appearance";
 import { AdvisorControls } from "./advisor-controls";
 
@@ -73,116 +76,109 @@ export default async function AdvisorPage({ searchParams }: { searchParams: Sear
             const bottle = bottles.get(r.collectionItemId);
             const fill = fillLabel(bottle?.fillRatio ?? null);
             return (
-              <li
-                key={r.collectionItemId}
-                className="rounded-sm border border-[color:var(--rule)] p-6 md:p-7"
-              >
-                <div className="grid grid-cols-[auto_1fr_auto] items-start gap-5 md:gap-7">
-                  <Link
-                    href={`/fragrances/${r.fragranceId}`}
-                    className="shrink-0 transition-transform hover:-translate-y-1"
-                    aria-label={
-                      bottle
-                        ? `${r.brandName} ${r.fragranceName} — ${SHAPE_LABEL[bottle.shape]}` +
-                          (fill ? `, ${fill.toLowerCase()}` : "")
-                        : `${r.brandName} ${r.fragranceName}`
-                    }
-                  >
-                    <Bottle
-                      color={bottle?.color ?? "#a89680"}
-                      shape={bottle?.shape}
-                      capColor={bottle?.capColor}
-                      finish={bottle?.finish}
-                      fillRatio={bottle?.fillRatio ?? null}
-                      size={72}
-                      className="drop-shadow-[0_6px_12px_rgba(0,0,0,0.12)]"
-                    />
-                  </Link>
+              <li key={r.collectionItemId}>
+                <Card className="p-6 md:p-7">
+                  <div className="grid grid-cols-[auto_1fr_auto] items-start gap-5 md:gap-7">
+                    <Link
+                      href={`/fragrances/${r.fragranceId}`}
+                      className="shrink-0 transition-transform hover:-translate-y-1"
+                      aria-label={
+                        bottle
+                          ? `${r.brandName} ${r.fragranceName} — ${SHAPE_LABEL[bottle.shape]}` +
+                            (fill ? `, ${fill.toLowerCase()}` : "")
+                          : `${r.brandName} ${r.fragranceName}`
+                      }
+                    >
+                      <Bottle
+                        color={bottle?.color ?? "#a89680"}
+                        shape={bottle?.shape}
+                        capColor={bottle?.capColor}
+                        finish={bottle?.finish}
+                        fillRatio={bottle?.fillRatio ?? null}
+                        size={72}
+                        className="drop-shadow-[0_6px_12px_rgba(0,0,0,0.12)]"
+                      />
+                    </Link>
 
-                  <div className="min-w-0">
-                    <div className="flex items-baseline gap-3">
-                      <span className="font-serif text-lg text-[color:var(--color-accent)] italic tabular-nums">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <p className="text-[10px] tracking-[0.22em] text-[color:var(--fg-faint)] uppercase">
-                        {r.brandName}
-                      </p>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2.5">
+                        <span className="numeric flex size-5 shrink-0 items-center justify-center rounded-full bg-[color:var(--brand-wash)] text-[11px] font-medium text-[color:var(--brand)]">
+                          {i + 1}
+                        </span>
+                        <p className="label-caps">{r.brandName}</p>
+                      </div>
+                      <h2 className="mt-1 font-serif text-3xl leading-tight">
+                        <Link
+                          href={`/fragrances/${r.fragranceId}`}
+                          className="decoration-[color:var(--rule-strong)] underline-offset-4 hover:underline hover:decoration-[color:var(--fg)]"
+                        >
+                          {r.fragranceName}
+                        </Link>
+                      </h2>
                     </div>
-                    <h2 className="mt-1 font-serif text-3xl leading-tight">
-                      <Link
-                        href={`/fragrances/${r.fragranceId}`}
-                        className="decoration-[color:var(--rule-strong)] underline-offset-4 hover:underline hover:decoration-[color:var(--fg)]"
-                      >
-                        {r.fragranceName}
-                      </Link>
-                    </h2>
+
+                    <div className="shrink-0 text-right">
+                      {r.displayScore !== null ? (
+                        <div>
+                          <p className="numeric text-5xl leading-none font-medium text-[color:var(--brand)]">
+                            {r.displayScore}
+                            <span className="text-2xl text-[color:var(--fg-faint)]">%</span>
+                          </p>
+                          <p className="label-caps mt-1">Match</p>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="font-serif text-2xl leading-none text-[color:var(--accent-amber)] italic">
+                            Suggested
+                          </p>
+                          <p className="label-caps mt-1">Cold-start</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="shrink-0 text-right">
-                    {r.displayScore !== null ? (
-                      <div>
-                        <p className="numeric text-5xl leading-none font-medium">
-                          {r.displayScore}
-                          <span className="text-2xl text-[color:var(--fg-faint)]">%</span>
-                        </p>
-                        <p className="mt-1 text-[10px] tracking-[0.18em] text-[color:var(--fg-faint)] uppercase">
-                          Match
-                        </p>
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="font-serif text-2xl leading-none text-[color:var(--color-accent)] italic">
-                          Suggested
-                        </p>
-                        <p className="mt-1 text-[10px] tracking-[0.18em] text-[color:var(--fg-faint)] uppercase">
-                          Cold-start
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {r.reasons.length > 0 ? (
-                  <ul className="mt-6 flex flex-col gap-2 border-t border-[color:var(--rule)] pt-5 text-sm leading-relaxed text-[color:var(--fg-muted)]">
-                    {r.reasons.map((reason, ri) => (
-                      <li key={ri} className="flex gap-3">
-                        <span
-                          aria-hidden
-                          className="mt-2 h-px w-4 shrink-0 bg-[color:var(--color-accent)]"
-                        />
-                        <span>{reason}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-
-                <div className="mt-6 flex items-center gap-3">
-                  <Link
-                    href={{
-                      pathname: "/wear/new",
-                      query: { collectionItemId: r.collectionItemId },
-                    }}
-                    className="rounded-sm bg-[color:var(--fg)] px-4 py-2 text-xs font-medium tracking-wide text-[color:var(--bg)]"
-                  >
-                    Log this wear
-                  </Link>
-                  <Link
-                    href={`/fragrances/${r.fragranceId}`}
-                    className="text-xs text-[color:var(--fg-muted)] hover:text-[color:var(--fg)]"
-                  >
-                    View fragrance →
-                  </Link>
-                  {fill ? (
-                    // The bottle drawing shows the level; this is the same fact in
-                    // words, for anyone not reading the illustration.
-                    <span className="ml-auto text-xs text-[color:var(--fg-faint)]">
-                      {fill}
-                      {bottle && bottle.remainingMl !== null ? (
-                        <span className="tabular-nums"> · {bottle.remainingMl} ml left</span>
-                      ) : null}
-                    </span>
+                  {r.reasons.length > 0 ? (
+                    <ul className="mt-6 flex flex-col gap-2 border-t border-[color:var(--rule)] pt-5 text-sm leading-relaxed text-[color:var(--fg-muted)]">
+                      {r.reasons.map((reason, ri) => (
+                        <li key={ri} className="flex gap-3">
+                          <span
+                            aria-hidden
+                            className="mt-2 h-px w-4 shrink-0 bg-[color:var(--accent-amber)]"
+                          />
+                          <span>{reason}</span>
+                        </li>
+                      ))}
+                    </ul>
                   ) : null}
-                </div>
+
+                  <div className="mt-6 flex flex-wrap items-center gap-2">
+                    <Button asChild size="sm">
+                      <Link
+                        href={{
+                          pathname: "/wear/new",
+                          query: { collectionItemId: r.collectionItemId },
+                        }}
+                      >
+                        Log this wear
+                      </Link>
+                    </Button>
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href={`/fragrances/${r.fragranceId}`}>
+                        View fragrance <ArrowRight />
+                      </Link>
+                    </Button>
+                    {fill ? (
+                      // The bottle drawing shows the level; this is the same fact in
+                      // words, for anyone not reading the illustration.
+                      <span className="ml-auto text-xs text-[color:var(--fg-faint)]">
+                        {fill}
+                        {bottle && bottle.remainingMl !== null ? (
+                          <span className="tabular-nums"> · {bottle.remainingMl} ml left</span>
+                        ) : null}
+                      </span>
+                    ) : null}
+                  </div>
+                </Card>
               </li>
             );
           })}
