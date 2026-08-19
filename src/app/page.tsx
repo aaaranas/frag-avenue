@@ -48,8 +48,8 @@ export default async function LandingPage() {
           <span className="text-[color:var(--fg-muted)] italic">quantified.</span>
         </h1>
         <p className="mt-8 max-w-lg text-base leading-relaxed text-[color:var(--fg-muted)]">
-          Track what you own. Log what you wear. Learn what actually works — for your skin, your
-          climate, and your day.
+          Keep a record of what you own and what you wear. Given enough entries, it starts showing
+          you which bottles actually earn their place.
         </p>
 
         <div className="mt-12 flex items-center gap-6">
@@ -92,30 +92,32 @@ export default async function LandingPage() {
       <section className="border-t border-[color:var(--rule)] py-16 md:py-24">
         <div className="grid gap-12 md:grid-cols-2">
           <div>
-            <Eyebrow>Principles</Eyebrow>
+            <Eyebrow>How it works</Eyebrow>
             <h2 className="mt-3 font-serif text-3xl leading-tight md:text-4xl">
-              Signal, not narrative.
+              You can check the maths.
             </h2>
           </div>
           <ul className="flex flex-col gap-4 text-sm leading-relaxed text-[color:var(--fg-muted)]">
             <li>
-              <span className="text-[color:var(--fg)]">Explainable by design.</span> Every score is
-              decomposed into named sub-scores.
+              <span className="text-[color:var(--fg)]">Nothing is a black box.</span> Each
+              suggestion lists the parts that made up its score, and what each one contributed.
             </li>
             <li>
-              <span className="text-[color:var(--fg)]">No LLM narration.</span> Reasons are derived
-              from the actual numbers, never post-hoc prose.
+              <span className="text-[color:var(--fg)]">Reasons come from your numbers.</span>
+              &ldquo;You&rsquo;ve rated this 5.0 across 5 wears&rdquo; is something you can go and
+              verify in your own log.
             </li>
             <li>
-              <span className="text-[color:var(--fg)]">Cold-start honest.</span> When data is thin,
-              the app says so and adapts. It doesn&rsquo;t invent precision.
+              <span className="text-[color:var(--fg)]">Under ten wears, it stops scoring.</span> You
+              get a suggestion and a plain reason rather than a percentage there isn&rsquo;t yet
+              enough data to justify.
             </li>
           </ul>
         </div>
       </section>
 
       <footer className="border-t border-[color:var(--rule)] py-8 text-xs text-[color:var(--fg-faint)]">
-        Foundation build · MVP complete
+        Frag Avenue
       </footer>
     </main>
   );

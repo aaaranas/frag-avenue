@@ -184,7 +184,7 @@ function BottleCard({
       <Link
         href={{ pathname: "/wear/new", query: { collectionItemId: item.id } }}
         aria-label={`Log a wear of ${item.fragrance.brand.name} ${item.fragrance.name}`}
-        className="mt-2.5 rounded-sm border border-transparent px-2 py-1 text-[10px] tracking-[0.18em] text-[color:var(--fg-faint)] uppercase hover:border-[color:var(--rule-strong)] hover:text-[color:var(--fg)] focus-visible:border-[color:var(--rule-strong)] focus-visible:text-[color:var(--fg)]"
+        className="mt-3 rounded-full border border-[color:var(--rule-strong)] px-3.5 py-1.5 text-[11px] font-medium tracking-wide text-[color:var(--fg-muted)] transition-colors hover:border-[color:var(--accent)] hover:bg-[color:var(--accent-wash)] hover:text-[color:var(--accent)] focus-visible:border-[color:var(--accent)]"
       >
         Log wear
       </Link>

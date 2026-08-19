@@ -15,9 +15,7 @@ export default async function CollectionPage() {
       <PageHeader
         eyebrow="Wardrobe"
         title="Collection"
-        subtitle={
-          items.length > 0 ? "Tap a bottle to inspect its notes and log a wear." : undefined
-        }
+        subtitle={items.length > 0 ? "Click a bottle to see its notes and details." : undefined}
         actions={
           <Link
             href="/fragrances"

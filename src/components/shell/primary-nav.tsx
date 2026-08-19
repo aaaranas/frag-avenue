@@ -140,12 +140,6 @@ export function PrimaryNav() {
             );
           })}
         </ul>
-
-        <div className="mt-auto pt-8">
-          <p className="text-[10px] tracking-[0.18em] text-[color:var(--fg-faint)] uppercase">
-            Foundation build
-          </p>
-        </div>
       </nav>
     </>
   );

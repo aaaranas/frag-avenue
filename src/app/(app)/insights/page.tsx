@@ -27,7 +27,7 @@ export default async function InsightsPage() {
       <PageHeader
         eyebrow="Intelligence"
         title="Insights"
-        subtitle="Deterministic patterns from your wear history. No guesses."
+        subtitle="Everything here is counted from your own wear log."
       />
 
       {insights.totalWears < MIN_WEARS_FOR_INSIGHTS ? (
@@ -50,13 +50,13 @@ export default async function InsightsPage() {
             )}
           </Section>
 
-          <Section title="Seasonal pattern" hint="Wears grouped by meteorological season.">
+          <Section title="Seasonal pattern" hint="Wears grouped by season.">
             <SeasonList rows={insights.seasonalPatterns} />
           </Section>
 
           <Section
             title="Weather &amp; enjoyment"
-            hint="Averages appear once each bucket has three rated wears."
+            hint="Averages need three rated wears to appear."
           >
             {insights.weatherRating.length > 0 ? (
               <WeatherTable rows={insights.weatherRating} />
@@ -82,7 +82,7 @@ export default async function InsightsPage() {
 
           <Section
             title="Cost per wear"
-            hint="Best value first. Skips fragrances with no price, no wears, or mixed-currency bottles."
+            hint="Best value first. Needs a price and at least one wear."
           >
             {insights.costPerWear.length > 0 ? (
               <CpwList rows={insights.costPerWear} />
@@ -283,7 +283,7 @@ function ConcentrationStat({
         : "Diffuse — your collection is well-distributed across many bottles.";
   return (
     <div className="border-y border-[color:var(--rule)] py-5">
-      <p className="font-serif text-5xl leading-none tabular-nums">
+      <p className="numeric text-5xl leading-none font-medium">
         {pct}
         <span className="text-2xl text-[color:var(--fg-faint)]">%</span>
       </p>

@@ -100,7 +100,11 @@ export default async function LogWearPage({ searchParams }: { searchParams: Sear
           first, or log a sample by browsing and picking &ldquo;Log a sample wear&rdquo;.
         </EmptyState>
       ) : (
-        <ul className="flex flex-col divide-y divide-[color:var(--rule)] border-y border-[color:var(--rule)]">
+        // These rows are the primary action of the page, so they have to look
+        // pressable. Previously they were unstyled links — indistinguishable
+        // from a static list, with nothing but a faint hover to suggest you
+        // could click one.
+        <ul className="flex flex-col gap-2">
           {collection.map((item) => (
             <li key={item.id}>
               <Link
@@ -108,17 +112,25 @@ export default async function LogWearPage({ searchParams }: { searchParams: Sear
                   pathname: "/wear/new",
                   query: { collectionItemId: item.id },
                 }}
-                className="flex items-baseline justify-between gap-4 px-2 py-4 transition-colors hover:bg-[color:var(--bg-elev)]"
+                className="group flex items-center justify-between gap-4 rounded-sm border border-[color:var(--rule)] bg-[color:var(--bg-elev)] px-4 py-3.5 transition-colors hover:border-[color:var(--accent)] hover:bg-[color:var(--accent-wash)]"
               >
                 <div className="min-w-0">
-                  <p className="text-[10px] tracking-[0.18em] text-[color:var(--fg-faint)] uppercase">
+                  <p className="text-[11px] font-medium tracking-[0.16em] text-[color:var(--fg-faint)] uppercase">
                     {item.fragrance.brand.name}
                   </p>
                   <p className="mt-1 font-serif text-lg leading-snug">{item.fragrance.name}</p>
                 </div>
-                <span className="text-xs text-[color:var(--fg-muted)] tabular-nums">
-                  {item.bottleSizeMl} ml
-                </span>
+                <div className="flex shrink-0 items-center gap-4">
+                  <span className="numeric text-xs text-[color:var(--fg-muted)]">
+                    {item.bottleSizeMl} ml
+                  </span>
+                  <span
+                    aria-hidden
+                    className="text-[color:var(--fg-faint)] transition-transform group-hover:translate-x-0.5 group-hover:text-[color:var(--accent)]"
+                  >
+                    →
+                  </span>
+                </div>
               </Link>
             </li>
           ))}

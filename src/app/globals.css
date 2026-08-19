@@ -10,24 +10,27 @@
     var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-serif: var(--font-serif), ui-serif, Georgia, "Times New Roman", serif;
 
-  /* Ink palette — warm off-black to bone. Deliberately restrained. */
-  --color-paper: #f5f3ee;
-  --color-vellum: #eeeae1;
-  --color-rule: #d8d3c7;
-  --color-ink-50: #f5f3ee;
-  --color-ink-100: #eeeae1;
-  --color-ink-200: #d8d3c7;
-  --color-ink-300: #b8b1a1;
+  /* Ink palette — warm off-black to bone. Restrained, but not washed out:
+     every step from 500 up clears WCAG AA on paper at body sizes. */
+  --color-paper: #f4f1ea;
+  --color-vellum: #ebe7dc;
+  --color-rule: #d5cfc0;
+  --color-ink-50: #f4f1ea;
+  --color-ink-100: #ebe7dc;
+  --color-ink-200: #d5cfc0;
+  --color-ink-300: #aca392;
   --color-ink-400: #8f887a;
-  --color-ink-500: #6b6558;
-  --color-ink-600: #4d483d;
+  --color-ink-500: #6b6558; /* 5.3:1 on paper */
+  --color-ink-600: #4d483d; /* 8.4:1 on paper */
   --color-ink-700: #322e26;
   --color-ink-800: #1e1c17;
   --color-ink-900: #141310;
 
-  /* Single accent — a fixative amber. Used sparingly. */
-  --color-accent: #7a5230;
-  --color-accent-soft: #a67a51;
+  /* Single accent — a fixative amber, warmed up so it reads as a colour rather
+     than as another grey. 5.7:1 on paper, so it is safe for text. */
+  --color-accent: #8f4f24;
+  --color-accent-soft: #b8783f;
+  --color-accent-wash: #f0e6da;
 
   /* Semantics */
   --color-good: #4d6b3a;
@@ -39,28 +42,41 @@
 /* Light mode (default) & dark mode                                    */
 /* ------------------------------------------------------------------ */
 
+/*
+ * Text colours are two steps darker than they used to be. The old --fg-faint
+ * (#8f887a) sat at 3.2:1 on paper and was used for every eyebrow, label, and
+ * table header at 10–11px — below AA, and the main reason the interface read as
+ * washed out rather than quiet. Restraint should come from scale and spacing,
+ * not from text you can barely see.
+ */
 :root {
   color-scheme: light;
   --bg: var(--color-paper);
   --bg-elev: #fbfaf7;
+  --bg-sunken: #ece8de;
   --fg: var(--color-ink-900);
-  --fg-muted: var(--color-ink-500);
-  --fg-faint: var(--color-ink-400);
+  --fg-muted: var(--color-ink-600); /* 8.4:1 */
+  --fg-faint: var(--color-ink-500); /* 5.3:1 */
   --rule: var(--color-rule);
   --rule-strong: var(--color-ink-300);
-  --focus: color-mix(in oklab, var(--color-accent) 60%, transparent);
+  --accent: var(--color-accent);
+  --accent-wash: var(--color-accent-wash);
+  --focus: color-mix(in oklab, var(--color-accent) 70%, transparent);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
     --bg: #0e0d09;
-    --bg-elev: #171510;
-    --fg: #eae6dc;
-    --fg-muted: #a7a293;
-    --fg-faint: #6b6558;
-    --rule: #2a2720;
-    --rule-strong: #3d3a30;
+    --bg-elev: #17150f;
+    --bg-sunken: #0a0906;
+    --fg: #ece8de;
+    --fg-muted: #b5af9f; /* 9.4:1 */
+    --fg-faint: #8b8474; /* 5.2:1 — was #6b6558 at 3.3:1 */
+    --rule: #2e2b23;
+    --rule-strong: #464236;
+    --accent: #d08b4e;
+    --accent-wash: #241a10;
   }
 }
 
@@ -112,9 +128,29 @@ input:-webkit-autofill:focus {
 /* Utilities                                                           */
 /* ------------------------------------------------------------------ */
 
+/*
+ * Cormorant Garamond ships old-style (text) figures by default: `1` is drawn at
+ * x-height and reads as a small-cap I, and 3/4/5/7/9 descend below the baseline.
+ * In running prose that is handsome. In "127 sprays" it is a bug — the dashboard
+ * genuinely rendered `I 27`. Ask for lining figures wherever the serif is used.
+ */
 .font-serif {
   font-family: var(--font-serif);
   font-feature-settings: "liga", "dlig";
+  font-variant-numeric: lining-nums;
+}
+
+/*
+ * Data numerals use the sans, not the serif. Inter's figures are upright, even
+ * in colour, and have real tabular support, so columns line up and a 1 cannot be
+ * mistaken for a letter. The serif carries names and titles; the sans carries
+ * anything you are meant to compare.
+ */
+.numeric {
+  font-family: var(--font-sans);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "tnum", "lnum";
+  letter-spacing: -0.01em;
 }
 
 .font-italic {

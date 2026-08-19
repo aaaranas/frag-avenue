@@ -50,7 +50,7 @@ export default async function AdvisorPage({ searchParams }: { searchParams: Sear
       <PageHeader
         eyebrow="Advisor"
         title="What should I wear?"
-        subtitle="Deterministic recommendations from your own bottles. Every score is decomposed into named reasons — no LLM narration, no fabricated precision."
+        subtitle="Suggestions from bottles you already own, with the reasoning shown."
       />
 
       <AdvisorControls
@@ -121,7 +121,7 @@ export default async function AdvisorPage({ searchParams }: { searchParams: Sear
                   <div className="shrink-0 text-right">
                     {r.displayScore !== null ? (
                       <div>
-                        <p className="font-serif text-5xl leading-none tabular-nums">
+                        <p className="numeric text-5xl leading-none font-medium">
                           {r.displayScore}
                           <span className="text-2xl text-[color:var(--fg-faint)]">%</span>
                         </p>
