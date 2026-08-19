@@ -1,9 +1,15 @@
+import { headers } from "next/headers";
 import { PrimaryNav } from "@/components/shell/primary-nav";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { requireUser } from "@/modules/auth/session";
 
 export default async function AppShellLayout({ children }: { children: React.ReactNode }) {
-  await requireUser();
+  // This layout guards the whole authenticated shell, and its redirect wins
+  // over the page's — so the `next=` destination has to be resolved here, from
+  // the header `src/middleware.ts` sets. Falling back to undefined just means a
+  // bare /sign-in, which is the old behaviour.
+  const pathname = (await headers()).get("x-pathname") ?? undefined;
+  await requireUser(pathname);
 
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">

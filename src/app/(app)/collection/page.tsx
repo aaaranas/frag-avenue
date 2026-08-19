@@ -3,6 +3,7 @@ import { requireUser } from "@/modules/auth/session";
 import { listCollectionForUser } from "@/modules/collection/data";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
+import { BottleLegend } from "@/components/bottle/bottle-legend";
 import { CollectionShelf } from "./collection-shelf";
 
 export default async function CollectionPage() {
@@ -35,7 +36,10 @@ export default async function CollectionPage() {
           from the catalogue.
         </EmptyState>
       ) : (
-        <CollectionShelf items={items} />
+        <>
+          <CollectionShelf items={items} />
+          <BottleLegend showFill />
+        </>
       )}
     </div>
   );

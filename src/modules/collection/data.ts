@@ -30,6 +30,12 @@ export function listCollectionForUser(userId: string) {
           concentration: true,
           releaseYear: true,
           perfumer: true,
+          // Curated bottle appearance; null for anything not curated yet, in
+          // which case the renderer derives the look from accords/concentration.
+          bottleShape: true,
+          glassColor: true,
+          capColor: true,
+          glassFinish: true,
           brand: { select: { id: true, name: true } },
           notes: {
             select: {

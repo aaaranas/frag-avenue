@@ -18,6 +18,23 @@ export type FormState = {
 
 const INITIAL: FormState = { ok: false };
 
+/**
+ * Attempt budgets, overridable by environment.
+ *
+ * The defaults are the policy and are what ships. They are configurable because
+ * the end-to-end suite drives real sign-ins and sign-ups from a single IP and
+ * would otherwise exhaust the budget partway through a run — and, worse, stay
+ * exhausted for the rest of the window, so the suite could not be re-run. The
+ * limiter itself is unchanged; only the size of the bucket moves.
+ */
+function budget(name: string, fallback: number): number {
+  const parsed = Number(process.env[name]);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+const SIGNIN_ATTEMPTS = budget("AUTH_SIGNIN_ATTEMPTS", 10);
+const SIGNUP_ATTEMPTS = budget("AUTH_SIGNUP_ATTEMPTS", 5);
+
 function firstIssueByField(issues: readonly { path: (string | number)[]; message: string }[]) {
   const out: Record<string, string> = {};
   for (const issue of issues) {
@@ -37,9 +54,9 @@ export async function signInAction(_prev: FormState, formData: FormData): Promis
     return { ok: false, fieldErrors: firstIssueByField(parsed.error.issues) };
   }
 
-  // 10 attempts per 15 minutes per (ip, email) pair.
+  // 10 attempts per 15 minutes per (ip, email) pair, by default.
   const ip = await requestIp();
-  const rl = takeToken(`signin:${ip}:${parsed.data.email}`, 10, 15 * 60_000);
+  const rl = takeToken(`signin:${ip}:${parsed.data.email}`, SIGNIN_ATTEMPTS, 15 * 60_000);
   if (!rl.allowed) {
     logger.warn("signin.rate_limited", { ip, retryAfter: rl.retryAfterSeconds });
     return {
@@ -80,9 +97,9 @@ export async function signUpAction(_prev: FormState, formData: FormData): Promis
     return { ok: false, fieldErrors: firstIssueByField(parsed.error.issues) };
   }
 
-  // 5 sign-ups per hour per IP.
+  // 5 sign-ups per hour per IP, by default.
   const ip = await requestIp();
-  const rl = takeToken(`signup:${ip}`, 5, 60 * 60_000);
+  const rl = takeToken(`signup:${ip}`, SIGNUP_ATTEMPTS, 60 * 60_000);
   if (!rl.allowed) {
     logger.warn("signup.rate_limited", { ip, retryAfter: rl.retryAfterSeconds });
     return {

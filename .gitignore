@@ -40,3 +40,6 @@ pnpm-debug.log*
 
 *.tsbuildinfo
 .claude/settings.local.json
+
+# Playwright saved session from e2e/auth.setup.ts
+e2e/.auth/

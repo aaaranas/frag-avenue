@@ -10,6 +10,10 @@ export type FragranceListItem = {
   concentration: $Enums.Concentration;
   gender: string;
   releaseYear: number | null;
+  bottleShape: $Enums.BottleShape | null;
+  glassColor: string | null;
+  capColor: string | null;
+  glassFinish: $Enums.GlassFinish | null;
   brand: { id: string; name: string };
   accords: Array<{ strength: number; accord: { name: string } }>;
 };
@@ -38,6 +42,10 @@ export async function listFragrances(input: FragranceListInput): Promise<Fragran
         concentration: true,
         gender: true,
         releaseYear: true,
+        bottleShape: true,
+        glassColor: true,
+        capColor: true,
+        glassFinish: true,
         brand: { select: { id: true, name: true } },
         accords: {
           orderBy: { strength: "desc" },
@@ -66,6 +74,10 @@ export async function findFragranceById(id: string) {
       gender: true,
       releaseYear: true,
       perfumer: true,
+      bottleShape: true,
+      glassColor: true,
+      capColor: true,
+      glassFinish: true,
       brand: { select: { id: true, name: true } },
       notes: {
         select: {

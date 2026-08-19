@@ -42,6 +42,25 @@ enum BottleCondition {
   DECANT
 }
 
+/// Curated silhouette of a fragrance's official flacon. This is the SHAPE only —
+/// deliberately not the artwork, logo, or trade dress. Null means "not curated
+/// yet", and the renderer falls back to inferring a silhouette from the
+/// concentration.
+enum BottleShape {
+  RECTANGULAR // classic tall rectangle (Bleu de Chanel)
+  FLASK       // flattened, rounded-shoulder flask (Aventus)
+  CYLINDRICAL // round column (Layton)
+  TAPERED     // shoulders narrow toward the neck (Sauvage)
+  SQUAT       // wide and short (many extraits)
+}
+
+/// How the glass reads: whether the liquid is visible through it.
+enum GlassFinish {
+  CLEAR   // liquid visible; glassColor describes the juice
+  FROSTED // liquid diffused
+  OPAQUE  // coloured/lacquered glass; glassColor describes the bottle
+}
+
 enum Occasion {
   WORK
   CASUAL
@@ -146,6 +165,18 @@ model Fragrance {
   releaseYear   Int?
   perfumer      String?
   gender        GenderClass   @default(UNISEX)
+
+  // --- Curated bottle appearance (all optional) ---------------------------
+  // Every field here is nullable on purpose: curation is ongoing and will never
+  // be complete. When a field is null the renderer falls back to deriving the
+  // look from the fragrance's accords and concentration, so a fragrance with no
+  // curation still draws a sensible bottle. Colours are `#rrggbb`, validated in
+  // the application layer (Postgres has no cheap check for it).
+  bottleShape   BottleShape?
+  glassColor    String?       @db.VarChar(7)
+  capColor      String?       @db.VarChar(7)
+  glassFinish   GlassFinish?
+
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 

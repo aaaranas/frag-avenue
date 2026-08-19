@@ -85,11 +85,10 @@ jobs:
       - name: Generate Prisma client
         run: pnpm db:generate
 
-      - name: Push schema to test DB
-        # Migrations haven't been committed yet — `db push` recreates the schema
-        # on the throwaway CI Postgres. Once `prisma/migrations/` is populated,
-        # switch this to `prisma migrate deploy`.
-        run: pnpm prisma db push --skip-generate
+      - name: Apply migrations to test DB
+        # Runs the committed migrations rather than `db push`, so a migration
+        # that fails to apply fails CI here instead of at deploy time.
+        run: pnpm prisma migrate deploy
 
       - name: Seed
         run: pnpm db:seed

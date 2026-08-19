@@ -39,11 +39,26 @@ pnpm db:up                    # Postgres 16 via docker compose (host port 55432)
 cp .env.example .env          # then edit AUTH_SECRET
 # generate a secret:  openssl rand -hex 32   (or pnpm dlx auth secret)
 pnpm db:migrate               # apply migrations
-pnpm db:seed                  # 7 canonical fragrances
+pnpm db:seed                  # 7 canonical fragrances + a dev account
 pnpm dev
 ```
 
-Open http://localhost:3000, create an account, add a fragrance, log a wear.
+Open http://localhost:3000 and sign in with the seeded development account:
+
+| Email           | Password         |
+| --------------- | ---------------- |
+| `dev@frag.test` | `devpassword123` |
+
+It comes with 7 bottles and 30 wears spread over the last ~140 days, which is
+past the cold-start thresholds — so the dashboard, insights, and advisor all
+have real data to work with on first run. The Playwright suite signs in as this
+same account.
+
+The dev account's collection and wear logs are **rebuilt from scratch on every
+`pnpm db:seed`** (that is what keeps the relative dates meaningful). Nothing
+outside that one account is touched, but don't use it for work you want to keep
+— sign up your own account for that. The account is skipped when
+`NODE_ENV=production` unless `SEED_DEV_USER=true`.
 
 > **Note on `.env` vs `.env.local`:** Prisma CLI only reads `.env`. Use `.env` for `DATABASE_URL` and `AUTH_SECRET`. Both are gitignored.
 >
@@ -61,7 +76,7 @@ Open http://localhost:3000, create an account, add a fragrance, log a wear.
 | `pnpm test:e2e`                 | Playwright (needs `db:up + migrate + seed + build`) |
 | `pnpm db:up` / `pnpm db:down`   | Start / stop Postgres container                     |
 | `pnpm db:migrate`               | `prisma migrate dev`                                |
-| `pnpm db:seed`                  | Idempotent canonical fragrance seed                 |
+| `pnpm db:seed`                  | Canonical fragrance catalogue + dev account         |
 | `pnpm db:studio`                | Prisma Studio                                       |
 | `pnpm db:generate`              | Regenerate Prisma client                            |
 

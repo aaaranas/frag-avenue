@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import { preferredAccords } from "@/modules/analytics";
+import { bottleAppearance, fillRatio, type BottleAppearance } from "@/lib/bottle-appearance";
 import { recommend, type Recommendation, type Candidate } from "./recommender";
 import type { WearHistoryRow } from "./sub-scores";
 import type { WeatherContext } from "./sub-scores";
@@ -9,19 +10,44 @@ import type { WeatherContext } from "./sub-scores";
  * Fetch everything the recommender needs and hand off to the pure composer.
  * `userId` MUST come from the server session — never from a client field.
  */
+/**
+ * How a recommended bottle should be drawn, keyed by collection item id.
+ *
+ * This is presentation data and deliberately does NOT travel through
+ * `recommend()` — that module is pure scoring logic and has no business knowing
+ * about glass colours. The advisor page joins the two by collection item id.
+ */
+export type RecommendationBottle = BottleAppearance & {
+  fillRatio: number | null;
+  bottleSizeMl: number;
+  remainingMl: number | null;
+};
+
+export type RecommendationsResult = {
+  recommendations: Recommendation[];
+  bottles: Map<string, RecommendationBottle>;
+};
+
 export async function getRecommendations(
   userId: string,
   context: { weather: WeatherContext; occasion: string; now: Date; limit?: number },
-): Promise<Recommendation[]> {
+): Promise<RecommendationsResult> {
   const [items, wears] = await Promise.all([
     prisma.collectionItem.findMany({
       where: { userId },
       select: {
         id: true,
+        bottleSizeMl: true,
+        remainingMl: true,
         fragrance: {
           select: {
             id: true,
             name: true,
+            concentration: true,
+            bottleShape: true,
+            glassColor: true,
+            capColor: true,
+            glassFinish: true,
             brand: { select: { name: true } },
             accords: {
               select: {
@@ -45,7 +71,29 @@ export async function getRecommendations(
     }),
   ]);
 
-  if (items.length === 0) return [];
+  if (items.length === 0) return { recommendations: [], bottles: new Map() };
+
+  const bottles = new Map<string, RecommendationBottle>(
+    items.map((i) => [
+      i.id,
+      {
+        ...bottleAppearance({
+          concentration: i.fragrance.concentration,
+          accords: i.fragrance.accords.map((a) => ({
+            name: a.accord.name,
+            strength: a.strength,
+          })),
+          bottleShape: i.fragrance.bottleShape,
+          glassColor: i.fragrance.glassColor,
+          capColor: i.fragrance.capColor,
+          glassFinish: i.fragrance.glassFinish,
+        }),
+        fillRatio: fillRatio(i.bottleSizeMl, i.remainingMl),
+        bottleSizeMl: i.bottleSizeMl,
+        remainingMl: i.remainingMl,
+      },
+    ]),
+  );
 
   // Build one candidate per COLLECTION ITEM (not per fragrance) so users owning
   // two bottles of the same fragrance can pick which bottle to reach for. The
@@ -103,7 +151,7 @@ export async function getRecommendations(
     wornAt: w.wornAt,
   }));
 
-  return recommend(
+  const recommendations = recommend(
     {
       candidates,
       history,
@@ -114,4 +162,6 @@ export async function getRecommendations(
     },
     context.limit ?? 3,
   );
+
+  return { recommendations, bottles };
 }

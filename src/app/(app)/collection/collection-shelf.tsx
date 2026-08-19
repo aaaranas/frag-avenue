@@ -6,7 +6,7 @@ import { X } from "lucide-react";
 import { Bottle } from "@/components/bottle/bottle";
 import { Chip } from "@/components/ui/chip";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { primaryAccordColor } from "@/lib/accord-colors";
+import { SHAPE_LABEL, bottleAppearance, fillLabel, fillRatio } from "@/lib/bottle-appearance";
 import type { CollectionListItem } from "@/modules/collection/data";
 
 function formatMoney(minor: number | null, currency: string | null): string | null {
@@ -105,43 +105,90 @@ function BottleCard({
   selected: boolean;
   onSelect: () => void;
 }) {
-  const color = primaryAccordColor(
-    item.fragrance.accords.map((a) => ({ name: a.accord.name, strength: a.strength })),
-  );
+  const bottle = bottleAppearance({
+    concentration: item.fragrance.concentration,
+    accords: item.fragrance.accords.map((a) => ({ name: a.accord.name, strength: a.strength })),
+    bottleShape: item.fragrance.bottleShape,
+    glassColor: item.fragrance.glassColor,
+    capColor: item.fragrance.capColor,
+    glassFinish: item.fragrance.glassFinish,
+  });
+  const ratio = fillRatio(item.bottleSizeMl, item.remainingMl);
+  const fill = fillLabel(ratio);
+
+  // The illustration is aria-hidden, so everything it encodes — silhouette,
+  // concentration, and how full the bottle is — has to be said here instead.
+  const description = [
+    `${item.fragrance.brand.name} ${item.fragrance.name}`,
+    `${item.bottleSizeMl} ml ${item.fragrance.concentration}`,
+    conditionLabel(item.condition),
+    SHAPE_LABEL[bottle.shape],
+    fill
+      ? `${fill.toLowerCase()}${item.remainingMl !== null ? `, ${item.remainingMl} ml left` : ""}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      aria-expanded={selected}
-      className="group flex flex-col items-center text-center transition-transform hover:-translate-y-1"
-    >
-      <div className="relative flex h-48 items-end justify-center">
-        <Bottle
-          color={color}
-          concentration={item.fragrance.concentration}
-          size={100}
-          className={
-            selected
-              ? "drop-shadow-[0_10px_18px_rgba(0,0,0,0.18)]"
-              : "drop-shadow-[0_6px_12px_rgba(0,0,0,0.1)] group-hover:drop-shadow-[0_10px_18px_rgba(0,0,0,0.16)]"
-          }
-        />
-        {/* Shelf line */}
-        <div
-          aria-hidden
-          className="absolute bottom-0 left-1/2 h-px w-24 -translate-x-1/2 bg-[color:var(--rule-strong)]"
-        />
-      </div>
-      <p className="mt-5 text-[10px] tracking-[0.18em] text-[color:var(--fg-faint)] uppercase">
-        {item.fragrance.brand.name}
-      </p>
-      <p className="mt-1 font-serif text-base leading-snug italic">{item.fragrance.name}</p>
-      <p className="mt-1 text-[11px] text-[color:var(--fg-muted)]">
-        <span className="tabular-nums">{item.bottleSizeMl}ml</span>
-        <span className="mx-1.5 text-[color:var(--fg-faint)]">·</span>
-        {conditionLabel(item.condition)}
-      </p>
-    </button>
+    <div className="group flex flex-col items-center text-center">
+      <button
+        type="button"
+        onClick={onSelect}
+        aria-expanded={selected}
+        aria-label={description}
+        className="flex flex-col items-center transition-transform hover:-translate-y-1"
+      >
+        <div className="relative flex h-48 items-end justify-center">
+          <Bottle
+            color={bottle.color}
+            shape={bottle.shape}
+            capColor={bottle.capColor}
+            finish={bottle.finish}
+            fillRatio={ratio}
+            size={100}
+            className={
+              selected
+                ? "drop-shadow-[0_10px_18px_rgba(0,0,0,0.18)]"
+                : "drop-shadow-[0_6px_12px_rgba(0,0,0,0.1)] group-hover:drop-shadow-[0_10px_18px_rgba(0,0,0,0.16)]"
+            }
+          />
+          {/* Shelf line */}
+          <div
+            aria-hidden
+            className="absolute bottom-0 left-1/2 h-px w-24 -translate-x-1/2 bg-[color:var(--rule-strong)]"
+          />
+        </div>
+        <p className="mt-5 text-[10px] tracking-[0.18em] text-[color:var(--fg-faint)] uppercase">
+          {item.fragrance.brand.name}
+        </p>
+        <p className="mt-1 font-serif text-base leading-snug italic">{item.fragrance.name}</p>
+        <p className="mt-1 text-[11px] text-[color:var(--fg-muted)]">
+          <span className="tabular-nums">{item.bottleSizeMl}ml</span>
+          <span className="mx-1.5 text-[color:var(--fg-faint)]">·</span>
+          {conditionLabel(item.condition)}
+          {fill ? (
+            <>
+              <span className="mx-1.5 text-[color:var(--fg-faint)]">·</span>
+              <span>{fill}</span>
+            </>
+          ) : null}
+        </p>
+      </button>
+
+      {/*
+        Logging a wear is the core loop of the app, so it stays one click from
+        the shelf rather than living behind the expand interaction. It sits
+        outside the button because a link cannot be nested inside one.
+      */}
+      <Link
+        href={{ pathname: "/wear/new", query: { collectionItemId: item.id } }}
+        aria-label={`Log a wear of ${item.fragrance.brand.name} ${item.fragrance.name}`}
+        className="mt-2.5 rounded-sm border border-transparent px-2 py-1 text-[10px] tracking-[0.18em] text-[color:var(--fg-faint)] uppercase hover:border-[color:var(--rule-strong)] hover:text-[color:var(--fg)] focus-visible:border-[color:var(--rule-strong)] focus-visible:text-[color:var(--fg)]"
+      >
+        Log wear
+      </Link>
+    </div>
   );
 }
 

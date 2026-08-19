@@ -32,6 +32,21 @@ Canonical fragrance. Shared across users.
 - `gender: GenderClass` (enum: `MASCULINE | FEMININE | UNISEX`).
 - `createdAt`, `updatedAt`.
 
+Curated bottle appearance — all nullable, because curation is ongoing and will
+never be complete. When a field is null the renderer derives the look instead
+(silhouette from `concentration`, colour from the strongest accord), so an
+uncurated fragrance still draws a sensible bottle. This is shape and colour
+only — deliberately not logos, label artwork, or trade dress.
+
+- `bottleShape: BottleShape?` (enum: `RECTANGULAR | FLASK | CYLINDRICAL | TAPERED | SQUAT`).
+- `glassColor: String?` — `#rrggbb`, `VarChar(7)`. On a `CLEAR` bottle this describes the juice; otherwise the glass.
+- `capColor: String?` — `#rrggbb`, `VarChar(7)`.
+- `glassFinish: GlassFinish?` (enum: `CLEAR | FROSTED | OPAQUE`).
+
+Hex format is validated in the application layer (`src/lib/bottle-appearance.ts`),
+which falls back rather than emitting a malformed colour into SVG. No index:
+these columns are only ever read alongside the fragrance row, never filtered on.
+
 ### Note
 
 Canonical scent note (e.g. "bergamot", "oud").

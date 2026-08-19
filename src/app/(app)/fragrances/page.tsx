@@ -7,9 +7,10 @@ import {
   type FragranceListResult,
 } from "@/modules/fragrances";
 import { Bottle } from "@/components/bottle/bottle";
+import { BottleLegend } from "@/components/bottle/bottle-legend";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
-import { primaryAccordColor } from "@/lib/accord-colors";
+import { SHAPE_LABEL, bottleAppearance } from "@/lib/bottle-appearance";
 import { SearchInput } from "./search-input";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -48,6 +49,8 @@ async function ResultGrid({ input }: { input: FragranceListInput }) {
     <>
       <Grid result={result} />
       <Pager result={result} q={input.q} />
+      {/* No fill level here — the catalogue is fragrances, not owned bottles. */}
+      <BottleLegend />
     </>
   );
 }
@@ -56,19 +59,29 @@ function Grid({ result }: { result: FragranceListResult }) {
   return (
     <ul className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 md:gap-x-8 md:gap-y-14 lg:grid-cols-4">
       {result.items.map((f) => {
-        const color = primaryAccordColor(
-          f.accords.map((a) => ({ name: a.accord.name, strength: a.strength })),
-        );
+        const bottle = bottleAppearance({
+          concentration: f.concentration,
+          accords: f.accords.map((a) => ({ name: a.accord.name, strength: a.strength })),
+          bottleShape: f.bottleShape,
+          glassColor: f.glassColor,
+          capColor: f.capColor,
+          glassFinish: f.glassFinish,
+        });
         return (
           <li key={f.id}>
             <Link
               href={`/fragrances/${f.id}`}
               className="group flex flex-col items-center text-center transition-transform hover:-translate-y-1"
+              // The catalogue holds no bottle, so there is no fill level here —
+              // only the silhouette carries meaning.
+              aria-label={`${f.brand.name} ${f.name}, ${f.concentration} in a ${SHAPE_LABEL[bottle.shape]}`}
             >
               <div className="relative flex h-48 items-end justify-center">
                 <Bottle
-                  color={color}
-                  concentration={f.concentration}
+                  color={bottle.color}
+                  shape={bottle.shape}
+                  capColor={bottle.capColor}
+                  finish={bottle.finish}
                   size={100}
                   className="drop-shadow-[0_6px_12px_rgba(0,0,0,0.1)] group-hover:drop-shadow-[0_10px_18px_rgba(0,0,0,0.16)]"
                 />

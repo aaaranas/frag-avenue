@@ -4,7 +4,7 @@ import { findFragranceById } from "@/modules/fragrances";
 import { Bottle } from "@/components/bottle/bottle";
 import { Chip } from "@/components/ui/chip";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { primaryAccordColor } from "@/lib/accord-colors";
+import { SHAPE_LABEL, bottleAppearance } from "@/lib/bottle-appearance";
 import { AddToCollectionForm } from "./add-to-collection-form";
 
 type Params = Promise<{ id: string }>;
@@ -24,9 +24,14 @@ export default async function FragranceDetailPage({ params }: { params: Params }
   const top = f.notes.filter((n) => n.layer === "TOP").map((n) => n.note.name);
   const middle = f.notes.filter((n) => n.layer === "MIDDLE").map((n) => n.note.name);
   const base = f.notes.filter((n) => n.layer === "BASE").map((n) => n.note.name);
-  const color = primaryAccordColor(
-    f.accords.map((a) => ({ name: a.accord.name, strength: a.strength })),
-  );
+  const bottle = bottleAppearance({
+    concentration: f.concentration,
+    accords: f.accords.map((a) => ({ name: a.accord.name, strength: a.strength })),
+    bottleShape: f.bottleShape,
+    glassColor: f.glassColor,
+    capColor: f.capColor,
+    glassFinish: f.glassFinish,
+  });
 
   return (
     <article className="mx-auto max-w-5xl">
@@ -39,13 +44,21 @@ export default async function FragranceDetailPage({ params }: { params: Params }
 
       {/* Hero */}
       <header className="mt-8 grid gap-8 border-b border-[color:var(--rule)] pb-12 md:grid-cols-[1fr_1.5fr] md:gap-12">
-        <div className="flex items-end justify-center md:sticky md:top-8 md:self-start">
+        <div className="flex flex-col items-center md:sticky md:top-8 md:self-start">
           <Bottle
-            color={color}
-            concentration={f.concentration}
+            color={bottle.color}
+            shape={bottle.shape}
+            capColor={bottle.capColor}
+            finish={bottle.finish}
             size={220}
             className="drop-shadow-[0_18px_28px_rgba(0,0,0,0.16)]"
           />
+          {/* The illustration is decorative; this sentence is the content. */}
+          <p className="mt-4 max-w-[22ch] text-center text-[11px] leading-relaxed text-[color:var(--fg-faint)]">
+            {bottle.curatedShape
+              ? `Drawn from the official ${SHAPE_LABEL[bottle.shape]}.`
+              : `Silhouette inferred from the ${f.concentration} concentration; colour from its strongest accord.`}
+          </p>
         </div>
         <div>
           <Eyebrow>{f.brand.name}</Eyebrow>
