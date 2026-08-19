@@ -518,6 +518,43 @@ async function fragranceIdsByKey(): Promise<Map<string, string>> {
   return new Map(rows.map((r) => [`${r.brand.slug}/${r.slug}`, r.id]));
 }
 
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]", "db", "postgres"]);
+
+/** The database host, for log messages. Never includes credentials. */
+function describeTarget(): string {
+  const raw = process.env.DATABASE_URL;
+  if (!raw) return "an unknown host";
+  try {
+    const url = new URL(raw);
+    return `${url.hostname}:${url.port || "5432"}`;
+  } catch {
+    return "an unparseable DATABASE_URL";
+  }
+}
+
+/**
+ * Whether it is safe to create the development account.
+ *
+ * Gated on the database being *pointed at*, not on NODE_ENV. NODE_ENV describes
+ * the process, and the dangerous case is precisely the one where they disagree:
+ * running this script from a laptop (NODE_ENV unset) against a production
+ * DATABASE_URL. That would put an account whose password is published in the
+ * README into production. Anything not obviously local is refused unless the
+ * caller opts in explicitly.
+ */
+function shouldSeedDevUser(): boolean {
+  if (process.env.SEED_DEV_USER === "true") return true;
+
+  const raw = process.env.DATABASE_URL;
+  if (!raw) return false;
+  try {
+    return LOCAL_HOSTS.has(new URL(raw).hostname);
+  } catch {
+    // Cannot tell what we are pointed at, so assume the worst.
+    return false;
+  }
+}
+
 async function seedDevUser() {
   const passwordHash = await bcrypt.hash(DEV_USER.password, BCRYPT_ROUNDS);
 
@@ -605,9 +642,11 @@ async function main() {
   const count = await prisma.fragrance.count();
   console.log(`Catalogue seeded. Canonical fragrances in DB: ${count}`);
 
-  const skipDevUser = process.env.NODE_ENV === "production" && process.env.SEED_DEV_USER !== "true";
-  if (skipDevUser) {
-    console.log("NODE_ENV=production — skipping the dev account. Set SEED_DEV_USER=true to force.");
+  if (!shouldSeedDevUser()) {
+    console.log(
+      `Database at ${describeTarget()} is not local — skipping the dev account.\n` +
+        "Set SEED_DEV_USER=true to create it there anyway.",
+    );
     return;
   }
 

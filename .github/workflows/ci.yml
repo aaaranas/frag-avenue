@@ -16,6 +16,9 @@ jobs:
     env:
       # Dummy values so env parsing does not blow up during typecheck/test.
       DATABASE_URL: postgresql://frag:frag@localhost:5432/frag_avenue?schema=public
+      # No pooler in CI, so the direct URL is the same. The schema requires it
+      # to be set regardless.
+      DIRECT_DATABASE_URL: postgresql://frag:frag@localhost:5432/frag_avenue?schema=public
       AUTH_SECRET: ci-only-secret-not-used-anywhere-real
     steps:
       - uses: actions/checkout@v4
@@ -30,10 +33,9 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
+        # The `postinstall` script generates the Prisma client, so there is no
+        # separate generate step.
         run: pnpm install --frozen-lockfile
-
-      - name: Generate Prisma client
-        run: pnpm db:generate
 
       - name: Typecheck
         run: pnpm typecheck
@@ -51,6 +53,9 @@ jobs:
     timeout-minutes: 20
     env:
       DATABASE_URL: postgresql://frag:frag@localhost:5432/frag_avenue?schema=public
+      # No pooler in CI, so the direct URL is the same. The schema requires it
+      # to be set regardless.
+      DIRECT_DATABASE_URL: postgresql://frag:frag@localhost:5432/frag_avenue?schema=public
       AUTH_SECRET: ci-only-secret-not-used-anywhere-real
       CI: "1"
     services:
@@ -81,9 +86,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Generate Prisma client
-        run: pnpm db:generate
 
       - name: Apply migrations to test DB
         # Runs the committed migrations rather than `db push`, so a migration

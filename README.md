@@ -21,7 +21,7 @@ MVP-complete foundation. Every slice from the delivery plan is on the ground:
 - E2E + hardening (Playwright golden path, in-memory rate limits, security headers, error boundaries, structured logger)
 - CI (typecheck / lint / unit tests + Playwright with a Postgres service container)
 
-**109 unit tests + 2 Playwright tests. Every check green.**
+**242 unit tests + 37 Playwright tests (chromium + mobile-safari). Every check green.**
 
 ## Stack
 
@@ -57,8 +57,9 @@ same account.
 The dev account's collection and wear logs are **rebuilt from scratch on every
 `pnpm db:seed`** (that is what keeps the relative dates meaningful). Nothing
 outside that one account is touched, but don't use it for work you want to keep
-— sign up your own account for that. The account is skipped when
-`NODE_ENV=production` unless `SEED_DEV_USER=true`.
+— sign up your own account for that. The account is only created when
+`DATABASE_URL` points at a local host, so seeding a remote database populates
+the catalogue and nothing else. Override with `SEED_DEV_USER=true`.
 
 > **Note on `.env` vs `.env.local`:** Prisma CLI only reads `.env`. Use `.env` for `DATABASE_URL` and `AUTH_SECRET`. Both are gitignored.
 >
@@ -106,7 +107,7 @@ Deeper reading:
 ## Testing
 
 - **Vitest** — unit tests colocated as `*.test.ts` next to the code they cover. Analytics, recommendations, scoring, money, rate-limit, WMO codes, password hashing, all pure. Fixture-based; runs in ~4s.
-- **Playwright** — the golden path (`sign up → browse → add → log wear → dashboard reflects → advisor recommends`) plus an auth-redirect assertion. Runs against a real Postgres and a built app.
+- **Playwright** — the golden path (`sign up → browse → add → log wear → dashboard reflects → advisor recommends`), auth-redirect assertions for every protected route, and read-only specs driving the seeded account's shelf, advisor, and insights. A `setup` project signs in once and shares the session. Runs against a real Postgres and a built app, on chromium and mobile-safari.
 - **CI** — `.github/workflows/ci.yml` runs typecheck / lint / unit on every push and PR, then Playwright with a Postgres service container. Reports uploaded on failure.
 
 ## Security posture
@@ -115,17 +116,64 @@ Deeper reading:
 - Passwords bcrypt-hashed (12 rounds).
 - Every server action and route handler derives `userId` from the server session — never from a client field or URL parameter. Every data function takes `userId` as its **first** argument and includes it in every `where` clause.
 - Zod validates every server-action input, every URL param, and every external API response (Open-Meteo).
-- In-memory rate limits on `/sign-in` (10 / 15 min per ip+email), `/sign-up` (5 / hour per ip), `/api/weather` (60 / min per user+ip).
+- In-memory rate limits on `/sign-in` (10 / 15 min per ip+email), `/sign-up` (5 / hour per ip), `/api/weather` (60 / min per user+ip). The two auth budgets are overridable via `AUTH_SIGNIN_ATTEMPTS` / `AUTH_SIGNUP_ATTEMPTS` so the e2e suite can drive real auth from one IP; leave them unset in production.
 - Security headers set in `next.config.ts`: HSTS, X-Content-Type-Options, X-Frame-Options: DENY, Referrer-Policy, Permissions-Policy, CSP (Report-Only for now while we tune).
 - Service worker is safe by construction — no code path writes an authenticated response to cache; the offline fallback is a static file.
 - Secrets are never committed. The pre-tool safety hook denies reads of `.env*`.
 
-## Deployment
+## Deploying to Vercel
 
-Vercel-compatible. External Postgres (Neon / Supabase / RDS). Env vars documented in `.env.example`. Follow-ups before scale:
+Needs an external Postgres (Neon / Supabase / Vercel Postgres / RDS).
 
-- Commit initial Prisma migration → CI switches from `db push` to `migrate deploy`.
-- In-memory rate limiter → shared store (Upstash / Redis / KV) for multi-instance.
+### Environment variables
+
+Set these under **Settings → Environment Variables**:
+
+| Variable              | Value                                         |
+| --------------------- | --------------------------------------------- |
+| `DATABASE_URL`        | **Pooled** connection string                  |
+| `DIRECT_DATABASE_URL` | **Unpooled** connection string, same database |
+| `AUTH_SECRET`         | `pnpm dlx auth secret` — min 16 chars         |
+
+Two URLs are required because Prisma opens a connection per serverless instance
+(so runtime needs a pooler) while `prisma migrate` cannot run through a
+transaction-mode pooler (so migrations need a direct route). Per provider:
+
+- **Neon** — pooled is the `-pooler` host; direct is the plain host.
+- **Supabase** — pooled is port `6543` with `?pgbouncer=true&connection_limit=1`; direct is port `5432`.
+- **Vercel Postgres** — `POSTGRES_PRISMA_URL` is pooled, `POSTGRES_URL_NON_POOLING` is direct.
+
+`AUTH_URL` is not needed — Auth.js infers it from `VERCEL_URL`. Leave
+`AUTH_SIGNIN_ATTEMPTS`, `AUTH_SIGNUP_ATTEMPTS`, and `SEED_DEV_USER` unset.
+
+### Build
+
+`vercel.json` sets the build command to `pnpm prisma migrate deploy && pnpm build`,
+so committed migrations are applied on every deploy. Nothing to configure in the
+dashboard — and if you have overridden the build command there, clear it, because
+the dashboard value wins over `vercel.json`.
+
+Preview deployments run that same command. If previews share the production
+database, a branch carrying a migration will apply it to production — scope
+`DATABASE_URL` to the Production environment, or give previews their own database.
+
+### Seeding production
+
+A fresh database has an empty catalogue. Seed it once from your machine:
+
+```powershell
+$env:DATABASE_URL="<prod pooled url>"; $env:DIRECT_DATABASE_URL="<prod direct url>"; pnpm db:seed
+```
+
+The seed refuses to create the `dev@frag.test` account unless `DATABASE_URL`
+points at a local host, so this populates the catalogue only. That guard is
+deliberately based on which database you are pointed at rather than `NODE_ENV`,
+because the dangerous case is exactly when the two disagree.
+
+### Known follow-ups before scale
+
+- In-memory rate limiter → shared store (Upstash / Redis / KV). On serverless each instance keeps its own buckets, so the effective limit is per-instance.
+- `src/lib/env.ts` exports `env()` but nothing calls it, so the startup validation never runs.
 - CSP: `Report-Only` → enforced (needs nonce-injection middleware).
 - Real PNG icons (192/512/maskable) for full Android splash-screen + older-iOS.
 

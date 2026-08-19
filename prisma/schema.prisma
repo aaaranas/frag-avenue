@@ -7,7 +7,19 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+
+  // Runtime connection. On serverless this MUST be a pooled URL — every lambda
+  // instance opens its own connections and a direct Postgres connection limit
+  // is exhausted fast.
+  url = env("DATABASE_URL")
+
+  // Migrations and introspection. `prisma migrate` cannot run through a
+  // transaction-mode pooler (PgBouncer, Supabase :6543, Neon's -pooler host),
+  // so it needs an unpooled route to the same database.
+  //
+  // Locally the two are the same value; both must be set, as Prisma errors when
+  // a referenced variable is missing.
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 // ------------------------------------------------------------------
