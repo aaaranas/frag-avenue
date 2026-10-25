@@ -264,7 +264,7 @@ model Fragrance {
   capColor    String?      @db.VarChar(7)
   glassFinish GlassFinish?
 
-  /// Product photo served from /public, e.g. "/catalog/rasasi-hawas-ice.jpg".
+  /// Product photo served from /public, e.g. "/catalog/rasasi-hawas-ice.webp".
   /// Null → the UI draws the outline glyph instead.
   imagePath String? @db.VarChar(200)
 

@@ -172,7 +172,12 @@ test.describe("the seeded wardrobe", () => {
     await page.goto("/wardrobe?type=bottle");
     const hawas = page.getByRole("listitem").filter({ hasText: "Hawas Ice" });
     await expect(hawas).toContainText("Rasasi");
-    await expect(hawas.locator('img[src*="rasasi-hawas-ice"]')).toHaveCount(1);
+    const photo = hawas.locator('img[src*="rasasi-hawas-ice"]');
+    await expect(photo).toHaveCount(1);
+    // Served and decoded, not a broken image.
+    await expect
+      .poll(() => photo.evaluate((img: HTMLImageElement) => img.naturalWidth))
+      .toBeGreaterThan(0);
   });
 
   test("the old collection URL lands on the wardrobe", async ({ page }) => {

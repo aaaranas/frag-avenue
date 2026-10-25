@@ -56,7 +56,7 @@ type SeedFragrance = {
     capColor: string;
     finish: GlassFinish;
   };
-  /** Product photo under public/catalog/, e.g. "/catalog/rasasi-hawas-ice.jpg". */
+  /** Product photo under public/catalog/, e.g. "/catalog/rasasi-hawas-ice.webp". */
   image?: string;
 };
 
@@ -207,7 +207,7 @@ const FRAGRANCES: SeedFragrance[] = [
   {
     brand: "Rasasi",
     name: "Hawas Ice",
-    image: "/catalog/rasasi-hawas-ice.jpg",
+    image: "/catalog/rasasi-hawas-ice.webp",
     concentration: Concentration.EDP,
     releaseYear: 2022,
     gender: GenderClass.MASCULINE,

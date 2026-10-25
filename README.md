@@ -97,7 +97,9 @@ The catalogue is our own `Fragrance` table. It is never scraped from
 Fragrantica, Parfumo, or any other site. It comes from two sources:
 
 - **Curated entries** in `prisma/seed.ts`: notes, accords, and photos under
-  `public/catalog/`.
+  `public/catalog/`. Photos are transparent WebP cutouts made with
+  `pnpm catalog:image <photo> "<House>" "<Fragrance>"`, which removes a plain
+  light background, trims it, and strips metadata.
 - **Wikidata** (CC0): houses, names, and years. `pnpm db:catalogue:fetch` runs
   one SPARQL query and writes `prisma/data/wikidata-catalogue.json`; review and
   commit it, and `pnpm db:seed` adds the fragrances the catalogue does not have
@@ -117,6 +119,7 @@ Fragrantica, Parfumo, or any other site. It comes from two sources:
 | `pnpm db:migrate`               | `prisma migrate dev`                                   |
 | `pnpm db:seed`                  | Catalogue (curated + Wikidata snapshot) + dev accounts |
 | `pnpm db:catalogue:fetch`       | Refresh the Wikidata snapshot (needs network)          |
+| `pnpm catalog:image`            | Cut out a product photo for `public/catalog/`          |
 | `pnpm db:studio`                | Prisma Studio                                          |
 | `pnpm db:generate`              | Regenerate Prisma client                               |
 
