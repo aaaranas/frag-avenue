@@ -29,11 +29,11 @@ export const UNIT_OPTIONS = ["METRIC", "IMPERIAL"] as const;
 export const ProfileInput = z.object({
   username: Username,
   name: z.preprocess(
-    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    (v) => (v == null || (typeof v === "string" && v.trim() === "") ? undefined : v),
     z.string().trim().max(80, "80 characters at most.").optional(),
   ),
   bio: z.preprocess(
-    (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+    (v) => (v == null || (typeof v === "string" && v.trim() === "") ? undefined : v),
     z.string().trim().max(200, "200 characters at most.").optional(),
   ),
   defaultVisibility: z.enum(VISIBILITY_OPTIONS, {

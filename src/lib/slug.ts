@@ -1,4 +1,4 @@
-/** URL-safe slug, matching prisma/seed.ts so seeded and submitted rows dedupe. */
+/** URL-safe slug. Shared by the seed, catalogue submissions, and clubs, so slugs always agree. */
 export function slugify(input: string): string {
   return input
     .normalize("NFKD")

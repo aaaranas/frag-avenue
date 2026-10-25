@@ -6,3 +6,4 @@ export * from "./insights";
 export { formatMoney, costPerWearMinor } from "./money";
 export * from "./wear-stats";
 export * from "./stats";
+export * from "./challenges";

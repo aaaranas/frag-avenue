@@ -3,7 +3,7 @@ import type { $Enums } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { FragranceListInput } from "./schema";
 import { buildFragranceListWhere, paginationOffset, visibleToUserWhere } from "./query";
-import { slugify } from "./slug";
+import { slugify } from "@/lib/slug";
 
 export type FragranceListItem = {
   id: string;

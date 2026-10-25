@@ -1,6 +1,6 @@
 # Frag Avenue — Refactor Plan (Phase 0 audit)
 
-Status: **approved 2026-10-25** (see §11 for the decisions). Phases 1–6 complete; later phases pending.
+Status: **approved 2026-10-25** (see §11 for the decisions). Phases 1–7 complete; later phases pending.
 
 Target: refactor the existing personal-analytics PWA into a Strava-style wear-log platform (Feed · Wardrobe · Log · Stats · Clubs) without breaking the app or losing data at any point.
 
@@ -386,3 +386,12 @@ Non-blocking defaults I'll use unless you object: delete Advisor/recommendations
 - `/dashboard` and `/insights` redirect to `/stats`; their pages and server loaders are deleted. Not carried over, deliberately (not in the Stats spec): collection value by currency, total volume, total sprays, seasonal patterns, house frequencies, weather-vs-enjoyment correlation, and the cost-per-wear leaderboard (cost per wear lives on each Wardrobe card). Their pure helpers remain until the Phase 8 cleanup.
 - The Advisor is now reachable only by URL; Phase 8 removes it with the recommendations module.
 - Open: one unexplained e2e failure in ~40 runs of "another user's wear is not found" (the log form stayed on /log after submit). Not reproduced in 10 targeted repeats; no-JS submission was verified to work. Watch CI.
+
+### Phase 7 notes
+
+- `/clubs`: your progress on the two global challenges, your clubs, and the other clubs (top 50 by members) with Join/Leave; `/clubs/new` creates a club (name 3–60, optional description ≤ 280; you become its admin; 5 per day); `/clubs/[slug]` shows members and a leaderboard per challenge.
+- Challenges ("30 different scents in 30 days", "5 different houses in 30 days") are rows inserted by a data-only migration (`ON CONFLICT DO NOTHING`), so production gets them without the seed. Progress is a rolling window that ends on the person's own local today; `challengeStatus` and `challengeLeaderboard` (`src/modules/analytics/challenges.ts`) are pure and unit-tested. Ties share a rank.
+- Privacy: a leaderboard counts only the wears the viewer may see (`visibleWearsWhere`), so a member's private wears never leak through a count. e2e checks this across two accounts.
+- `slug` moved to `src/lib/slug.ts` (fragrances and clubs share it). Optional-text schemas now treat a missing field (`null` from `FormData.get`) like an empty one.
+- Seed: the club `manila-fragheads` with dev as admin and mika as member.
+- Not in scope: club-specific challenges, invites or private clubs, moderation, and club deletion.

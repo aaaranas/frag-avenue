@@ -27,6 +27,8 @@ const PROTECTED = [
   "/log",
   "/stats",
   "/clubs",
+  "/clubs/new",
+  "/clubs/some-club",
   "/wardrobe/some-item",
   "/fragrances",
   "/fragrances/new",

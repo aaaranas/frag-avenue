@@ -111,3 +111,18 @@ describe("setUsernameAction", () => {
     expect(updateProfile).not.toHaveBeenCalled();
   });
 });
+
+describe("updateProfileAction with omitted optional fields", () => {
+  it("treats a missing name and bio as empty", async () => {
+    vi.mocked(updateProfile).mockResolvedValue("ok");
+    const state = await updateProfileAction(
+      INITIAL,
+      formData({ username: "andrea", defaultVisibility: "FOLLOWERS", units: "METRIC" }),
+    );
+    expect(state.ok).toBe(true);
+    expect(updateProfile).toHaveBeenCalledWith(
+      SESSION_USER.id,
+      expect.objectContaining({ name: null, bio: null }),
+    );
+  });
+});

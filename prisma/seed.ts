@@ -24,7 +24,7 @@ import {
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
 // Shared with user submissions so seeded and submitted entries dedupe on slug.
-import { slugify } from "../src/modules/fragrances/slug";
+import { slugify } from "../src/lib/slug";
 import { addDays, localDate, zonedWallTimeToUtc } from "../src/lib/time-zone";
 
 const prisma = new PrismaClient();
@@ -815,6 +815,26 @@ async function seedFriend(devUserId: string, idsByKey: Map<string, string>, pass
       data: { wearId: devLatest.id, userId: friend.id, body: "Perfect weather for it." },
     });
   }
+
+  // A club with both accounts, so the leaderboards have someone on them.
+  const club = await prisma.club.upsert({
+    where: { slug: "manila-fragheads" },
+    update: {},
+    create: {
+      slug: "manila-fragheads",
+      name: "Manila Fragheads",
+      description: "Hot, humid, and still spraying. Local wears and weekend meetups.",
+      createdById: devUserId,
+    },
+    select: { id: true },
+  });
+  await prisma.clubMembership.deleteMany({ where: { clubId: club.id, userId: { in: both } } });
+  await prisma.clubMembership.createMany({
+    data: [
+      { clubId: club.id, userId: devUserId, role: "ADMIN" },
+      { clubId: club.id, userId: friend.id, role: "MEMBER" },
+    ],
+  });
 }
 
 async function main() {
