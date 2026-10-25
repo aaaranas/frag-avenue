@@ -5,23 +5,27 @@ type Props = {
   searchParams: Promise<{ next?: string }>;
 };
 
+export const metadata = { title: "Sign in" };
+
 export default async function SignInPage({ searchParams }: Props) {
   const { next } = await searchParams;
   const safeNext = next && next.startsWith("/") ? next : undefined;
 
   return (
-    <div>
-      <h1 className="font-serif text-4xl leading-tight">Welcome back.</h1>
-      <p className="mt-3 text-sm text-[color:var(--fg-muted)]">Sign in to your wardrobe.</p>
-      <div className="mt-10">
-        <SignInForm next={safeNext} />
-      </div>
-      <p className="mt-8 text-sm text-[color:var(--fg-muted)]">
+    <section aria-labelledby="auth-heading">
+      <h2 id="auth-heading" className="sr-only">
+        Sign in
+      </h2>
+      <SignInForm next={safeNext} />
+      <p className="mt-6 text-center text-sm text-[color:var(--fg-muted)]">
         New here?{" "}
-        <Link href="/sign-up" className="link-editorial text-[color:var(--fg)]">
+        <Link
+          href="/sign-up"
+          className="link-editorial inline-flex min-h-11 items-center text-[color:var(--fg)]"
+        >
           Create an account
         </Link>
       </p>
-    </div>
+    </section>
   );
 }

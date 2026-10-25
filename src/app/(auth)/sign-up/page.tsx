@@ -1,20 +1,24 @@
 import Link from "next/link";
 import { SignUpForm } from "./sign-up-form";
 
+export const metadata = { title: "Create account" };
+
 export default function SignUpPage() {
   return (
-    <div>
-      <h1 className="font-serif text-4xl leading-tight">Start your wardrobe.</h1>
-      <p className="mt-3 text-sm text-[color:var(--fg-muted)]">Free. Your data is yours.</p>
-      <div className="mt-10">
-        <SignUpForm />
-      </div>
-      <p className="mt-8 text-sm text-[color:var(--fg-muted)]">
+    <section aria-labelledby="auth-heading">
+      <h2 id="auth-heading" className="sr-only">
+        Create an account
+      </h2>
+      <SignUpForm />
+      <p className="mt-6 text-center text-sm text-[color:var(--fg-muted)]">
         Already have an account?{" "}
-        <Link href="/sign-in" className="link-editorial text-[color:var(--fg)]">
+        <Link
+          href="/sign-in"
+          className="link-editorial inline-flex min-h-11 items-center text-[color:var(--fg)]"
+        >
           Sign in
         </Link>
       </p>
-    </div>
+    </section>
   );
 }
