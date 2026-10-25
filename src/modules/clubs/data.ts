@@ -89,7 +89,7 @@ export function findClubBySlug(slug: string, viewerId: string) {
           orderBy: { joinedAt: "asc" },
           select: {
             role: true,
-            user: { select: { id: true, username: true, name: true, timezone: true } },
+            user: { select: { id: true, username: true, name: true, image: true, timezone: true } },
           },
         },
       },

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ConfirmAction } from "@/components/forms/confirm-action";
+import { Button } from "@/components/ui/button";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/modules/auth/session";
 import { findWardrobeItemForUser } from "@/modules/wardrobe/data";
@@ -64,18 +66,27 @@ export default async function EditWardrobeItemPage({ params }: { params: Params 
         }}
       />
 
-      <form action={remove} className="mt-12 border-t border-[color:var(--rule)] pt-6">
+      <section className="mt-12 border-t border-[color:var(--rule)] pt-6">
         <p className="text-sm text-[color:var(--fg-muted)]">
           Remove this item from your wardrobe.
           {wears > 0 ? ` Its ${wearCountLabel(wears)} stay in your log.` : null}
         </p>
-        <button
-          type="submit"
-          className="mt-3 min-h-11 rounded-md border border-[color:var(--fg)] px-4 text-sm font-medium text-[color:var(--fg)] hover:bg-[color:var(--bg-sunken)]"
-        >
-          Remove from wardrobe
-        </button>
-      </form>
+        <ConfirmAction
+          action={remove}
+          title={`Remove ${item.fragrance.name}?`}
+          description={
+            wears > 0
+              ? `It leaves your wardrobe; its ${wearCountLabel(wears)} stay in your log.`
+              : "It leaves your wardrobe. You can add it again later."
+          }
+          confirmLabel="Remove"
+          trigger={
+            <Button variant="outline" className="mt-3">
+              Remove from wardrobe
+            </Button>
+          }
+        />
+      </section>
     </div>
   );
 }

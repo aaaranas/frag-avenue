@@ -11,7 +11,8 @@ const CSP = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  // Profile photos of people who signed in with Google.
+  "img-src 'self' data: blob: https://*.googleusercontent.com",
   "font-src 'self' data:",
   "connect-src 'self' https://api.open-meteo.com https://geocoding-api.open-meteo.com",
   "manifest-src 'self'",

@@ -93,6 +93,7 @@ test("visibility, follows, kudos, and comments between two people", async ({ pag
   );
   await expect(page.getByRole("button", { name: /Give kudos/ })).toHaveCount(0);
   await page.getByRole("button", { name: /Delete comment by/ }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Delete" }).click();
   await expect(page.getByText("No comments yet.")).toBeVisible();
 
   // Unfollowing takes followers-only wears away again.

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { Activity, BarChart3, FlaskConical, Plus, User, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,6 +23,11 @@ const ICONS: Record<TabId | "profile", Icon> = {
  *
  * The current tab carries aria-current="page" and the accent colour plus a
  * bar, so it is never signalled by colour alone. Every target is ≥ 44px.
+ *
+ * While a tapped tab's page loads, its bar pulses (`useLinkStatus`). This is
+ * the navigation loading state: route-level `loading.tsx` skeletons were tried
+ * and dropped, because streaming the page behind a Suspense boundary lost taps
+ * made while it hydrated.
  */
 export function PrimaryNav() {
   const path = usePathname() ?? "/";
@@ -121,6 +126,7 @@ function MobileTab({ item, active }: { item: NavItem; active: boolean }) {
           className="absolute top-0 left-1/2 h-[3px] w-8 -translate-x-1/2 rounded-b bg-[color:var(--accent-color)]"
         />
       ) : null}
+      <PendingBar className="top-0 left-1/2 h-[3px] w-8 -translate-x-1/2 rounded-b" />
       <Icon className="size-5" aria-hidden />
       <span>{item.label}</span>
     </Link>
@@ -164,6 +170,7 @@ function SidebarItem({ item, active }: { item: NavItem; active: boolean }) {
           className="absolute top-1/2 left-0 h-5 w-[3px] -translate-y-1/2 rounded-r bg-[color:var(--accent-color)]"
         />
       ) : null}
+      <PendingBar className="top-1/2 left-0 h-5 w-[3px] -translate-y-1/2 rounded-r" />
       <Icon
         className={cn(
           "size-4",
@@ -194,5 +201,17 @@ function ProfileLink({ path, compact = false }: { path: string; compact?: boolea
       <User className={compact ? "size-5" : "size-4"} aria-hidden />
       {compact ? null : PROFILE.label}
     </Link>
+  );
+}
+
+/** The tab's indicator bar, pulsing while the link it sits in is navigating. */
+function PendingBar({ className }: { className: string }) {
+  const { pending } = useLinkStatus();
+  if (!pending) return null;
+  return (
+    <span
+      aria-hidden
+      className={cn("absolute animate-pulse bg-[color:var(--accent-color)]", className)}
+    />
   );
 }

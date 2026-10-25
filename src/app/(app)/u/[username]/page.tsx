@@ -41,7 +41,7 @@ export default async function ProfilePage({
   return (
     <div className="mx-auto max-w-xl">
       <header className="mb-8 flex items-start gap-4">
-        <Avatar name={name} className="size-16 text-xl" />
+        <Avatar name={name} image={profile.image} className="size-16 text-xl" />
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-2xl font-semibold tracking-tight">{name}</h1>
           <p className="text-sm text-[color:var(--fg-muted)]">@{profile.username}</p>

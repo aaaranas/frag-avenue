@@ -1,11 +1,12 @@
 import Link from "next/link";
 import type { WearCardData } from "@/modules/social/data";
-import { MOOD_LABEL, OCCASION_LABEL, VISIBILITY_LABEL, checkInSummary } from "@/modules/wear-logs";
+import { MOOD_LABEL, OCCASION_LABEL, checkInSummary } from "@/modules/wear-logs";
 import { formatDateTime } from "@/lib/format";
 import { formatTemperature, type UnitSystem } from "@/lib/units";
 import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
 import { Avatar, displayName } from "./avatar";
 import { KudosButton } from "./kudos-button";
+import { VisibilityBadge } from "./visibility-badge";
 
 /**
  * A wear in the feed or on a profile: who, scent, sprays, occasion,
@@ -38,7 +39,7 @@ export function WearCard({
       className="rounded-lg border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-4"
     >
       <header className="flex items-center gap-3">
-        <Avatar name={displayName(wear.user)} />
+        <Avatar name={displayName(wear.user)} image={wear.user.image} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">
             {wear.user.username ? (
@@ -49,9 +50,9 @@ export function WearCard({
               who
             )}
           </p>
-          <p className="text-xs text-[color:var(--fg-muted)]">
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[color:var(--fg-muted)]">
             {formatDateTime(wear.wornAt, wear.timeZone)}
-            {own ? ` · ${VISIBILITY_LABEL[wear.visibility]}` : ""}
+            {own ? <VisibilityBadge visibility={wear.visibility} /> : null}
           </p>
         </div>
       </header>

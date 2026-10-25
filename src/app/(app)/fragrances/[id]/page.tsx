@@ -9,6 +9,7 @@ import { Chip } from "@/components/ui/chip";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
 import { WardrobeItemForm } from "@/components/wardrobe/wardrobe-item-form";
+import { Badge } from "@/components/ui/badge";
 
 type Params = Promise<{ id: string }>;
 
@@ -50,9 +51,9 @@ export default async function FragranceDetailPage({ params }: { params: Params }
           <Eyebrow>{f.brand.name}</Eyebrow>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">{f.name}</h1>
           {f.status === "PENDING" ? (
-            <p className="mt-2 inline-flex rounded-full border border-[color:var(--rule-strong)] px-2.5 py-0.5 text-xs text-[color:var(--fg-muted)]">
+            <Badge variant="outline" className="mt-2">
               Pending review · only you can see this
-            </p>
+            </Badge>
           ) : null}
           <dl className="mt-4 flex flex-wrap gap-x-8 gap-y-3 text-sm">
             <MetaItem

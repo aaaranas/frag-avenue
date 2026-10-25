@@ -50,7 +50,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
                 key={p.id}
                 className="flex items-center gap-3 rounded-lg border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-3"
               >
-                <Avatar name={name} />
+                <Avatar name={name} image={p.image} />
                 <Link
                   href={`/u/${p.username}`}
                   className="flex min-h-11 min-w-0 flex-1 flex-col justify-center hover:underline"

@@ -24,6 +24,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 export const metadata = { title: "Wardrobe" };
 
@@ -149,7 +150,11 @@ function ItemCard({ item, units }: { item: WardrobeListItem; units: UnitSystem }
           <p className="text-sm text-[color:var(--fg-muted)]">
             {KIND_LABEL[item.kind]}
             {item.bottleSizeMl !== null ? <> · {formatVolume(item.bottleSizeMl, units)}</> : null}
-            {item.fragrance.status === "PENDING" ? <> · Pending review</> : null}
+            {item.fragrance.status === "PENDING" ? (
+              <Badge variant="outline" className="ml-2 align-middle">
+                Pending review
+              </Badge>
+            ) : null}
           </p>
         </div>
 

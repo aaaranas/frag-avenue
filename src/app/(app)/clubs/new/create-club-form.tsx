@@ -4,6 +4,7 @@ import { createClubAction, type FormState } from "@/modules/clubs";
 import { useFormAction } from "@/components/forms/use-form-action";
 import { Field } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 const INITIAL: FormState = { ok: false };
 
@@ -17,12 +18,11 @@ export function CreateClubForm() {
         <label htmlFor="description" className="field-label">
           Description (optional)
         </label>
-        <textarea
+        <Textarea
           id="description"
           name="description"
           rows={3}
           maxLength={280}
-          className="field-input"
           aria-invalid={err.description ? true : undefined}
           aria-describedby={err.description ? "description-error" : undefined}
         />

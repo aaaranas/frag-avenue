@@ -6,6 +6,7 @@ import { useFormAction } from "@/components/forms/use-form-action";
 import { Field } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
 
 const INITIAL: FormState = { ok: false };
 
@@ -43,13 +44,12 @@ export function ProfileForm({ defaults }: { defaults: ProfileDefaults }) {
         <label htmlFor="bio" className="field-label">
           Bio (optional)
         </label>
-        <textarea
+        <Textarea
           id="bio"
           name="bio"
           rows={2}
           maxLength={200}
           defaultValue={defaults.bio}
-          className="field-input"
           aria-invalid={err.bio ? true : undefined}
           aria-describedby={err.bio ? "bio-error" : undefined}
         />

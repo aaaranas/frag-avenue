@@ -18,6 +18,7 @@ import { conditionLabel, weatherAttribution } from "@/modules/weather";
 import { formatDateTime, formatTime } from "@/lib/format";
 import { formatTemperature } from "@/lib/units";
 import { Button } from "@/components/ui/button";
+import { ConfirmAction } from "@/components/forms/confirm-action";
 import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
 import { CheckInButtons } from "@/components/wear/check-in-buttons";
 import { Avatar, displayName } from "@/components/social/avatar";
@@ -134,14 +135,13 @@ export default async function WearPage({ params }: { params: Params }) {
           <Button asChild variant="outline">
             <Link href={`/wears/${wear.id}/edit`}>Edit</Link>
           </Button>
-          <form action={deleteWearAction.bind(null, wear.id)}>
-            <button
-              type="submit"
-              className="min-h-11 rounded-md border border-[color:var(--fg)] px-4 text-sm font-medium hover:bg-[color:var(--bg-sunken)]"
-            >
-              Delete wear
-            </button>
-          </form>
+          <ConfirmAction
+            action={deleteWearAction.bind(null, wear.id)}
+            title="Delete this wear?"
+            description="Its check-ins, kudos, and comments go with it. This can't be undone."
+            confirmLabel="Delete"
+            trigger={<Button variant="outline">Delete wear</Button>}
+          />
         </div>
       ) : null}
     </article>
@@ -210,7 +210,11 @@ function Comments({
             const name = mine ? "You" : displayName(c.user);
             return (
               <li key={c.id} className="flex gap-3">
-                <Avatar name={displayName(c.user)} className="size-8 text-xs" />
+                <Avatar
+                  name={displayName(c.user)}
+                  image={c.user.image}
+                  className="size-8 text-xs"
+                />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm">
                     {c.user.username && !mine ? (
@@ -224,16 +228,22 @@ function Comments({
                   <p className="text-sm break-words whitespace-pre-line">{c.body}</p>
                   {/* Authors can delete their comments; owners any comment on their wear. */}
                   {mine || own ? (
-                    <form action={deleteCommentAction}>
-                      <input type="hidden" name="commentId" value={c.id} />
-                      <button
-                        type="submit"
-                        className="min-h-11 text-xs text-[color:var(--fg-muted)] underline underline-offset-2 hover:text-[color:var(--fg)]"
-                        aria-label={`Delete comment by ${name}`}
-                      >
-                        Delete
-                      </button>
-                    </form>
+                    <ConfirmAction
+                      action={deleteCommentAction}
+                      fields={{ commentId: c.id }}
+                      title="Delete this comment?"
+                      description="It's removed for everyone. This can't be undone."
+                      confirmLabel="Delete"
+                      trigger={
+                        <button
+                          type="button"
+                          className="min-h-11 min-w-11 text-left text-xs text-[color:var(--fg-muted)] underline underline-offset-2 hover:text-[color:var(--fg)]"
+                          aria-label={`Delete comment by ${name}`}
+                        >
+                          Delete
+                        </button>
+                      }
+                    />
                   ) : null}
                 </div>
               </li>

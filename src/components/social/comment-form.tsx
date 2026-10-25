@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { addCommentAction, type FormState } from "@/modules/social";
 import { useFormAction } from "@/components/forms/use-form-action";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 const INITIAL: FormState = { ok: false };
 
@@ -24,14 +25,13 @@ export function CommentForm({ wearId }: { wearId: string }) {
       <label htmlFor="comment-body" className="field-label">
         Add a comment
       </label>
-      <textarea
+      <Textarea
         id="comment-body"
         name="body"
         rows={2}
         maxLength={1000}
         value={body}
         onChange={(e) => setBody(e.target.value)}
-        className="field-input"
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? "comment-error" : undefined}
       />

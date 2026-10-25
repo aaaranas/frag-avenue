@@ -2,7 +2,7 @@ import Link from "next/link";
 import { z } from "zod";
 import { requireUser } from "@/modules/auth/session";
 import { findLogDefaults, listWearsForUser, type WearListRow } from "@/modules/wear-logs/data";
-import { MOOD_LABEL, OCCASION_LABEL, VISIBILITY_LABEL, checkInSummary } from "@/modules/wear-logs";
+import { MOOD_LABEL, OCCASION_LABEL, checkInSummary } from "@/modules/wear-logs";
 import { formatDateTime } from "@/lib/format";
 import { formatTemperature, type UnitSystem } from "@/lib/units";
 import { PageHeader } from "@/components/ui/page-header";
@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
 import { CheckInPrompts } from "@/components/wear/check-in-prompts";
+import { VisibilityBadge } from "@/components/social/visibility-badge";
 
 type SearchParams = Promise<{ page?: string }>;
 const PAGE_SIZE = 20;
@@ -78,8 +79,9 @@ function WearRow({ wear, units }: { wear: WearListRow; units: UnitSystem }) {
           kind={wear.collectionItem?.kind ?? "BOTTLE"}
         />
         <div className="min-w-0 flex-1">
-          <p className="text-xs text-[color:var(--fg-muted)]">
-            {formatDateTime(wear.wornAt, wear.timeZone)} · {VISIBILITY_LABEL[wear.visibility]}
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[color:var(--fg-muted)]">
+            {formatDateTime(wear.wornAt, wear.timeZone)}
+            <VisibilityBadge visibility={wear.visibility} />
           </p>
           <p className="label-caps mt-1 truncate">{wear.fragrance.brand.name}</p>
           <p className="truncate font-medium">{wear.fragrance.name}</p>

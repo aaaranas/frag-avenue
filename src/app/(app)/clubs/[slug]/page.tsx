@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/modules/auth/session";
 import { findClubBySlug } from "@/modules/clubs/data";
@@ -69,12 +70,16 @@ export default async function ClubPage({ params }: { params: Params }) {
                     <span className="numeric w-6 shrink-0 text-right text-sm text-[color:var(--fg-muted)]">
                       {s.rank}
                     </span>
-                    <Avatar name={displayName(person)} className="size-8 text-xs" />
+                    <Avatar
+                      name={displayName(person)}
+                      image={person.image}
+                      className="size-8 text-xs"
+                    />
                     <span className={cn("min-w-0 flex-1 truncate text-sm", you && "font-semibold")}>
                       {person.username && !you ? (
                         <Link
                           href={`/u/${person.username}`}
-                          className="inline-flex min-h-11 items-center hover:underline"
+                          className="inline-flex min-h-11 min-w-11 items-center hover:underline"
                         >
                           {name}
                         </Link>
@@ -82,9 +87,9 @@ export default async function ClubPage({ params }: { params: Params }) {
                         name
                       )}
                     </span>
+                    {s.complete ? <Badge>Complete</Badge> : null}
                     <span className="numeric shrink-0 text-sm">
                       {s.count}/{s.target} {UNIT[challenge.kind]}
-                      {s.complete ? " · complete" : ""}
                     </span>
                   </li>
                 );

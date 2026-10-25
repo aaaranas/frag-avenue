@@ -6,6 +6,7 @@ import { ITEM_KINDS, KIND_LABEL, type FormState, type ItemKind } from "@/modules
 import { Field } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
 
 export type WardrobeFormDefaults = {
   kind: ItemKind;
@@ -146,13 +147,12 @@ export function WardrobeItemForm({
         <label htmlFor="personalNotes" className="field-label">
           Notes (optional)
         </label>
-        <textarea
+        <Textarea
           id="personalNotes"
           name="personalNotes"
           rows={3}
           maxLength={2000}
           defaultValue={defaults.personalNotes}
-          className="field-input"
         />
       </div>
 

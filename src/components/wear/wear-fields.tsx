@@ -16,6 +16,7 @@ import {
 } from "@/modules/wear-logs";
 import { Field } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
 
 export type WearFieldDefaults = {
   wornAt: string; // YYYY-MM-DDTHH:mm, in the wear's zone
@@ -72,13 +73,12 @@ export function WearFields({
         <label htmlFor="notes" className="field-label">
           Note (optional)
         </label>
-        <textarea
+        <Textarea
           id="notes"
           name="notes"
           rows={3}
           maxLength={1000}
           defaultValue={defaults.notes}
-          className="field-input"
           aria-invalid={errors.notes ? true : undefined}
           aria-describedby={errors.notes ? "notes-error" : undefined}
         />

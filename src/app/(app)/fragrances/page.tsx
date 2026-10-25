@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
 import { SearchInput } from "./search-input";
+import { Badge } from "@/components/ui/badge";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -80,7 +81,11 @@ function Grid({ result }: { result: FragranceListResult }) {
               <p className="text-sm text-[color:var(--fg-muted)]">
                 {f.concentration}
                 {f.releaseYear ? <> · {f.releaseYear}</> : null}
-                {f.status === "PENDING" ? <> · Pending review</> : null}
+                {f.status === "PENDING" ? (
+                  <Badge variant="outline" className="ml-2 align-middle">
+                    Pending review
+                  </Badge>
+                ) : null}
               </p>
             </div>
           </Link>
