@@ -4,13 +4,14 @@ import { prisma } from "@/lib/prisma";
 export type UserPreferences = {
   timezone: string;
   units: "METRIC" | "IMPERIAL";
+  defaultCurrency: string;
 };
 
 /** Preferences for the signed-in user. Null only if the account was deleted mid-session. */
 export function findUserPreferences(userId: string): Promise<UserPreferences | null> {
   return prisma.user.findUnique({
     where: { id: userId },
-    select: { timezone: true, units: true },
+    select: { timezone: true, units: true, defaultCurrency: true },
   });
 }
 

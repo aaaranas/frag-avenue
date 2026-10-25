@@ -7,7 +7,7 @@ import {
   listCollectionForPicker,
 } from "@/modules/wear-logs/data";
 import { wallTime } from "@/lib/time-zone";
-import { findFragranceById } from "@/modules/fragrances";
+import { findFragranceById } from "@/modules/fragrances/data";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Eyebrow } from "@/components/ui/eyebrow";
@@ -45,7 +45,7 @@ export default async function LogWearPage({ searchParams }: { searchParams: Sear
     const owned = await findCollectionItemOwnedByUser(user.id, params.collectionItemId);
     if (!owned) notFound();
     return (
-      <FormShell eyebrow="From your collection">
+      <FormShell eyebrow="From your wardrobe">
         <LogWearForm
           fragranceId={owned.fragranceId}
           collectionItemId={owned.id}
@@ -57,7 +57,7 @@ export default async function LogWearPage({ searchParams }: { searchParams: Sear
 
   // Mode B: prefilled from a catalogue fragrance (sample/borrow).
   if (params.fragranceId) {
-    const f = await findFragranceById(params.fragranceId);
+    const f = await findFragranceById(user.id, params.fragranceId);
     if (!f) notFound();
     return (
       <FormShell eyebrow={`Sample · ${f.brand.name} · ${f.name}`}>
@@ -96,7 +96,7 @@ export default async function LogWearPage({ searchParams }: { searchParams: Sear
           <Link href="/fragrances" className="link-editorial">
             catalogue
           </Link>{" "}
-          first, or log a sample by browsing and picking &ldquo;Log a sample wear&rdquo;.
+          first. Bottles, decants, and samples can all be worn.
         </EmptyState>
       ) : (
         // These rows are the primary action of the page, so they have to look
@@ -121,7 +121,7 @@ export default async function LogWearPage({ searchParams }: { searchParams: Sear
                 </div>
                 <div className="flex shrink-0 items-center gap-4">
                   <span className="numeric text-xs text-[color:var(--fg-muted)]">
-                    {item.bottleSizeMl} ml
+                    {item.bottleSizeMl !== null ? `${item.bottleSizeMl} ml` : null}
                   </span>
                   <span
                     aria-hidden

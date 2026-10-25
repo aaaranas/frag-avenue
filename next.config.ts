@@ -33,6 +33,14 @@ const SECURITY_HEADERS = [
 const config: NextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
+  // The Wardrobe replaced the Collection (refactor Phase 3). Old links and
+  // bookmarks keep working.
+  async redirects() {
+    return [
+      { source: "/collection", destination: "/wardrobe", permanent: true },
+      { source: "/collection/:id/edit", destination: "/wardrobe/:id", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

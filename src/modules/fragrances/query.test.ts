@@ -1,21 +1,35 @@
 import { describe, it, expect } from "vitest";
-import { buildFragranceListWhere, paginationOffset, totalPages } from "./query";
+import { buildFragranceListWhere, paginationOffset, totalPages, visibleToUserWhere } from "./query";
 import { DEFAULT_PAGE_SIZE, FragranceListInput } from "./schema";
 
 const parse = (input: unknown) => FragranceListInput.parse(input);
 
 describe("fragrance list query builder", () => {
-  it("returns an empty where when q is missing or blank", () => {
-    expect(buildFragranceListWhere(parse({}))).toEqual({});
-    expect(buildFragranceListWhere(parse({ q: "   " }))).toEqual({});
+  it("shows approved entries plus only the viewer's own pending ones", () => {
+    expect(visibleToUserWhere("user_1")).toEqual({
+      OR: [{ status: "APPROVED" }, { status: "PENDING", submittedById: "user_1" }],
+    });
   });
 
-  it("searches both fragrance name and brand name, case-insensitive", () => {
-    const where = buildFragranceListWhere(parse({ q: "Aventus" }));
-    expect(where.OR).toHaveLength(2);
-    expect(where.OR?.[0]).toEqual({ name: { contains: "Aventus", mode: "insensitive" } });
-    expect(where.OR?.[1]).toEqual({
-      brand: { is: { name: { contains: "Aventus", mode: "insensitive" } } },
+  it("applies only visibility when q is missing or blank", () => {
+    expect(buildFragranceListWhere(parse({}), "user_1")).toEqual(visibleToUserWhere("user_1"));
+    expect(buildFragranceListWhere(parse({ q: "   " }), "user_1")).toEqual(
+      visibleToUserWhere("user_1"),
+    );
+  });
+
+  it("searches name and brand case-insensitively, always within the visible set", () => {
+    const where = buildFragranceListWhere(parse({ q: "Aventus" }), "user_1");
+    expect(where).toEqual({
+      AND: [
+        visibleToUserWhere("user_1"),
+        {
+          OR: [
+            { name: { contains: "Aventus", mode: "insensitive" } },
+            { brand: { is: { name: { contains: "Aventus", mode: "insensitive" } } } },
+          ],
+        },
+      ],
     });
   });
 

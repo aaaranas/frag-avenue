@@ -2,17 +2,36 @@ import type { Prisma } from "@prisma/client";
 import type { FragranceListInput } from "./schema";
 
 /**
+ * Catalogue rows `userId` may see: approved entries, plus their own pending
+ * submissions. Other users' pending or rejected entries never show.
+ */
+export function visibleToUserWhere(userId: string): Prisma.FragranceWhereInput {
+  return {
+    OR: [{ status: "APPROVED" }, { status: "PENDING", submittedById: userId }],
+  };
+}
+
+/**
  * Pure query-shape builder. Takes normalized input, returns a Prisma
  * `where` clause. Lives in its own file so it can be unit-tested without
  * touching Prisma or the database.
  */
-export function buildFragranceListWhere(input: FragranceListInput): Prisma.FragranceWhereInput {
+export function buildFragranceListWhere(
+  input: FragranceListInput,
+  userId: string,
+): Prisma.FragranceWhereInput {
+  const visible = visibleToUserWhere(userId);
   const q = input.q;
-  if (!q) return {};
+  if (!q) return visible;
   return {
-    OR: [
-      { name: { contains: q, mode: "insensitive" } },
-      { brand: { is: { name: { contains: q, mode: "insensitive" } } } },
+    AND: [
+      visible,
+      {
+        OR: [
+          { name: { contains: q, mode: "insensitive" } },
+          { brand: { is: { name: { contains: q, mode: "insensitive" } } } },
+        ],
+      },
     ],
   };
 }

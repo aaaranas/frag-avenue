@@ -91,9 +91,9 @@ export function bottleAppearance(fragrance: FragranceAppearanceInput): BottleApp
  * since a 105ml reading on a 100ml bottle is a measurement artefact, not a bug
  * worth blanking the illustration over.
  */
-export function fillRatio(bottleSizeMl: number, remainingMl: number | null): number | null {
+export function fillRatio(bottleSizeMl: number | null, remainingMl: number | null): number | null {
   if (remainingMl === null || !Number.isFinite(remainingMl)) return null;
-  if (!Number.isFinite(bottleSizeMl) || bottleSizeMl <= 0) return null;
+  if (bottleSizeMl === null || !Number.isFinite(bottleSizeMl) || bottleSizeMl <= 0) return null;
   return Math.min(1, Math.max(0, remainingMl / bottleSizeMl));
 }
 

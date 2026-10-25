@@ -1,25 +1,22 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import {
-  FragranceListInput,
-  listFragrances,
-  totalPages,
-  type FragranceListResult,
-} from "@/modules/fragrances";
-import { Bottle } from "@/components/bottle/bottle";
-import { BottleLegend } from "@/components/bottle/bottle-legend";
+import { requireUser } from "@/modules/auth/session";
+import { FragranceListInput, totalPages, type FragranceListResult } from "@/modules/fragrances";
+import { listFragrances } from "@/modules/fragrances/data";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
-import { SHAPE_LABEL, bottleAppearance } from "@/lib/bottle-appearance";
+import { Button } from "@/components/ui/button";
+import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
 import { SearchInput } from "./search-input";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 export const metadata = {
-  title: "Fragrances",
+  title: "Catalogue",
 };
 
 export default async function FragrancesPage({ searchParams }: { searchParams: SearchParams }) {
+  const user = await requireUser("/fragrances");
   const params = await searchParams;
   const input = FragranceListInput.parse({
     q: typeof params.q === "string" ? params.q : undefined,
@@ -29,84 +26,66 @@ export default async function FragrancesPage({ searchParams }: { searchParams: S
 
   return (
     <div className="mx-auto max-w-5xl">
-      <PageHeader eyebrow="Catalogue" title="Fragrances" />
+      <PageHeader
+        eyebrow="Wardrobe"
+        title="Catalogue"
+        subtitle="Find a fragrance to add to your wardrobe."
+      />
 
       <div className="mb-8 max-w-md">
         <SearchInput initialQ={input.q ?? ""} />
       </div>
 
       <Suspense key={`${input.q ?? ""}-${input.page}`} fallback={<GridSkeleton />}>
-        <ResultGrid input={input} />
+        <ResultGrid input={input} userId={user.id} />
       </Suspense>
+
+      <p className="mt-10 text-sm text-[color:var(--fg-muted)]">
+        Can&rsquo;t find it?{" "}
+        <Link
+          href="/fragrances/new"
+          className="link-editorial inline-flex min-h-11 items-center text-[color:var(--fg)]"
+        >
+          Submit a missing fragrance
+        </Link>
+      </p>
     </div>
   );
 }
 
-async function ResultGrid({ input }: { input: FragranceListInput }) {
-  const result = await listFragrances(input);
+async function ResultGrid({ input, userId }: { input: FragranceListInput; userId: string }) {
+  const result = await listFragrances(userId, input);
   if (result.items.length === 0) return <EmptyStateWithQ q={input.q} />;
   return (
     <>
       <Grid result={result} />
       <Pager result={result} q={input.q} />
-      {/* No fill level here — the catalogue is fragrances, not owned bottles. */}
-      <BottleLegend />
     </>
   );
 }
 
 function Grid({ result }: { result: FragranceListResult }) {
   return (
-    <ul className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 md:gap-x-8 md:gap-y-14 lg:grid-cols-4">
-      {result.items.map((f) => {
-        const bottle = bottleAppearance({
-          concentration: f.concentration,
-          accords: f.accords.map((a) => ({ name: a.accord.name, strength: a.strength })),
-          bottleShape: f.bottleShape,
-          glassColor: f.glassColor,
-          capColor: f.capColor,
-          glassFinish: f.glassFinish,
-        });
-        return (
-          <li key={f.id}>
-            <Link
-              href={`/fragrances/${f.id}`}
-              className="group flex flex-col items-center text-center transition-transform hover:-translate-y-1"
-              // The catalogue holds no bottle, so there is no fill level here —
-              // only the silhouette carries meaning.
-              aria-label={`${f.brand.name} ${f.name}, ${f.concentration} in a ${SHAPE_LABEL[bottle.shape]}`}
-            >
-              <div className="relative flex h-48 items-end justify-center">
-                <Bottle
-                  color={bottle.color}
-                  shape={bottle.shape}
-                  capColor={bottle.capColor}
-                  finish={bottle.finish}
-                  size={100}
-                  className="drop-shadow-[0_6px_12px_rgba(0,0,0,0.1)] group-hover:drop-shadow-[0_10px_18px_rgba(0,0,0,0.16)]"
-                />
-                <div
-                  aria-hidden
-                  className="absolute bottom-0 left-1/2 h-px w-24 -translate-x-1/2 bg-[color:var(--rule-strong)]"
-                />
-              </div>
-              <p className="mt-5 text-[10px] tracking-[0.18em] text-[color:var(--fg-faint)] uppercase">
-                {f.brand.name}
-              </p>
-              <p className="mt-1 font-serif text-base leading-snug italic">{f.name}</p>
-              <p className="mt-1 text-[11px] text-[color:var(--fg-muted)]">
+    <ul className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2">
+      {result.items.map((f) => (
+        <li key={f.id}>
+          <Link
+            href={`/fragrances/${f.id}`}
+            className="flex min-h-11 items-center gap-4 rounded-lg border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-3 transition-colors hover:border-[color:var(--rule-strong)]"
+          >
+            <FragranceThumb imagePath={f.imagePath} />
+            <div className="min-w-0">
+              <p className="label-caps truncate">{f.brand.name}</p>
+              <p className="truncate font-medium">{f.name}</p>
+              <p className="text-sm text-[color:var(--fg-muted)]">
                 {f.concentration}
-                {f.releaseYear ? (
-                  <>
-                    <span className="mx-1.5 text-[color:var(--fg-faint)]">·</span>
-                    <span className="tabular-nums">{f.releaseYear}</span>
-                  </>
-                ) : null}
+                {f.releaseYear ? <> · {f.releaseYear}</> : null}
+                {f.status === "PENDING" ? <> · Pending review</> : null}
               </p>
-            </Link>
-          </li>
-        );
-      })}
+            </div>
+          </Link>
+        </li>
+      ))}
     </ul>
   );
 }
@@ -138,7 +117,8 @@ function Pager({ result, q }: { result: FragranceListResult; q?: string }) {
 }
 
 function PagerLink({ href, label }: { href: string | null; label: string }) {
-  const base = "rounded-sm border border-[color:var(--rule-strong)] px-3 py-1.5 tracking-wide";
+  const base =
+    "inline-flex min-h-11 items-center rounded-sm border border-[color:var(--rule-strong)] px-3 tracking-wide";
   if (!href) {
     return (
       <span aria-disabled className={`${base} text-[color:var(--fg-faint)]`}>
@@ -165,18 +145,30 @@ function EmptyStateWithQ({ q }: { q?: string }) {
           Run <code className="font-mono">pnpm db:seed</code> to load examples.
         </>
       )}
+      <div className="mt-4">
+        <Button asChild variant="outline">
+          <Link href={q ? `/fragrances/new?name=${encodeURIComponent(q)}` : "/fragrances/new"}>
+            Submit a missing fragrance
+          </Link>
+        </Button>
+      </div>
     </EmptyState>
   );
 }
 
 function GridSkeleton() {
   return (
-    <ul className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 md:gap-x-8 md:gap-y-14 lg:grid-cols-4">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <li key={i} className="flex animate-pulse flex-col items-center">
-          <div className="h-40 w-24 rounded bg-[color:var(--rule)]" />
-          <div className="mt-5 h-3 w-24 rounded bg-[color:var(--rule)]" />
-          <div className="mt-2 h-4 w-32 rounded bg-[color:var(--rule)]" />
+    <ul className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2" aria-hidden>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <li
+          key={i}
+          className="flex animate-pulse items-center gap-4 rounded-lg border border-[color:var(--rule)] p-3"
+        >
+          <div className="h-24 w-16 rounded-md bg-[color:var(--bg-sunken)]" />
+          <div className="flex-1">
+            <div className="h-3 w-20 rounded bg-[color:var(--bg-sunken)]" />
+            <div className="mt-2 h-4 w-32 rounded bg-[color:var(--bg-sunken)]" />
+          </div>
         </li>
       ))}
     </ul>

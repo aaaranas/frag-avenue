@@ -1,6 +1,6 @@
 # Frag Avenue — Refactor Plan (Phase 0 audit)
 
-Status: **approved 2026-10-25** (see §11 for the decisions). Phases 1–2 complete; later phases pending.
+Status: **approved 2026-10-25** (see §11 for the decisions). Phases 1–3 complete; later phases pending.
 
 Target: refactor the existing personal-analytics PWA into a Strava-style wear-log platform (Feed · Wardrobe · Log · Stats · Clubs) without breaking the app or losing data at any point.
 
@@ -348,3 +348,13 @@ Non-blocking defaults I'll use unless you object: delete Advisor/recommendations
 - `/feed`, `/wardrobe`, `/log`, `/stats` authenticate, then forward to `/dashboard`, `/collection`, `/wear/new`, `/insights`; `/clubs` is a placeholder. Sign-in, sign-up, the landing page, and the PWA `start_url` go to `/feed`.
 - Legacy pages: every target ≥ 44px, red removed (errors and delete buttons are ink), horizontal overflow at 390px fixed on the landing page and Insights.
 - Not yet greyscale, by plan: the bottle illustrations keep their curated colours until the Wardrobe rebuild (P3). The marketing landing page was removed at the user's request (2026-10-25): `/` redirects to `/sign-in` (or `/feed` when signed in), and the auth screens show only the app name and the form.
+
+### Phase 3 notes
+
+- `/wardrobe` replaces `/collection` (permanent redirects for `/collection` and `/collection/:id/edit`); the collection module, pages, shelf, and bottle legend are deleted. New `wardrobe` module: kinds, validation, cost per wear, fill level, scoped CRUD.
+- Migrations: `bottleSizeMl` nullable (wishlist) with a positive CHECK; `Fragrance.imagePath` with a CHECK that only allows `/catalog/...` paths.
+- Wishlist entries are excluded from the legacy dashboard, insights, advisor, and the wear picker, and cannot be logged.
+- Catalogue shows approved entries plus the viewer's own pending submissions (search and detail). "Submit a missing fragrance" creates a `PENDING` entry, deduped by brand + name slug, rate-limited to 20/user/day. **There is no moderation UI yet**: approve with `UPDATE "Fragrance" SET status = 'APPROVED' WHERE id = '…'` (or Prisma Studio). A review screen is a candidate for P8.
+- Visuals: a wireframe outline glyph per kind (accent fill = level) replaces the coloured bottle renderer in the Wardrobe and catalogue; catalogue photos show where present.
+- User request (2026-10-25): catalogue photos in the repo; Hawas Ice gets one and is corrected from brand "Hawas" to **Rasasi** by moving the existing row (same id). Rayhaan deferred until the user names it. To get it into production: deploy, run `pnpm db:seed` against production once, then add it from the Wardrobe.
+- Dropped the "log a sample wear without adding a bottle" shortcut; samples are a wardrobe kind and Log picks an owned item.

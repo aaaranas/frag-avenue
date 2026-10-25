@@ -19,7 +19,7 @@ import type { WeatherContext } from "./sub-scores";
  */
 export type RecommendationBottle = BottleAppearance & {
   fillRatio: number | null;
-  bottleSizeMl: number;
+  bottleSizeMl: number | null;
   remainingMl: number | null;
 };
 
@@ -33,8 +33,9 @@ export async function getRecommendations(
   context: { weather: WeatherContext; occasion: string; now: Date; limit?: number },
 ): Promise<RecommendationsResult> {
   const [items, wears] = await Promise.all([
+    // Owned items only: you cannot wear a wishlist entry.
     prisma.wardrobeItem.findMany({
-      where: { userId },
+      where: { userId, kind: { not: "WISHLIST" } },
       select: {
         id: true,
         bottleSizeMl: true,

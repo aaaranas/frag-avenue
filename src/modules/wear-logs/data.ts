@@ -67,15 +67,20 @@ export function findWearForUser(userId: string, id: string) {
   });
 }
 
+/** An owned (non-wishlist) item of the user's — the only kind you can wear. */
 export function findCollectionItemOwnedByUser(userId: string, collectionItemId: string) {
   return prisma.wardrobeItem.findFirst({
-    where: { id: collectionItemId, userId },
+    where: { id: collectionItemId, userId, kind: { not: "WISHLIST" } },
     select: { id: true, fragranceId: true },
   });
 }
 
-export function fragranceExists(id: string) {
-  return prisma.fragrance.findUnique({ where: { id }, select: { id: true } });
+/** A catalogue fragrance the user can see: approved, or their own pending submission. */
+export function fragranceExists(userId: string, id: string) {
+  return prisma.fragrance.findFirst({
+    where: { id, OR: [{ status: "APPROVED" }, { status: "PENDING", submittedById: userId }] },
+    select: { id: true },
+  });
 }
 
 /**
@@ -84,7 +89,7 @@ export function fragranceExists(id: string) {
  */
 export function listCollectionForPicker(userId: string) {
   return prisma.wardrobeItem.findMany({
-    where: { userId },
+    where: { userId, kind: { not: "WISHLIST" } },
     orderBy: [{ fragrance: { brand: { name: "asc" } } }, { fragrance: { name: "asc" } }],
     select: {
       id: true,

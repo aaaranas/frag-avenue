@@ -264,6 +264,10 @@ model Fragrance {
   capColor    String?      @db.VarChar(7)
   glassFinish GlassFinish?
 
+  /// Product photo served from /public, e.g. "/catalog/rasasi-hawas-ice.jpg".
+  /// Null → the UI draws the outline glyph instead.
+  imagePath String? @db.VarChar(200)
+
   // --- Moderation ----------------------------------------------------------
   // Existing and seeded rows are APPROVED. User submissions start PENDING.
   status        CatalogStatus @default(APPROVED)
@@ -336,7 +340,8 @@ model WardrobeItem {
   userId             String
   fragranceId        String
   kind               ItemKind        @default(BOTTLE)
-  bottleSizeMl       Int
+  /// Required for owned kinds (app-validated); optional for WISHLIST.
+  bottleSizeMl       Int?
   remainingMl        Int?
   purchasePriceMinor Int?
   currency           String? // ISO 4217; required when purchasePriceMinor is set (app-validated)

@@ -169,7 +169,7 @@ describe("logWearAction", () => {
     await expectRedirect(logWearAction(INITIAL, validForm({ collectionItemId: "" })));
 
     expect(findCollectionItemOwnedByUser).not.toHaveBeenCalled();
-    expect(fragranceExists).toHaveBeenCalledWith("frag_1");
+    expect(fragranceExists).toHaveBeenCalledWith(SESSION_USER.id, "frag_1");
     expect(vi.mocked(createWearForUser).mock.calls[0]![1]).toMatchObject({
       fragranceId: "frag_1",
       collectionItemId: null,
@@ -186,6 +186,9 @@ describe("logWearAction", () => {
       ok: false,
       message: expect.stringContaining("no longer exists"),
     });
+    // The visibility check is scoped to the session user (their own pending
+    // submissions count; other users' do not).
+    expect(vi.mocked(fragranceExists).mock.calls[0]![0]).toBe(SESSION_USER.id);
     expect(createWearForUser).not.toHaveBeenCalled();
   });
 

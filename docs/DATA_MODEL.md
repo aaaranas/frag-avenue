@@ -34,6 +34,7 @@ Canonical fragrance. Shared across users.
 - `releaseYear: Int?`
 - `perfumer: String?`
 - `gender: GenderClass` (enum: `MASCULINE | FEMININE | UNISEX`).
+- `imagePath: String?` (`VarChar(200)`) — product photo served from `public/catalog/` (CHECK: `^/catalog/[a-z0-9-]+\.(jpg|jpeg|png|webp)$`, never an external URL). Null → the UI draws an outline glyph.
 - `status: CatalogStatus` (`APPROVED | PENDING | REJECTED`, default `APPROVED`) — user submissions start `PENDING` and are visible only to their submitter until approved.
 - `submittedById → User?` (`onDelete: SetNull`).
 - `createdAt`, `updatedAt`.
@@ -89,7 +90,7 @@ A user's bottle, decant, sample, or wishlist entry. The Prisma model was renamed
 
 - `id`, `userId → User (onDelete: Cascade)`, `fragranceId → Fragrance (onDelete: Restrict)`.
 - `kind: ItemKind` (`BOTTLE | DECANT | SAMPLE | WISHLIST`, default `BOTTLE`). `WISHLIST` items are not owned: excluded from wear pickers, cost per wear, "untouched", and "pick for today".
-- `bottleSizeMl: Int` (positive). Becomes nullable when wishlist entries ship (Phase 3).
+- `bottleSizeMl: Int?` — required by the app for owned kinds, optional for `WISHLIST`. CHECK `> 0` when present.
 - `remainingMl: Int?` — fill level is `remainingMl / bottleSizeMl`; null means unknown, not empty.
 - `purchasePriceMinor: Int?` — money as integer minor units.
 - `currency: String?` — ISO 4217; required when `purchasePriceMinor` is set (application-validated).

@@ -3,12 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/modules/auth/session";
-import { CollectionItemFormInput, toPersistenceInput } from "./schema";
+import { WardrobeItemFormInput, toPersistenceInput } from "./schema";
 import {
-  createCollectionItem,
-  deleteCollectionItemForUser,
-  findFragrancePreview,
-  updateCollectionItemForUser,
+  createWardrobeItem,
+  deleteWardrobeItemForUser,
+  findAddableFragrance,
+  updateWardrobeItemForUser,
 } from "./data";
 
 export type FormState = {
@@ -29,62 +29,60 @@ function collectFieldErrors(issues: readonly { path: (string | number)[]; messag
 function readForm(formData: FormData) {
   return {
     fragranceId: formData.get("fragranceId"),
+    kind: formData.get("kind") ?? undefined,
     bottleSizeMl: formData.get("bottleSizeMl"),
     remainingMl: formData.get("remainingMl"),
     priceDecimal: formData.get("priceDecimal"),
     currency: formData.get("currency"),
     purchaseDate: formData.get("purchaseDate"),
-    purchaseSource: formData.get("purchaseSource"),
-    batchCode: formData.get("batchCode"),
-    condition: formData.get("condition") ?? "NEW",
-    personalRating: formData.get("personalRating"),
     personalNotes: formData.get("personalNotes"),
   };
 }
 
-export async function addToCollectionAction(
+function revalidateWardrobe() {
+  revalidatePath("/wardrobe");
+  revalidatePath("/wear/new");
+  revalidatePath("/dashboard");
+}
+
+export async function addToWardrobeAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
   const user = await requireUser();
-  const parsed = CollectionItemFormInput.safeParse(readForm(formData));
+  const parsed = WardrobeItemFormInput.safeParse(readForm(formData));
   if (!parsed.success) {
     return { ok: false, fieldErrors: collectFieldErrors(parsed.error.issues) };
   }
-
-  const fragrance = await findFragrancePreview(parsed.data.fragranceId);
-  if (!fragrance) {
-    return { ok: false, message: "That fragrance no longer exists." };
+  // Only approved fragrances, or the user's own pending submissions.
+  if (!(await findAddableFragrance(user.id, parsed.data.fragranceId))) {
+    return { ok: false, message: "That fragrance isn't available." };
   }
-
-  await createCollectionItem(user.id, toPersistenceInput(parsed.data));
-  revalidatePath("/collection");
-  redirect("/collection");
+  await createWardrobeItem(user.id, toPersistenceInput(parsed.data));
+  revalidateWardrobe();
+  redirect(`/wardrobe?type=${parsed.data.kind.toLowerCase()}`);
 }
 
-export async function updateCollectionItemAction(
+export async function updateWardrobeItemAction(
   itemId: string,
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
   const user = await requireUser();
-  const parsed = CollectionItemFormInput.safeParse(readForm(formData));
+  const parsed = WardrobeItemFormInput.safeParse(readForm(formData));
   if (!parsed.success) {
     return { ok: false, fieldErrors: collectFieldErrors(parsed.error.issues) };
   }
-
-  const ok = await updateCollectionItemForUser(user.id, itemId, toPersistenceInput(parsed.data));
-  if (!ok) {
-    return { ok: false, message: "This item is no longer in your collection." };
-  }
-  revalidatePath("/collection");
-  revalidatePath(`/collection/${itemId}/edit`);
-  redirect("/collection");
+  const ok = await updateWardrobeItemForUser(user.id, itemId, toPersistenceInput(parsed.data));
+  if (!ok) return { ok: false, message: "This item is no longer in your wardrobe." };
+  revalidateWardrobe();
+  revalidatePath(`/wardrobe/${itemId}`);
+  redirect("/wardrobe");
 }
 
-export async function deleteCollectionItemAction(itemId: string): Promise<void> {
+export async function deleteWardrobeItemAction(itemId: string): Promise<void> {
   const user = await requireUser();
-  await deleteCollectionItemForUser(user.id, itemId);
-  revalidatePath("/collection");
-  redirect("/collection");
+  await deleteWardrobeItemForUser(user.id, itemId);
+  revalidateWardrobe();
+  redirect("/wardrobe");
 }

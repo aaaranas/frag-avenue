@@ -29,8 +29,8 @@ describe("PrimaryNav", () => {
     );
   });
 
-  it("marks the current tab with aria-current, including on a legacy route", () => {
-    pathname.value = "/collection";
+  it("marks the current tab with aria-current, including on a sub-route", () => {
+    pathname.value = "/fragrances/abc";
     render(<PrimaryNav />);
     const current = within(mobileTabs())
       .getAllByRole("link")

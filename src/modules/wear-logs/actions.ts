@@ -67,7 +67,7 @@ export async function logWearAction(_prev: FormState, formData: FormData): Promi
     }
     fragranceId = owned.fragranceId;
   } else {
-    const exists = await fragranceExists(fragranceId);
+    const exists = await fragranceExists(user.id, fragranceId);
     if (!exists) {
       return { ok: false, message: "That fragrance no longer exists." };
     }

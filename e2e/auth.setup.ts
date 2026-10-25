@@ -15,8 +15,8 @@ setup("authenticate as the seeded dev user", async ({ page }) => {
 
   // Prove the session really carries data before freezing it, otherwise every
   // dependent spec fails with a confusing "not signed in".
-  await page.goto("/collection");
-  await expect(page.getByRole("button", { name: /Creed Aventus/ })).toBeVisible();
+  await page.goto("/wardrobe");
+  await expect(page.getByRole("link", { name: "Edit Creed Aventus" }).first()).toBeVisible();
 
   await page.context().storageState({ path: STORAGE_STATE });
 });

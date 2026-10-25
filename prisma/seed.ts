@@ -17,21 +17,16 @@ import {
   Environment,
   GenderClass,
   GlassFinish,
+  ItemKind,
   NoteLayer,
   Occasion,
   WeatherSource,
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
+// Shared with user submissions so seeded and submitted entries dedupe on slug.
+import { slugify } from "../src/modules/fragrances/slug";
 
 const prisma = new PrismaClient();
-
-function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
 
 type SeedFragrance = {
   brand: string;
@@ -56,6 +51,8 @@ type SeedFragrance = {
     capColor: string;
     finish: GlassFinish;
   };
+  /** Product photo under public/catalog/, e.g. "/catalog/rasasi-hawas-ice.jpg". */
+  image?: string;
 };
 
 const FRAGRANCES: SeedFragrance[] = [
@@ -203,8 +200,9 @@ const FRAGRANCES: SeedFragrance[] = [
     },
   },
   {
-    brand: "Hawas",
+    brand: "Rasasi",
     name: "Hawas Ice",
+    image: "/catalog/rasasi-hawas-ice.jpg",
     concentration: Concentration.EDP,
     releaseYear: 2022,
     gender: GenderClass.MASCULINE,
@@ -258,13 +256,48 @@ async function upsertAccord(name: string) {
  * contributes no keys at all rather than four explicit nulls.
  */
 function bottleFields(f: SeedFragrance) {
-  if (!f.bottle) return {};
+  const image = f.image ? { imagePath: f.image } : {};
+  if (!f.bottle) return image;
   return {
+    ...image,
     bottleShape: f.bottle.shape,
     glassColor: f.bottle.glassColor,
     capColor: f.bottle.capColor,
     glassFinish: f.bottle.finish,
   };
+}
+
+/**
+ * Catalogue corrections for rows earlier seeds created wrongly. A fragrance is
+ * MOVED (same id), never recreated, so wardrobe items and wears that already
+ * point at it — including real users' — keep pointing at it. Idempotent.
+ */
+const CATALOGUE_MOVES: Array<{ slug: string; fromBrand: string; toBrand: string }> = [
+  // Hawas Ice is made by Rasasi; "Hawas" is the line, not the house.
+  { slug: "hawas-ice", fromBrand: "Hawas", toBrand: "Rasasi" },
+];
+
+async function applyCatalogueCorrections() {
+  for (const m of CATALOGUE_MOVES) {
+    const from = await prisma.brand.findUnique({ where: { slug: slugify(m.fromBrand) } });
+    if (!from) continue;
+    const fragrance = await prisma.fragrance.findUnique({
+      where: { brandId_slug: { brandId: from.id, slug: m.slug } },
+      select: { id: true },
+    });
+    if (!fragrance) continue;
+    const to = await upsertBrand(m.toBrand);
+    const clash = await prisma.fragrance.findUnique({
+      where: { brandId_slug: { brandId: to.id, slug: m.slug } },
+      select: { id: true },
+    });
+    if (clash) {
+      console.warn(`Not moving ${m.slug}: ${m.toBrand} already has it. Merge by hand.`);
+      continue;
+    }
+    await prisma.fragrance.update({ where: { id: fragrance.id }, data: { brandId: to.id } });
+    console.log(`Moved ${m.slug} from ${m.fromBrand} to ${m.toBrand}.`);
+  }
 }
 
 async function seedFragrance(f: SeedFragrance) {
@@ -358,12 +391,13 @@ function daysAgo(days: number, hour = 8): Date {
 
 type SeedCollectionItem = {
   key: string; // "<brand slug>/<fragrance slug>"
-  bottleSizeMl: number;
-  remainingMl: number;
-  priceMinor: number; // PHP centavos
+  kind?: ItemKind; // default BOTTLE
+  bottleSizeMl: number | null;
+  remainingMl: number | null;
+  priceMinor: number | null; // PHP centavos
   ownedForDays: number;
-  condition: BottleCondition;
-  personalRating: number;
+  condition?: BottleCondition;
+  personalRating?: number;
   personalNotes?: string;
 };
 
@@ -434,7 +468,7 @@ const COLLECTION: SeedCollectionItem[] = [
     personalNotes: "Bought before I knew better. Still performs.",
   },
   {
-    key: "hawas/hawas-ice",
+    key: "rasasi/hawas-ice",
     bottleSizeMl: 100,
     remainingMl: 88,
     priceMinor: 385_000,
@@ -442,6 +476,34 @@ const COLLECTION: SeedCollectionItem[] = [
     condition: BottleCondition.NEW,
     personalRating: 4,
     personalNotes: "Absurd value. The hot-weather default now.",
+  },
+  // One of each other kind, so the Wardrobe filters have something to show.
+  // Listed after the bottles: wears attach to the first item per fragrance.
+  {
+    key: "creed/aventus",
+    kind: ItemKind.DECANT,
+    bottleSizeMl: 10,
+    remainingMl: 6,
+    priceMinor: 120_000,
+    ownedForDays: 20,
+    personalNotes: "Travel decant.",
+  },
+  {
+    key: "parfums-de-marly/layton",
+    kind: ItemKind.SAMPLE,
+    bottleSizeMl: 2,
+    remainingMl: 1,
+    priceMinor: null,
+    ownedForDays: 10,
+  },
+  {
+    key: "chanel/bleu-de-chanel",
+    kind: ItemKind.WISHLIST,
+    bottleSizeMl: 150,
+    remainingMl: null,
+    priceMinor: 1_150_000,
+    ownedForDays: 5,
+    personalNotes: "The big bottle, eventually.",
   },
 ];
 
@@ -472,14 +534,14 @@ type SeedWear = {
 // prettier-ignore
 const WEARS: SeedWear[] = [
   // --- Recent: hot, humid, fresh-leaning ---
-  { key: "hawas/hawas-ice", days: 1, sprays: 6, occasion: Occasion.WORK, environment: Environment.MIXED, temperatureC: 32, humidityPct: 78, weatherCondition: "Partly cloudy", longevityHours: 6, projection: 3, enjoyment: 4 },
+  { key: "rasasi/hawas-ice", days: 1, sprays: 6, occasion: Occasion.WORK, environment: Environment.MIXED, temperatureC: 32, humidityPct: 78, weatherCondition: "Partly cloudy", longevityHours: 6, projection: 3, enjoyment: 4 },
   { key: "creed/aventus", days: 3, sprays: 4, occasion: Occasion.DATE, environment: Environment.INDOOR, temperatureC: 30, humidityPct: 74, weatherCondition: "Clear", longevityHours: 8, projection: 4, enjoyment: 5 },
-  { key: "hawas/hawas-ice", days: 5, sprays: 6, occasion: Occasion.CASUAL, environment: Environment.OUTDOOR, temperatureC: 33, humidityPct: 81, weatherCondition: "Clear", longevityHours: 5, projection: 3, enjoyment: 4 },
+  { key: "rasasi/hawas-ice", days: 5, sprays: 6, occasion: Occasion.CASUAL, environment: Environment.OUTDOOR, temperatureC: 33, humidityPct: 81, weatherCondition: "Clear", longevityHours: 5, projection: 3, enjoyment: 4 },
   { key: "chanel/bleu-de-chanel", days: 7, sprays: 5, occasion: Occasion.WORK, environment: Environment.INDOOR, temperatureC: 29, humidityPct: 72, weatherCondition: "Overcast", longevityHours: 7, projection: 3, enjoyment: 4 },
-  { key: "hawas/hawas-ice", days: 9, sprays: 5, occasion: Occasion.SPORT, environment: Environment.OUTDOOR, temperatureC: 31, humidityPct: 83, weatherCondition: "Light rain", longevityHours: 4, projection: 2, enjoyment: 3 },
+  { key: "rasasi/hawas-ice", days: 9, sprays: 5, occasion: Occasion.SPORT, environment: Environment.OUTDOOR, temperatureC: 31, humidityPct: 83, weatherCondition: "Light rain", longevityHours: 4, projection: 2, enjoyment: 3 },
   { key: "maison-francis-kurkdjian/baccarat-rouge-540", days: 11, sprays: 3, occasion: Occasion.EVENING, environment: Environment.INDOOR, temperatureC: 28, humidityPct: 70, weatherCondition: "Clear", longevityHours: 10, projection: 5, enjoyment: 5 },
   { key: "creed/aventus", days: 13, sprays: 4, occasion: Occasion.WORK, environment: Environment.MIXED, temperatureC: 30, humidityPct: 76, weatherCondition: "Partly cloudy", longevityHours: 7.5, projection: 4, enjoyment: 5 },
-  { key: "hawas/hawas-ice", days: 16, sprays: 6, occasion: Occasion.CASUAL, environment: Environment.OUTDOOR, temperatureC: 34, humidityPct: 79, weatherCondition: "Clear", longevityHours: 5, projection: 3, enjoyment: 4 },
+  { key: "rasasi/hawas-ice", days: 16, sprays: 6, occasion: Occasion.CASUAL, environment: Environment.OUTDOOR, temperatureC: 34, humidityPct: 79, weatherCondition: "Clear", longevityHours: 5, projection: 3, enjoyment: 4 },
   { key: "chanel/bleu-de-chanel", days: 18, sprays: 5, occasion: Occasion.FORMAL, environment: Environment.INDOOR, temperatureC: 27, humidityPct: 68, weatherCondition: "Overcast", longevityHours: 8, projection: 3, enjoyment: 4 },
   { key: "parfums-de-marly/layton", days: 21, sprays: 3, occasion: Occasion.EVENING, environment: Environment.INDOOR, temperatureC: 28, humidityPct: 71, weatherCondition: "Clear", longevityHours: 11, projection: 5, enjoyment: 5 },
 
@@ -594,13 +656,16 @@ async function seedDevUser() {
       data: {
         userId: user.id,
         fragranceId,
+        kind: c.kind ?? ItemKind.BOTTLE,
         bottleSizeMl: c.bottleSizeMl,
         remainingMl: c.remainingMl,
         purchasePriceMinor: c.priceMinor,
-        currency: DEV_USER.currency,
-        purchaseDate: owned,
+        currency: c.priceMinor !== null ? DEV_USER.currency : null,
+        purchaseDate: c.kind === ItemKind.WISHLIST ? null : owned,
         purchaseSource: "Seeded",
-        condition: c.condition,
+        condition:
+          c.condition ??
+          (c.kind === ItemKind.DECANT ? BottleCondition.DECANT : BottleCondition.NEW),
         personalRating: c.personalRating,
         personalNotes: c.personalNotes,
         // Explicit so "owned for at least 90 days" is exercised — the column
@@ -609,7 +674,7 @@ async function seedDevUser() {
       },
       select: { id: true },
     });
-    collectionItemIdByKey.set(c.key, item.id);
+    if (!collectionItemIdByKey.has(c.key)) collectionItemIdByKey.set(c.key, item.id);
   }
 
   await prisma.wear.createMany({
@@ -636,6 +701,7 @@ async function seedDevUser() {
 }
 
 async function main() {
+  await applyCatalogueCorrections();
   for (const f of FRAGRANCES) {
     await seedFragrance(f);
   }
@@ -653,7 +719,7 @@ async function main() {
   const { collection, wears } = await seedDevUser();
   console.log(
     `Dev account seeded: ${DEV_USER.email} / ${DEV_USER.password} ` +
-      `(${collection} bottles, ${wears} wears).`,
+      `(${collection} wardrobe items, ${wears} wears).`,
   );
 }
 

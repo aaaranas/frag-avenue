@@ -99,7 +99,7 @@ export default async function InsightsPage() {
               <CpwList rows={insights.costPerWear} />
             ) : (
               <MutedLine>
-                Add purchase prices to your collection items to see cost per wear.
+                Add purchase prices to your wardrobe items to see cost per wear.
               </MutedLine>
             )}
           </Panel>

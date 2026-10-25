@@ -38,8 +38,9 @@ export async function getDashboardStats(userId: string, now: Date): Promise<Dash
   const windowStart = new Date(now.getTime() - 90 * DAY_MS);
 
   const [items, aggr, lastWorn, wearsIn90d, recent5] = await Promise.all([
+    // Owned items only: wishlist entries are not part of the collection.
     prisma.wardrobeItem.findMany({
-      where: { userId },
+      where: { userId, kind: { not: "WISHLIST" } },
       select: {
         id: true,
         fragranceId: true,
@@ -104,7 +105,7 @@ export async function getDashboardStats(userId: string, now: Date): Promise<Dash
     fragranceId: i.fragranceId,
     fragranceName: i.fragrance.name,
     brandName: i.fragrance.brand.name,
-    bottleSizeMl: i.bottleSizeMl,
+    bottleSizeMl: i.bottleSizeMl ?? 0,
     purchasePriceMinor: i.purchasePriceMinor,
     currency: i.currency,
     createdAt: i.createdAt,

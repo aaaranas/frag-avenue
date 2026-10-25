@@ -1,0 +1,81 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { requireUser } from "@/modules/auth/session";
+import { findWardrobeItemForUser } from "@/modules/wardrobe/data";
+import {
+  deleteWardrobeItemAction,
+  minorToDecimalString,
+  updateWardrobeItemAction,
+  wearCountLabel,
+} from "@/modules/wardrobe";
+import { findUserPreferences } from "@/modules/users/data";
+import { WardrobeItemForm } from "@/components/wardrobe/wardrobe-item-form";
+import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
+
+type Params = Promise<{ id: string }>;
+
+export const metadata = { title: "Edit wardrobe item" };
+
+export default async function EditWardrobeItemPage({ params }: { params: Params }) {
+  const { id } = await params;
+  const user = await requireUser(`/wardrobe/${id}`);
+  const [item, prefs] = await Promise.all([
+    findWardrobeItemForUser(user.id, id),
+    findUserPreferences(user.id),
+  ]);
+  // Someone else's item and a missing one look the same: not found.
+  if (!item) notFound();
+
+  const update = updateWardrobeItemAction.bind(null, item.id);
+  const remove = deleteWardrobeItemAction.bind(null, item.id);
+  const wears = item._count.wears;
+
+  return (
+    <div className="mx-auto max-w-xl">
+      <Link
+        href="/wardrobe"
+        className="inline-flex min-h-11 items-center text-sm text-[color:var(--fg-muted)] hover:text-[color:var(--fg)]"
+      >
+        ← Wardrobe
+      </Link>
+
+      <header className="mt-4 mb-8 flex items-center gap-4">
+        <FragranceThumb imagePath={item.fragrance.imagePath} kind={item.kind} />
+        <div className="min-w-0">
+          <p className="label-caps">{item.fragrance.brand.name}</p>
+          <h1 className="text-2xl font-semibold tracking-tight">{item.fragrance.name}</h1>
+          <p className="text-sm text-[color:var(--fg-muted)]">{wearCountLabel(wears)} logged</p>
+        </div>
+      </header>
+
+      <WardrobeItemForm
+        action={update}
+        fragranceId={item.fragrance.id}
+        submitLabel="Save changes"
+        defaults={{
+          kind: item.kind,
+          bottleSizeMl: item.bottleSizeMl?.toString() ?? "",
+          remainingMl: item.remainingMl?.toString() ?? "",
+          priceDecimal:
+            item.purchasePriceMinor !== null ? minorToDecimalString(item.purchasePriceMinor) : "",
+          currency: item.currency ?? prefs?.defaultCurrency ?? "",
+          purchaseDate: item.purchaseDate ? item.purchaseDate.toISOString().slice(0, 10) : "",
+          personalNotes: item.personalNotes ?? "",
+        }}
+      />
+
+      <form action={remove} className="mt-12 border-t border-[color:var(--rule)] pt-6">
+        <p className="text-sm text-[color:var(--fg-muted)]">
+          Remove this item from your wardrobe.
+          {wears > 0 ? ` Its ${wearCountLabel(wears)} stay in your log.` : null}
+        </p>
+        <button
+          type="submit"
+          className="mt-3 min-h-11 rounded-md border border-[color:var(--fg)] px-4 text-sm font-medium text-[color:var(--fg)] hover:bg-[color:var(--bg-sunken)]"
+        >
+          Remove from wardrobe
+        </button>
+      </form>
+    </div>
+  );
+}

@@ -43,8 +43,9 @@ export async function getInsights(
         fragrance: { select: { brand: { select: { name: true } } } },
       },
     }),
+    // Owned items only: wishlist entries have no cost per wear.
     prisma.wardrobeItem.findMany({
-      where: { userId },
+      where: { userId, kind: { not: "WISHLIST" } },
       select: {
         fragranceId: true,
         purchasePriceMinor: true,
