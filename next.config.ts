@@ -44,9 +44,11 @@ const config: NextConfig = {
       { source: "/wear", destination: "/wears", permanent: true },
       { source: "/wear/new", destination: "/log", permanent: true },
       { source: "/wear/:id/edit", destination: "/wears/:id/edit", permanent: true },
-      // Stats replaced the dashboard and Insights (refactor Phase 6).
+      // Stats replaced the dashboard and Insights (refactor Phase 6), and the
+      // Advisor was retired (Phase 8).
       { source: "/dashboard", destination: "/stats", permanent: true },
       { source: "/insights", destination: "/stats", permanent: true },
+      { source: "/advisor", destination: "/stats", permanent: true },
     ];
   },
   async headers() {

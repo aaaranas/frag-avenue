@@ -34,7 +34,6 @@ const PROTECTED = [
   "/fragrances/new",
   "/wears",
   "/wears/some-wear",
-  "/advisor",
   "/profile",
 ];
 

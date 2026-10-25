@@ -2,8 +2,8 @@
  * The five primary tabs, plus Profile (top bar on mobile, sidebar footer on
  * desktop). Pure data + matching so it can be tested without rendering.
  *
- * `matches` also claims the legacy routes a tab replaces, so the right tab is
- * current while a tab still forwards to its legacy page (Phase 2 → 6).
+ * `prefixes` also claims the screens a tab owns below its own route (a
+ * profile under Feed, the catalogue under Wardrobe), so the tab stays current.
  */
 export type TabId = "feed" | "wardrobe" | "log" | "stats" | "clubs";
 
@@ -23,13 +23,7 @@ export const TABS: readonly NavItem[] = [
     prefixes: ["/wardrobe", "/fragrances"],
   },
   { id: "log", href: "/log", label: "Log", prefixes: ["/log", "/wears"] },
-  {
-    id: "stats",
-    href: "/stats",
-    label: "Stats",
-    // The legacy advisor lives here until Phase 8 removes it.
-    prefixes: ["/stats", "/advisor"],
-  },
+  { id: "stats", href: "/stats", label: "Stats", prefixes: ["/stats"] },
   { id: "clubs", href: "/clubs", label: "Clubs", prefixes: ["/clubs"] },
 ];
 

@@ -14,7 +14,7 @@
  * Bump `VERSION` to force an upgrade — old caches are dropped on `activate`.
  */
 
-const VERSION = "v1";
+const VERSION = "v2";
 const STATIC_CACHE = `frag-static-${VERSION}`;
 const RUNTIME_CACHE = `frag-runtime-${VERSION}`;
 
@@ -22,7 +22,8 @@ const PRECACHE_URLS = [
   "/offline.html",
   "/manifest.webmanifest",
   "/icons/icon.svg",
-  "/icons/apple-touch-icon.svg",
+  "/icons/icon-192.png",
+  "/icons/apple-touch-icon.png",
 ];
 
 self.addEventListener("install", (event) => {

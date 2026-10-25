@@ -2,7 +2,7 @@
 
 ## Shape
 
-Modular monolith. One deployable Next.js 15 App Router application, one PostgreSQL database, no microservices. All intelligence (analytics, recommendations) is in-process.
+Modular monolith. One deployable Next.js 15 App Router application, one PostgreSQL database, no microservices. All derived stats are computed in-process.
 
 ## Layers
 
@@ -15,18 +15,19 @@ src/lib          Cross-cutting infrastructure: Prisma client singleton, env pars
 
 Dependency direction is strictly downward: `app → components/modules → lib`. Modules import each other only via the exporting module's `index.ts`.
 
-## Modules (initial)
+## Modules
 
 - `auth` — Auth.js v5 setup, session helpers, `requireUser()`.
-- `users` — user profile, preferences.
-- `fragrances` — canonical fragrance catalogue (Brand, Fragrance, Note, Accord, joins).
-- `collection` — user-owned CollectionItem CRUD, aggregations (value, volume).
-- `wear-logs` — WearLog CRUD, environment/weather capture.
-- `weather` — Open-Meteo client + Zod validation + geocoding helper. Isolated so a future native client can share.
-- `analytics` — pure aggregation functions over wear/collection data. No Prisma imports — takes plain inputs, returns plain outputs.
-- `recommendations` — pure scoring engine + weighting strategies + cold-start rules. No Prisma.
+- `users` — profile, username, time zone, units, default visibility.
+- `fragrances` — canonical catalogue (Brand, Fragrance, Note, Accord, joins), user submissions, the Wikidata import parser.
+- `wardrobe` — user-owned items (bottle, decant, sample, wishlist), cost per wear.
+- `wear-logs` — the log flow, wear edit/delete, check-ins (`dueCheckIn`, `checkInTimeline`).
+- `weather` — `WeatherService` with Open-Meteo and static providers. Isolated so a future native client can share.
+- `social` — visibility rules, follows, kudos, comments, feed and profile queries.
+- `clubs` — clubs, membership, challenge progress and leaderboards.
+- `analytics` — pure functions: stats, streaks, untouched, pick-for-today, challenges, money. No Prisma.
 
-`analytics` and `recommendations` remain framework-free so they are trivially unit-testable and can later back a Node service, an Expo client, or a scheduled job.
+`analytics` stays framework-free so it is trivially unit-testable and could later back a Node service, an Expo client, or a scheduled job.
 
 ## Data access
 
@@ -60,7 +61,7 @@ Manifest at `public/manifest.webmanifest`, linked from the root layout. Service 
 
 ## Testing
 
-- **Vitest** for unit and integration tests. Pure modules (`analytics`, `recommendations`, scoring) get fixture-based unit tests.
+- **Vitest** for unit and integration tests. Pure functions (`analytics`, check-ins, visibility rules) get fixture-based unit tests.
 - **React Testing Library** for behaviourally significant components (forms, the wear-log flow).
 - **Playwright** for critical user journeys: sign in → add fragrance → log wear.
 
@@ -76,6 +77,6 @@ Vercel-compatible. Postgres is external (Neon / Supabase / RDS). Env vars docume
 
 - **No repository pattern.** Prisma is already the boundary. Adding another layer would be ceremony.
 - **Money as integer minor units + ISO currency code.** Never a float, never a single "currency-less" number.
-- **Timestamps as UTC in the DB, grouped in the user's timezone at read time.** Timezone is stored on `User`.
+- **Timestamps as UTC in the DB; each wear keeps the IANA zone it was logged in.** A wear's day is its local date in that zone; "today" is in `User.timezone`.
 - **Canonical `Fragrance` is separate from `CollectionItem`.** Two users owning "Aventus" share the canonical row.
-- **Recommendation scoring is a pure function**, injected with weights and user context — swapping the weighting strategy does not require a code change in the UI.
+- **Derived state is computed, never stored.** Streaks, stats, challenge progress, and pending check-ins are pure functions of the wears and `today`/`now`.

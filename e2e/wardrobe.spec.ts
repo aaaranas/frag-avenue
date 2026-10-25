@@ -129,8 +129,8 @@ test("a fresh account sees empty states rather than errors", async ({ page }) =>
   await page.goto("/wears");
   await expect(page.getByText(/no wears logged yet/i)).toBeVisible();
 
-  await page.goto("/advisor");
-  await expect(page.getByText(/nothing to suggest yet/i)).toBeVisible();
+  await page.goto("/stats");
+  await expect(page.getByText(/^No wears/)).toBeVisible();
 });
 
 test.describe("the seeded wardrobe", () => {
@@ -178,15 +178,5 @@ test.describe("the seeded wardrobe", () => {
   test("the old collection URL lands on the wardrobe", async ({ page }) => {
     await page.goto("/collection");
     await expect(page).toHaveURL(/\/wardrobe$/);
-  });
-});
-
-test.describe("the seeded account's analytics", () => {
-  test.use({ storageState: STORAGE_STATE });
-
-  test("the advisor scores rather than falling back to cold-start", async ({ page }) => {
-    await page.goto("/advisor");
-    await expect(page.getByText("Match").first()).toBeVisible();
-    await expect(page.getByText("Cold-start")).toHaveCount(0);
   });
 });

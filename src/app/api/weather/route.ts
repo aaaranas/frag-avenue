@@ -11,7 +11,7 @@ export const runtime = "nodejs"; // uses Prisma-backed session via auth()
 /**
  * GET /api/weather?lat=..&lon=..
  *
- * Current weather for a preview (the log form; the legacy advisor). Requires a
+ * Current weather for a preview (the log form). Requires a
  * session — we do not proxy the provider anonymously. Coordinates are rounded
  * by the service before leaving the server. Rate limited to 60/min per
  * (user, ip).

@@ -2,7 +2,9 @@
  * Idempotent development seed. Safe to re-run.
  *
  * Two parts:
- *   1. The canonical fragrance catalogue — shared by every user, upserted.
+ *   1. The canonical fragrance catalogue — shared by every user: the curated
+ *      entries below (upserted), then the Wikidata snapshot if one has been
+ *      fetched (create-only; see prisma/fetch-wikidata-catalogue.ts).
  *   2. A deterministic development account (see DEV_USER) with a collection and
  *      wear history, so a fresh clone is usable immediately and the Playwright
  *      suite has a fixed account to sign in as.
@@ -23,9 +25,11 @@ import {
   WeatherSource,
 } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { existsSync, readFileSync } from "node:fs";
 // Shared with user submissions so seeded and submitted entries dedupe on slug.
 import { slugify } from "../src/lib/slug";
 import { addDays, localDate, zonedWallTimeToUtc } from "../src/lib/time-zone";
+import { WikidataSnapshot } from "../src/modules/fragrances/wikidata";
 
 const prisma = new PrismaClient();
 
@@ -837,11 +841,58 @@ async function seedFriend(devUserId: string, idsByKey: Map<string, string>, pass
   });
 }
 
+const WIKIDATA_SNAPSHOT = "prisma/data/wikidata-catalogue.json";
+
+/**
+ * Adds Wikidata fragrances the catalogue does not have yet. Create-only: an
+ * existing row (curated, submitted, or imported earlier) is never changed, so
+ * curation and users' references survive a refresh. Concentration is unknown
+ * from Wikidata, hence OTHER.
+ */
+async function seedWikidataCatalogue(): Promise<number> {
+  if (!existsSync(WIKIDATA_SNAPSHOT)) {
+    console.log(`No ${WIKIDATA_SNAPSHOT}; skipping the Wikidata import (pnpm db:catalogue:fetch).`);
+    return 0;
+  }
+  const snapshot = WikidataSnapshot.parse(JSON.parse(readFileSync(WIKIDATA_SNAPSHOT, "utf8")));
+  let created = 0;
+  for (const item of snapshot.items) {
+    const brandSlug = slugify(item.brand);
+    const slug = slugify(item.name);
+    if (!brandSlug || !slug) continue;
+    const brand = await prisma.brand.upsert({
+      where: { slug: brandSlug },
+      update: {},
+      create: { name: item.brand, slug: brandSlug },
+    });
+    const existing = await prisma.fragrance.findUnique({
+      where: { brandId_slug: { brandId: brand.id, slug } },
+      select: { id: true },
+    });
+    if (existing) continue;
+    await prisma.fragrance.create({
+      data: {
+        brandId: brand.id,
+        slug,
+        name: item.name,
+        releaseYear: item.releaseYear,
+        concentration: Concentration.OTHER,
+      },
+    });
+    created++;
+  }
+  console.log(
+    `Wikidata (${snapshot.retrievedAt.slice(0, 10)}): ${created} new of ${snapshot.items.length}.`,
+  );
+  return created;
+}
+
 async function main() {
   await applyCatalogueCorrections();
   for (const f of FRAGRANCES) {
     await seedFragrance(f);
   }
+  await seedWikidataCatalogue();
   const count = await prisma.fragrance.count();
   console.log(`Catalogue seeded. Canonical fragrances in DB: ${count}`);
 

@@ -50,7 +50,7 @@ For every change, answer explicitly:
 ## 7. Tests
 
 - If the change affects a query surface (list/filter/aggregate), add or update a test that runs against a test database (or a fixture, for pure functions).
-- Recommendation and analytics aggregations must have fixtures that pin the expected numeric output.
+- Analytics aggregations must have fixtures that pin the expected numeric output.
 
 ## 8. Safety rails
 

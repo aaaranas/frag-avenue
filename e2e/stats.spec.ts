@@ -66,10 +66,10 @@ test.describe("the seeded stats", () => {
     expect(wears).toBeLessThan(30);
   });
 
-  test("the old dashboard and Insights URLs land on Stats", async ({ page }) => {
-    await page.goto("/dashboard");
-    await expect(page).toHaveURL(/\/stats$/);
-    await page.goto("/insights");
-    await expect(page).toHaveURL(/\/stats$/);
+  test("the old dashboard, Insights, and Advisor URLs land on Stats", async ({ page }) => {
+    for (const path of ["/dashboard", "/insights", "/advisor"]) {
+      await page.goto(path);
+      await expect(page).toHaveURL(/\/stats$/);
+    }
   });
 });

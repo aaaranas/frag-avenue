@@ -11,7 +11,7 @@ See `docs/PRODUCT.md` for product scope, `docs/ARCHITECTURE.md` for architectura
 - Tailwind CSS 4, shadcn/ui, Recharts (only where charts communicate better than a stat card)
 - PostgreSQL 16 (Docker Compose locally), Prisma 6
 - Auth.js v5 (NextAuth v5) with Prisma adapter — credentials (email + password), JWT sessions
-- Zod for validation, React Hook Form for complex forms
+- Zod for validation; client forms use `useFormAction` (see Forms below)
 - Open-Meteo for weather/geocoding (no API key)
 - Vitest + React Testing Library, Playwright for critical E2E
 - GitHub Actions CI, Vercel-compatible deployment
@@ -25,15 +25,14 @@ Modular monolith. Layer boundaries are enforced by convention:
 ```
 src/app          UI / route composition (Server Components by default)
 src/components   Presentational + shell UI
-src/modules/*    Domain modules (auth, users, fragrances, collection, wear-logs,
-                 weather, analytics, recommendations; social and clubs arrive
-                 with their phases). Each module owns its application services,
-                 domain logic, and data access.
+src/modules/*    Domain modules (auth, users, fragrances, wardrobe, wear-logs,
+                 weather, social, clubs, analytics). Each module owns its
+                 application services, domain logic, and data access.
 src/lib          Cross-cutting infrastructure (prisma client, env, utils)
 ```
 
 - React page components must NOT contain business logic or call Prisma directly. They call module services.
-- Analytics and recommendation logic live in `src/modules/analytics` and `src/modules/recommendations` and must be pure and independently testable (no React, no Next imports).
+- Analytics logic lives in `src/modules/analytics` and must be pure and independently testable (no React, no Next, no Prisma imports).
 - Weather fetching is isolated in `src/modules/weather` so a future native client can share the abstraction.
 - Server-only code uses `import "server-only"` at the top of the file.
 - Public server actions and route handlers MUST validate input with Zod and MUST authorize using the server session — never trust a client-supplied user id.
@@ -48,9 +47,9 @@ src/lib          Cross-cutting infrastructure (prisma client, env, utils)
 - **Wishlist.** `WardrobeItem.kind = WISHLIST` is not owned: exclude it from pickers, cost per wear, untouched, and pick-for-today.
 - **Catalogue photos.** Stored in the repo under `public/catalog/<brand-slug>-<fragrance-slug>.jpg` (re-encoded to strip metadata) and referenced by `Fragrance.imagePath`, set in `prisma/seed.ts`. Fix a wrong catalogue row by MOVING it (`CATALOGUE_MOVES` in the seed), never by recreating it — users' wardrobe items and wears point at its id.
 - **Module barrels are client-safe.** `src/modules/<name>/index.ts` must never re-export a `server-only` file; server code imports `@/modules/<name>/data` directly.
-- **Catalogue.** Our own `Fragrance` table. Never scrape Fragrantica, Parfumo, or any site against its terms. Seed from licence-compatible sources only (currently Wikidata, CC0). User submissions are `PENDING` until moderated.
+- **Catalogue.** Our own `Fragrance` table. Never scrape Fragrantica, Parfumo, or any site against its terms. Seed from licence-compatible sources only: curated entries in `prisma/seed.ts`, plus Wikidata (CC0) via a committed snapshot (`pnpm db:catalogue:fetch` → `prisma/data/wikidata-catalogue.json`; the seed import is create-only). User submissions are `PENDING` until moderated.
 - **Design.** Mobile-first at 390px, greyscale wireframe with ONE accent: `--accent-color` in `src/app/globals.css` (with derived `--accent-wash`/`--accent-line`). Never add a hue — no red for errors (use `.form-error` + `role="alert"`), no green for success. Use semantic tokens (`--fg`, `--fg-muted`, `--fg-faint`, `--rule`, `--bg*`); shadcn's `--accent` is a neutral hover surface, not the accent. Text tokens are AA on every surface (contrast table in `globals.css`). Every interactive element is ≥ 44×44px (`min-h-11`; `Button` sizes already comply), real `<a>`/`<button>` only, and no horizontal scroll at 390px (give grid columns `minmax(0,1fr)`). Base CSS goes in `@layer base`, never bare — unlayered rules override Tailwind utilities.
-- **Navigation.** Five tabs: Feed, Wardrobe, Log (centre "+"), Stats, Clubs — defined in `src/components/shell/nav-items.ts`. Profile lives in the top bar (mobile) / sidebar footer (desktop). A tab whose screen is not rebuilt yet forwards to its legacy page and lists that page's prefix so it shows as current.
+- **Navigation.** Five tabs: Feed, Wardrobe, Log (centre "+"), Stats, Clubs — defined in `src/components/shell/nav-items.ts`. Profile lives in the top bar (mobile) / sidebar footer (desktop). A tab lists the prefixes of the screens it owns (e.g. `/u` under Feed, `/fragrances` under Wardrobe) so it shows as current there.
 - **Forms.** Client forms with typed fields use `useFormAction` (`src/components/forms/use-form-action.ts`), not bare `useActionState`: React 19 resets a `<form action>` after every action call, including failed validation, which silently reverts typed values.
 - **Check-ins.** Prompts are derived (`dueCheckIn`, `checkInTimeline`); the server accepts an answer only for the prompt open right now. Prompts render in pages via `<CheckInPrompts>`, not in the layout (layouts don't re-render on navigation).
 - **Weather.** Behind `WeatherService` (`src/modules/weather`); server code calls `getWeatherService()`. `WEATHER_PROVIDER=static` gives fixed readings for e2e/offline only. Open-Meteo's free tier is non-commercial only and requires the attribution "Weather data by Open-Meteo.com" next to displayed data. Revisit the provider if the project becomes commercial.
@@ -74,9 +73,9 @@ src/lib          Cross-cutting infrastructure (prisma client, env, utils)
 
 ## Testing expectations
 
-- Every module with domain logic (analytics, recommendations, scoring, cost-per-wear) has unit tests targeting behavior, not implementation.
+- Every module with domain logic (stats, streaks, check-ins, visibility, challenges, cost per wear) has unit tests targeting behavior, not implementation.
 - Server actions have at least one happy-path and one authorization test.
-- Playwright covers: sign in, add fragrance to collection, log a wear.
+- Playwright covers: sign in, add to wardrobe, log a wear, check in, kudos, join a club, and installability.
 
 ## Database safety
 
@@ -89,6 +88,7 @@ src/lib          Cross-cutting infrastructure (prisma client, env, utils)
 ## Git safety
 
 - Do not commit or push unless the user explicitly asks. For the refactor, the user asked for one commit per phase directly on `main` (rollback point: tag `pre-refactor`). Pushing to `main` deploys to Vercel and applies migrations to production.
+- Commits are authored by the user (the repo's git identity), with a one-line conventional message (`feat:`, `fix:`, `docs:`, `refactor:`, …) and no co-author or session trailers.
 - Never force-push, reset --hard, clean -fd, or delete branches.
 - Inspect `git status` before large changes; preserve unrelated modifications.
 

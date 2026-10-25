@@ -17,10 +17,10 @@ describe("primary tabs", () => {
     expect(activeTab("/clubs")).toEqual(["clubs"]);
   });
 
-  it("claims the legacy routes each tab still forwards to", () => {
+  it("claims the screens each tab owns below its route", () => {
     expect(activeTab("/u/mika")).toEqual(["feed"]);
     expect(activeTab("/people")).toEqual(["feed"]);
-    expect(activeTab("/advisor")).toEqual(["stats"]);
+    expect(activeTab("/advisor")).toEqual([]);
     expect(activeTab("/wardrobe/abc")).toEqual(["wardrobe"]);
     expect(activeTab("/fragrances/xyz")).toEqual(["wardrobe"]);
     expect(activeTab("/wears/abc/edit")).toEqual(["log"]);

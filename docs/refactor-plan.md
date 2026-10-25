@@ -1,6 +1,6 @@
 # Frag Avenue — Refactor Plan (Phase 0 audit)
 
-Status: **approved 2026-10-25** (see §11 for the decisions). Phases 1–7 complete; later phases pending.
+Status: **approved 2026-10-25** (see §11 for the decisions). Phases 1–8 complete; Phase 9 (Web Push) needs a scheduler decision.
 
 Target: refactor the existing personal-analytics PWA into a Strava-style wear-log platform (Feed · Wardrobe · Log · Stats · Clubs) without breaking the app or losing data at any point.
 
@@ -395,3 +395,12 @@ Non-blocking defaults I'll use unless you object: delete Advisor/recommendations
 - `slug` moved to `src/lib/slug.ts` (fragrances and clubs share it). Optional-text schemas now treat a missing field (`null` from `FormData.get`) like an empty one.
 - Seed: the club `manila-fragheads` with dev as admin and mika as member.
 - Not in scope: club-specific challenges, invites or private clubs, moderation, and club deletion.
+
+### Phase 8 notes
+
+- Deleted: the Advisor page and the `recommendations` module, the unused `analytics` aggregations and insights (collection value, volume, sprays, seasonal patterns, weather-rating correlation, house frequencies, CPW leaderboard), the bottle renderer, and `react-hook-form` / `@hookform/resolvers`. `/advisor` redirects to `/stats`. All of it is recoverable from the `pre-refactor` tag. Legacy DB columns stay (bottle appearance, ratings, environment); dropping them is a separate, approved migration.
+- PWA: a new greyscale-plus-accent mark drawn from plain shapes (no font), as `icon.svg`, 192 and 512 PNGs, a maskable 512, and a 180px `apple-touch-icon.png` (iOS ignores SVG touch icons). The service worker cache version is bumped. The install banner now meets the 44px target and, on iOS Safari, which never fires `beforeinstallprompt`, explains Share → Add to Home Screen. `e2e/pwa.spec.ts` checks every manifest icon is served and that Chromium reports no installability errors.
+- Wikidata (decision 1): `pnpm db:catalogue:fetch` runs one SPARQL query (instances of "perfume" with a brand or manufacturer and a year) and writes `prisma/data/wikidata-catalogue.json` with provenance; the seed imports it create-only, with concentration `OTHER`. The parser is pure and unit-tested, and the seed import was exercised on a scratch database (creates new rows, leaves curated ones untouched, idempotent). **Not yet run against Wikidata:** this environment's network policy blocks `query.wikidata.org`, so no snapshot is committed. Run it from a machine with network access, review the diff, and commit.
+- Seed: users, follows, kudos, comments, wears, and a club were added across Phases 5–7; nothing further was needed.
+- Docs: README, `CLAUDE.md`, `ARCHITECTURE`, `DATA_MODEL`, `ROADMAP`, the `frag-domain` skill, and the agent definitions describe the wear-log product; `docs/RECOMMENDATION_ENGINE.md` is deleted.
+- e2e coverage: sign in, add to wardrobe, log a wear, check in, kudos and comments, follow, join a club, stats, installability, and auth redirects.

@@ -11,10 +11,6 @@ export type FragranceListItem = {
   concentration: $Enums.Concentration;
   gender: string;
   releaseYear: number | null;
-  bottleShape: $Enums.BottleShape | null;
-  glassColor: string | null;
-  capColor: string | null;
-  glassFinish: $Enums.GlassFinish | null;
   imagePath: string | null;
   status: $Enums.CatalogStatus;
   brand: { id: string; name: string };
@@ -49,10 +45,6 @@ export async function listFragrances(
         concentration: true,
         gender: true,
         releaseYear: true,
-        bottleShape: true,
-        glassColor: true,
-        capColor: true,
-        glassFinish: true,
         imagePath: true,
         status: true,
         brand: { select: { id: true, name: true } },
@@ -84,10 +76,6 @@ export async function findFragranceById(userId: string, id: string) {
       gender: true,
       releaseYear: true,
       perfumer: true,
-      bottleShape: true,
-      glassColor: true,
-      capColor: true,
-      glassFinish: true,
       imagePath: true,
       status: true,
       brand: { select: { id: true, name: true } },

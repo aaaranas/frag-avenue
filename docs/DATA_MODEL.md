@@ -39,22 +39,19 @@ Canonical fragrance. Shared across users.
 - `submittedById → User?` (`onDelete: SetNull`).
 - `createdAt`, `updatedAt`.
 
-The catalogue is our own table. It is never scraped from Fragrantica, Parfumo, or any site against its terms; seed data comes from licence-compatible sources (Wikidata, CC0).
+The catalogue is our own table. It is never scraped from Fragrantica, Parfumo, or any site against its terms; seed data comes from licence-compatible sources: curated entries in `prisma/seed.ts`, and Wikidata (CC0) through the committed snapshot `prisma/data/wikidata-catalogue.json` (create-only import; concentration `OTHER`, since Wikidata does not say).
 
-Curated bottle appearance — all nullable, because curation is ongoing and will
-never be complete. When a field is null the renderer derives the look instead
-(silhouette from `concentration`, colour from the strongest accord), so an
-uncurated fragrance still draws a sensible bottle. This is shape and colour
-only — deliberately not logos, label artwork, or trade dress.
+Curated bottle appearance (legacy): all nullable; shape and colour only,
+deliberately not logos, label artwork, or trade dress.
 
 - `bottleShape: BottleShape?` (enum: `RECTANGULAR | FLASK | CYLINDRICAL | TAPERED | SQUAT`).
 - `glassColor: String?` — `#rrggbb`, `VarChar(7)`. On a `CLEAR` bottle this describes the juice; otherwise the glass.
 - `capColor: String?` — `#rrggbb`, `VarChar(7)`.
 - `glassFinish: GlassFinish?` (enum: `CLEAR | FROSTED | OPAQUE`).
 
-Hex format is validated in the application layer (`src/lib/bottle-appearance.ts`),
-which falls back rather than emitting a malformed colour into SVG. No index:
-these columns are only ever read alongside the fragrance row, never filtered on.
+Legacy since Phase 8: the bottle renderer that read these columns was retired
+with the Advisor. The seed still writes them and nothing reads them; dropping
+them needs a separate, approved migration.
 
 ### Note
 
@@ -165,7 +162,6 @@ Open follows: anyone can follow anyone.
 
 - `Purchase` — separate history of purchase events per collection item. Only add when we have a real "sold my bottle / bought a decant" flow.
 - `UserPreference` — explicit preferences (e.g. blocked accords). Deferred; preferences are inferred from wears first.
-- `RecommendationSnapshot` — persisted recommendation history. Deferred; recommendations are computed on demand until we have a reason to store them (feed history, A/B, etc.).
 - `PushSubscription` — Web Push endpoints. Added only if push reminders for check-ins are approved (needs a per-minute scheduler; see `docs/refactor-plan.md`).
 - Wear photos — deferred until after the MVP.
 

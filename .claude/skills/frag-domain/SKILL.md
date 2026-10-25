@@ -1,6 +1,6 @@
 ---
 name: frag-domain
-description: Reusable Frag Avenue domain knowledge — fragrance terminology, canonical vs user-owned data separation, wear logging semantics, rating scales, analytics/cost-per-wear definitions, and cold-start recommendation rules. Load this before touching fragrance, collection, wear-log, analytics, or recommendation code.
+description: Reusable Frag Avenue domain knowledge — fragrance terminology, canonical vs user-owned data separation, wear logging and check-in semantics, visibility, stats/cost-per-wear definitions, and challenges. Load this before touching fragrance, wardrobe, wear-log, social, clubs, or analytics code.
 ---
 
 # Frag Avenue domain reference
@@ -10,7 +10,7 @@ description: Reusable Frag Avenue domain knowledge — fragrance terminology, ca
 - **Fragrance** — a canonical, house-published product (e.g. "Parfums de Marly Layton EDP"). Shared across all users. Metadata: brand, name, concentration, release year, perfumer, gender classification, notes (top/middle/base), accords.
 - **Concentration** — Parfum / EDP / EDT / EDC / Cologne / Extrait. Affects expected longevity and projection baselines.
 - **Notes** — individual scent ingredients, structured in pyramid layers (top / middle / base). One fragrance has many notes.
-- **Accords** — higher-level scent families / blends (e.g. "fresh", "woody-aromatic", "gourmand", "smoky", "aquatic"). Used as the primary feature vector for preference matching.
+- **Accords** — higher-level scent families / blends (e.g. "fresh", "woody-aromatic", "gourmand", "smoky", "aquatic"). Weighted by strength (1–5) in the Stats accord breakdown.
 - **Perfumer** — the composer. Free text initially; do not model as a first-class entity until we have a query that needs it.
 - **Batch code** — bottle-level identifier from the manufacturer; useful for authenticity and age tracking. Free text.
 
@@ -39,7 +39,6 @@ The most important modelling rule in Frag Avenue.
 - Personal ratings and enjoyment: **integer 1–5**. Never fractional in the schema.
 - Projection: **integer 1–5** (1 = skin scent, 5 = room-filling).
 - Longevity: **numeric hours, 0.5 step**, capped at 24.
-- Recommendation confidence: **percentage 0–100**, rounded to the nearest integer for display.
 
 ## Analytics definitions (single source of truth)
 
@@ -53,52 +52,23 @@ Day rule for everything below: a wear's day is its local date in `Wear.timeZone`
 - **Pick for today** = least recently worn owned item; never-worn first, then oldest-added; skip known-empty bottles (`remainingMl = 0`).
 - **Challenge progress** = distinct fragrances (or houses) among wears whose local date is within the last 30 days, today inclusive.
 
-- **Total wears** = count of `WearLog` rows for the user.
-- **Estimated sprays** = Σ `WearLog.sprays`.
-- **Collection value** = Σ `CollectionItem.purchasePriceMinorUnits` (in the user's display currency; store per-item currency, convert at read time; no FX inside inserts).
-- **Total volume** = Σ `CollectionItem.bottleSizeMl`.
+- **Total wears** = count of the user's wears in the selected range (30 days, 90 days, or all time).
 - **Cost per wear (per item)** = `purchasePrice / wearCount` where `wearCount ≥ 1`; undefined for zero wears (display as "—", not 0 or infinity) and for wishlist items.
-- **Cost per wear (per user)** = Σ purchase prices of items with ≥1 wear / Σ wears of those items. Excludes zero-wear items so a large untouched collection does not distort the number.
-- **Neglected fragrance** (legacy dashboard, replaced by _Untouched_) = owned ≥ 90 days AND last wear ≥ 60 days ago (or never worn).
-- **Most worn** = top-N by wear count in the selected window (default: last 90 days).
-- **Concentration ratio** = share of total wears represented by the top 5 fragrances. High values indicate low collection utilisation.
-- **Seasonal pattern** = wears grouped by meteorological season derived from `WearLog.wornAt`.
-- All aggregations respect time zones (store instants as UTC, bucket by each wear's local date). Legacy dashboard/insights still bucket in UTC until they are replaced.
+- **Challenge leaderboard** = each member's challenge progress counting only the wears the _viewer_ may see (visibility rules below), each member's window ending on their own local today; sorted by count, ties share a rank.
+- Stats and challenges are pure functions (`src/modules/analytics`) that take `today`/`now` as an argument; nothing derived is stored.
 - Units: store metric (°C, ml), convert for display only.
 
 ## Cost-per-wear detail
 
 Prices are stored as integer **minor units** with an ISO 4217 currency code. Never store money as a float. Division for CPW happens in the analytics module and rounds to two decimal places for display only.
 
-## Recommendation terminology (legacy Advisor — scheduled for removal; weather-ranked recommendations are out of MVP scope)
+## Visibility
 
-- **Score** = weighted sum of sub-scores, all in [0, 1], multiplied by 100 for display.
-- **Sub-scores** (initial hypothesis, not immutable):
-  - `weatherFit` (30%) — how well the fragrance's accord profile matches current weather.
-  - `preferenceFit` (25%) — cosine-ish similarity between the user's historically high-rated accord profile and this fragrance's accords.
-  - `occasionFit` (20%) — occasion tag match (work / casual / evening / formal / sport / date).
-  - `historicalPerformance` (15%) — the user's average enjoyment rating on this fragrance, Bayesian-shrunk toward the user's global mean when wear count is low.
-  - `rotationDiversity` (10%) — penalizes fragrances worn recently to avoid over-recommending the same bottle.
-- **Reasons** — every returned recommendation carries a `reasons: string[]` array generated from whichever sub-scores contributed most. Reasons are templated from the actual numbers, not free-form prose.
+- Owner sees all of their wears. Anyone signed in sees `PUBLIC`; followers also see `FOLLOWERS`; `PRIVATE` is owner-only.
+- Follows are open (anyone can follow anyone). New wears default to `User.defaultVisibility` (initially `FOLLOWERS`).
+- Every query returning wears to a non-owner uses the builders in `src/modules/social/visibility.ts`. Kudos and comments authorize through `findWearForInteraction`; you cannot kudos your own wear.
 
-## Cold-start rules
+## Clubs and challenges
 
-A user is **cold-start** when any of:
-
-- fewer than 10 total `WearLog` rows, OR
-- fewer than 5 distinct fragrances worn, OR
-- no rated wears (enjoyment) yet.
-
-Cold-start behaviour:
-
-- Do not compute `preferenceFit` or `historicalPerformance` — set their weights to 0 and re-normalize remaining weights.
-- Do not display a percentage score. Display "Suggested" with a badge and a plain-language reason ("matches today's weather", "you haven't tried this yet in warm weather", etc.).
-- Prefer variety: return one suggestion per distinct accord family the user owns.
-- Never invent preferences the user has not expressed.
-
-## Explainability principles
-
-- Every score is decomposable into named sub-scores.
-- Every reason string is derived from a real number, not from vibes.
-- If two fragrances tie on score, break ties by lowest recent-wear count (encourage exploration), then alphabetical.
-- Log the sub-score breakdown (in-memory, not to disk) so tests can assert the reasoning path.
+- A **club** is an open group: anyone can join or leave; its creator is its admin.
+- **Challenges** are global (rows inserted by a data migration): "30 different scents in 30 days" and "5 different houses in 30 days". Progress is a rolling 30-local-day window; a club page shows a leaderboard per challenge for its members.

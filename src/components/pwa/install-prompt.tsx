@@ -9,15 +9,31 @@ type BeforeInstallPromptEvent = Event & {
 
 const DISMISS_KEY = "frag:install-dismissed";
 
+/**
+ * iOS Safari never fires `beforeinstallprompt`; installing is a manual
+ * Share → Add to Home Screen. `navigator.standalone` exists only on iOS, so it
+ * identifies the browser without parsing the user agent.
+ */
+function isIosBrowser(): boolean {
+  return (
+    "standalone" in window.navigator && !(window.navigator as { standalone?: boolean }).standalone
+  );
+}
+
 export function InstallPrompt() {
   const [event, setEvent] = useState<BeforeInstallPromptEvent | null>(null);
+  const [ios, setIos] = useState(false);
   const [hidden, setHidden] = useState(true);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
     if (window.matchMedia?.("(display-mode: standalone)").matches) return;
-    if (window.localStorage?.getItem(DISMISS_KEY) === "1") return;
+    try {
+      if (window.localStorage.getItem(DISMISS_KEY) === "1") return;
+    } catch {
+      /* localStorage may be disabled */
+    }
     setHidden(false);
+    setIos(isIosBrowser());
 
     const handler = (e: Event) => {
       e.preventDefault();
@@ -32,7 +48,7 @@ export function InstallPrompt() {
     };
   }, []);
 
-  if (hidden || !event) return null;
+  if (hidden || (!event && !ios)) return null;
 
   const dismiss = () => {
     try {
@@ -44,6 +60,7 @@ export function InstallPrompt() {
   };
 
   const install = async () => {
+    if (!event) return;
     try {
       await event.prompt();
       await event.userChoice;
@@ -59,23 +76,31 @@ export function InstallPrompt() {
     <div
       role="region"
       aria-label="Install Frag Avenue"
-      className="flex items-center gap-3 border-b border-[color:var(--rule)] bg-[color:var(--bg)]/95 px-5 py-2 text-xs backdrop-blur md:px-12"
+      className="flex items-center gap-3 border-b border-[color:var(--rule)] bg-[color:var(--bg)] px-5 py-1 text-sm md:px-12"
     >
       <p className="flex-1 text-[color:var(--fg-muted)]">
-        Install <span className="font-serif text-[color:var(--fg)] italic">Frag Avenue</span> for
-        one-tap access on your home screen.
+        {event ? (
+          "Install Frag Avenue for one-tap access from your home screen."
+        ) : (
+          <>
+            To install, tap <span className="font-medium text-[color:var(--fg)]">Share</span>, then{" "}
+            <span className="font-medium text-[color:var(--fg)]">Add to Home Screen</span>.
+          </>
+        )}
       </p>
-      <button
-        type="button"
-        onClick={install}
-        className="rounded-sm bg-[color:var(--fg)] px-3 py-1 font-medium tracking-wide text-[color:var(--bg)]"
-      >
-        Install
-      </button>
+      {event ? (
+        <button
+          type="button"
+          onClick={install}
+          className="min-h-11 rounded-md bg-[color:var(--fg)] px-4 font-medium text-[color:var(--bg)]"
+        >
+          Install
+        </button>
+      ) : null}
       <button
         type="button"
         onClick={dismiss}
-        className="px-1 text-[color:var(--fg-faint)] hover:text-[color:var(--fg)]"
+        className="min-h-11 px-2 text-[color:var(--fg-muted)] hover:text-[color:var(--fg)]"
         aria-label="Dismiss install prompt"
       >
         Not now

@@ -1,27 +1,29 @@
 # Frag Avenue — Roadmap
 
-## Foundation (this pass)
+## Where we are
 
-Repository scaffolding, Claude Code configuration, docs, Next.js + TypeScript strict, Prisma + Docker Compose Postgres, initial schema + seed, app shell + responsive nav, Vitest + Playwright wired, GitHub Actions CI, PWA manifest.
+The original foundation (auth, catalogue, collection, wear journal, weather,
+dashboard, insights, advisor, PWA, hardening) shipped first. The product then
+moved from personal analytics to a Strava-style social wear log; that
+refactor is documented phase by phase in [`refactor-plan.md`](refactor-plan.md).
+Phases 1–8 are done: data model, design system and five-tab shell, Wardrobe,
+Log with check-ins, Feed and social, Stats, Clubs and challenges, and cleanup.
 
-## Vertical slices (in order)
+## Next
 
-1. **Authentication** — Auth.js v5 credentials, sign-up, sign-in, session, `requireUser()` helper.
-2. **Fragrance domain reads** — browse canonical fragrances (search-only initially; user-facing add-fragrance later).
-3. **Collection CRUD** — add / edit / delete collection items linked to canonical fragrances.
-4. **Wear logging** — create / edit / delete wear logs with sprays, occasion, environment, ratings.
-5. **Weather enrichment** — Open-Meteo integration with geocoding + Zod validation + manual override.
-6. **Dashboard** — accurate aggregate stats (owned, value, volume, wears, sprays, most/least worn, recent activity).
-7. **Analytics** — accord distribution, seasonal patterns, concentration ratio, cost per wear.
-8. **Scent Intelligence** — neglected fragrances, preferred accords, weather-rating correlations, house frequencies.
-9. **Advisor** — deterministic recommendation engine with cold-start path and explanations.
-10. **PWA polish** — service worker with scoped, non-authenticated caching; install prompt; offline-safe empty states.
-11. **E2E hardening** — Playwright coverage of sign-in → add fragrance → log wear → see dashboard update.
-12. **Production hardening** — rate limiting on auth, error boundaries, structured logging, security headers, backup strategy for the DB.
+- **Phase 9 (stretch): Web Push** for check-in reminders. Needs a scheduler
+  decision first: Vercel Hobby cron runs once a day, so reminders at 2/4/8h
+  need a queue (e.g. QStash) or a different host.
+- **Wikidata catalogue snapshot**: run `pnpm db:catalogue:fetch` from a
+  machine with network access, review, commit, and seed.
+- **Wear photos** (deferred until after the MVP): storage vendor, CSP
+  `img-src`, and a photo column.
+- **Shared rate-limit store** (Upstash / KV) before any real traffic.
+- **Dropping legacy columns** (wear ratings, environment, bottle appearance)
+  in a separate, approved, expand-then-contract migration.
 
 ## Post-MVP futures (documented, not scheduled)
 
-- Social layer (follow, share a wardrobe).
 - Marketplace / decant exchange.
 - Public community reviews.
 - AI chat interface over the user's own data.
@@ -29,7 +31,7 @@ Repository scaffolding, Claude Code configuration, docs, Next.js + TypeScript st
 - Barcode / batch-code lookup.
 - Perfume layering suggestions.
 - Native Expo/React Native client consuming the same server actions/API.
-- Machine learning models for recommendation (once we have data and a real signal that determinism is insufficient).
+- Weather-ranked recommendations (the retired Advisor; recoverable from the `pre-refactor` tag).
 - Redis for hot caches (only when a real bottleneck exists).
 - Event streaming (only when we have events worth streaming).
 - Kubernetes / microservices (only when the monolith is provably the bottleneck — probably never for this product).
