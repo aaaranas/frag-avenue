@@ -20,12 +20,11 @@ describe("primary tabs", () => {
   it("claims the legacy routes each tab still forwards to", () => {
     expect(activeTab("/u/mika")).toEqual(["feed"]);
     expect(activeTab("/people")).toEqual(["feed"]);
-    expect(activeTab("/dashboard")).toEqual(["stats"]);
     expect(activeTab("/advisor")).toEqual(["stats"]);
     expect(activeTab("/wardrobe/abc")).toEqual(["wardrobe"]);
     expect(activeTab("/fragrances/xyz")).toEqual(["wardrobe"]);
     expect(activeTab("/wears/abc/edit")).toEqual(["log"]);
-    expect(activeTab("/insights")).toEqual(["stats"]);
+    expect(activeTab("/stats")).toEqual(["stats"]);
   });
 
   it("matches whole path segments only", () => {

@@ -87,16 +87,16 @@ describe("signInAction", () => {
   });
 
   it("honours a relative `next` destination", async () => {
-    signInSucceeds("/insights");
+    signInSucceeds("/stats");
 
     await expectRedirect(
       signInAction(
         INITIAL,
-        formData({ email: "owner@frag.test", password: "correct-horse", next: "/insights" }),
+        formData({ email: "owner@frag.test", password: "correct-horse", next: "/stats" }),
       ),
     );
 
-    expect(vi.mocked(signIn).mock.calls[0]![1]).toMatchObject({ redirectTo: "/insights" });
+    expect(vi.mocked(signIn).mock.calls[0]![1]).toMatchObject({ redirectTo: "/stats" });
   });
 
   it("refuses an absolute `next` destination, falling back to the feed", async () => {

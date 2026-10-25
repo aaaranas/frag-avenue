@@ -30,10 +30,8 @@ const PROTECTED = [
   "/wardrobe/some-item",
   "/fragrances",
   "/fragrances/new",
-  "/dashboard",
   "/wears",
   "/wears/some-wear",
-  "/insights",
   "/advisor",
   "/profile",
 ];

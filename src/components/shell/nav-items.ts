@@ -27,8 +27,8 @@ export const TABS: readonly NavItem[] = [
     id: "stats",
     href: "/stats",
     label: "Stats",
-    // The legacy overview and advisor live here until Phase 6 replaces them.
-    prefixes: ["/stats", "/insights", "/dashboard", "/advisor"],
+    // The legacy advisor lives here until Phase 8 removes it.
+    prefixes: ["/stats", "/advisor"],
   },
   { id: "clubs", href: "/clubs", label: "Clubs", prefixes: ["/clubs"] },
 ];

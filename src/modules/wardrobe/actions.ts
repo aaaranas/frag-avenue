@@ -42,7 +42,7 @@ function readForm(formData: FormData) {
 function revalidateWardrobe() {
   revalidatePath("/wardrobe");
   revalidatePath("/log");
-  revalidatePath("/dashboard");
+  revalidatePath("/stats");
 }
 
 export async function addToWardrobeAction(

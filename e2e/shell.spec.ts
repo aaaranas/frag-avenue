@@ -34,7 +34,7 @@ test("every tab and the profile link is at least 44×44px", async ({ page }) => 
 const DESTINATIONS = [
   { tab: "Wardrobe", url: /\/wardrobe$/ },
   { tab: "Log a wear", url: /\/log$/ },
-  { tab: "Stats", url: /\/insights$/ },
+  { tab: "Stats", url: /\/stats$/ },
   { tab: "Clubs", url: /\/clubs$/ },
   { tab: "Feed", url: /\/feed$/ },
 ];

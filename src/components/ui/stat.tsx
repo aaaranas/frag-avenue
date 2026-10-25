@@ -1,11 +1,8 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Editorial stat. A hairline top rule connects stats in a row.
- *
- * The number is set in the sans, not the display serif: these are figures you
- * read and compare, and Cormorant's old-style numerals turned "127" into
- * something that read as "I 27". See `.numeric` in globals.css.
+ * Stat tile: a headline number with its label. A top rule connects tiles in a
+ * row. Figures are tabular (`.numeric`) so they align and compare.
  */
 export function Stat({
   label,

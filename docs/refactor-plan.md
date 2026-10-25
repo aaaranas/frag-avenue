@@ -1,6 +1,6 @@
 # Frag Avenue — Refactor Plan (Phase 0 audit)
 
-Status: **approved 2026-10-25** (see §11 for the decisions). Phases 1–5 complete; later phases pending.
+Status: **approved 2026-10-25** (see §11 for the decisions). Phases 1–6 complete; later phases pending.
 
 Target: refactor the existing personal-analytics PWA into a Strava-style wear-log platform (Feed · Wardrobe · Log · Stats · Clubs) without breaking the app or losing data at any point.
 
@@ -377,3 +377,12 @@ Non-blocking defaults I'll use unless you object: delete Advisor/recommendations
 - The legacy dashboard and advisor moved under the Stats tab (linked from Insights as "Overview") until Phase 6 replaces them.
 - Seed: dev is `@dev`; a local-only friend `@mika` (mika@frag.test / devpassword123) with public, followers-only, and private wears, mutual follows, kudos, and a comment.
 - Fixed in passing: tapping "Don't attach" while the location or weather preview was still loading could be overridden by the late result, attaching weather anyway (caught by a flaky e2e run; now guarded and repeated 15× green).
+
+### Phase 6 notes
+
+- `/stats` (range: 30 days / 90 days / all time): wears, unique scents, day streak (always from all wears, ending today or yesterday), most worn (top 5), accord breakdown (each wear weight 1, split by accord strength), untouched 30+ days (owned only, never-worn first), and a performance-vs-weather placeholder that counts wears with both weather and a check-in (chart appears at 10).
+- All numbers come from one pure function, `buildStats` (`src/modules/analytics/stats.ts`), over the user's wears and owned items, with `now` and the zone as arguments; `getStatsForUser` loads the inputs, owner-scoped.
+- Forms: stat tiles for headline numbers; single-series bars in the accent, values printed as text (the list is its own table, so no tooltip). Checked against the dataviz guidance.
+- `/dashboard` and `/insights` redirect to `/stats`; their pages and server loaders are deleted. Not carried over, deliberately (not in the Stats spec): collection value by currency, total volume, total sprays, seasonal patterns, house frequencies, weather-vs-enjoyment correlation, and the cost-per-wear leaderboard (cost per wear lives on each Wardrobe card). Their pure helpers remain until the Phase 8 cleanup.
+- The Advisor is now reachable only by URL; Phase 8 removes it with the recommendations module.
+- Open: one unexplained e2e failure in ~40 runs of "another user's wear is not found" (the log form stayed on /log after submit). Not reproduced in 10 targeted repeats; no-JS submission was verified to work. Watch CI.

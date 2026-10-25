@@ -49,10 +49,8 @@ test("golden path: add a bottle, log a wear, and see wear count and cost per wea
   await expect(after).toContainText("₱10,000.00 (1 wear)");
 
   // Legacy screens still reflect it.
-  await page.goto("/dashboard");
-  await expect(
-    page.getByRole("region", { name: "Summary" }).getByText("Wears", { exact: true }),
-  ).toBeVisible();
+  await page.goto("/stats");
+  await expect(page.getByRole("region", { name: "Totals" })).toContainText("1");
 });
 
 test("a wishlist entry needs no size, has no fill level, and cannot be worn", async ({ page }) => {
@@ -190,17 +188,5 @@ test.describe("the seeded account's analytics", () => {
     await page.goto("/advisor");
     await expect(page.getByText("Match").first()).toBeVisible();
     await expect(page.getByText("Cold-start")).toHaveCount(0);
-  });
-
-  test("insights renders real patterns instead of the not-enough-data state", async ({ page }) => {
-    await page.goto("/insights");
-    await expect(page.getByRole("heading", { name: "Insights" })).toBeVisible();
-    await expect(page.getByText(/not enough data yet/i)).toHaveCount(0);
-    await expect(page.getByText("Preferred accords")).toBeVisible();
-  });
-
-  test("the dashboard flags the deliberately neglected bottle", async ({ page }) => {
-    await page.goto("/dashboard");
-    await expect(page.getByRole("region", { name: "Neglected" })).toContainText("Tobacco Vanille");
   });
 });
