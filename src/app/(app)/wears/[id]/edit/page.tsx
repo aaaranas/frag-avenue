@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/modules/auth/session";
 import { findWearForUser } from "@/modules/wear-logs/data";
@@ -11,6 +10,7 @@ import {
 } from "@/modules/wear-logs";
 import { wallTime } from "@/lib/time-zone";
 import { EditWearForm } from "./edit-wear-form";
+import { BackLink } from "@/components/ui/back-link";
 
 type Params = Promise<{ id: string }>;
 
@@ -28,12 +28,7 @@ export default async function EditWearPage({ params }: { params: Params }) {
 
   return (
     <div className="mx-auto max-w-xl">
-      <Link
-        href={`/wears/${wear.id}`}
-        className="inline-flex min-h-11 items-center text-sm text-[color:var(--fg-muted)] hover:text-[color:var(--fg)]"
-      >
-        ← Back to wear
-      </Link>
+      <BackLink href={`/wears/${wear.id}`}>Back to wear</BackLink>
       <p className="label-caps mt-2">{wear.fragrance.brand.name}</p>
       <h1 className="mb-8 text-2xl font-semibold tracking-tight">Edit {wear.fragrance.name}</h1>
       <EditWearForm

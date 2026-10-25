@@ -16,12 +16,12 @@ export default async function AppShellLayout({ children }: { children: React.Rea
 
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
-      <PrimaryNav />
+      <PrimaryNav viewer={{ name: user.name || user.email, image: user.image }} />
       <div className="flex flex-1 flex-col">
         <InstallPrompt />
         {prefs ? <TimeZoneNudge profileTimeZone={prefs.timezone} /> : null}
         {/* pb-24 leaves room for the mobile bottom nav */}
-        <main className="flex-1 px-5 pt-8 pb-24 md:px-12 md:pt-12 md:pb-12">{children}</main>
+        <main className="flex-1 px-5 pt-5 pb-28 md:px-12 md:pt-10 md:pb-12">{children}</main>
       </div>
     </div>
   );

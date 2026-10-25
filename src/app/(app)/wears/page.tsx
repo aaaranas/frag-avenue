@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
 import { CheckInPrompts } from "@/components/wear/check-in-prompts";
 import { VisibilityBadge } from "@/components/social/visibility-badge";
+import { Plus } from "lucide-react";
 
 type SearchParams = Promise<{ page?: string }>;
 const PAGE_SIZE = 20;
@@ -31,7 +32,6 @@ export default async function WearsPage({ searchParams }: { searchParams: Search
     <div className="mx-auto max-w-2xl">
       <CheckInPrompts userId={user.id} />
       <PageHeader
-        eyebrow="Log"
         title="Your wears"
         actions={
           <Button asChild>
@@ -40,11 +40,16 @@ export default async function WearsPage({ searchParams }: { searchParams: Search
         }
       />
       {rows.length === 0 ? (
-        <EmptyState title="No wears logged yet.">
-          <Link href="/log" className="link-editorial">
-            Log your first wear
-          </Link>
-          .
+        <EmptyState
+          title="No wears logged yet."
+          icon={<Plus />}
+          action={
+            <Button asChild>
+              <Link href="/log">Log your first wear</Link>
+            </Button>
+          }
+        >
+          Each wear you log shows up here, newest first.
         </EmptyState>
       ) : (
         <>
@@ -72,7 +77,7 @@ function WearRow({ wear, units }: { wear: WearListRow; units: UnitSystem }) {
     <li>
       <Link
         href={`/wears/${wear.id}`}
-        className="flex min-h-11 gap-4 rounded-lg border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-3 transition-colors hover:border-[color:var(--rule-strong)]"
+        className="flex min-h-11 gap-4 rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-3 transition-colors hover:border-[color:var(--rule-strong)]"
       >
         <FragranceThumb
           imagePath={wear.fragrance.imagePath}

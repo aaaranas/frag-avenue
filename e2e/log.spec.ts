@@ -44,11 +44,12 @@ test("log a wear from the wardrobe, with mood, visibility, and weather attached"
 
   await expect(page).toHaveURL(/\/wears\/\w+$/);
   await expect(page.getByRole("heading", { name: "Aventus" })).toBeVisible();
-  const details = page.locator("dl").first();
-  await expect(details).toContainText("4");
+  // Who can see it is shown with the title; everything else under Details.
+  await expect(page.getByRole("main")).toContainText("Only me");
+  const details = page.getByRole("region", { name: "Details" });
+  await expect(details).toContainText("Sprays4");
   await expect(details).toContainText("Date");
   await expect(details).toContainText("Confident");
-  await expect(details).toContainText("Only me");
   await expect(details).toContainText("30°C · 70% humidity · Clear");
   await expect(details).toContainText("Test weather (static provider)");
   await expect(details).toContainText("Dinner out");
@@ -68,7 +69,7 @@ test("choosing not to attach weather logs the wear without it", async ({ page })
   await expect(page.getByText("No weather will be attached.")).toBeVisible();
   await page.getByRole("button", { name: "Log wear" }).click();
   await expect(page).toHaveURL(/\/wears\/\w+$/);
-  await expect(page.locator("dl").first()).toContainText("Not recorded");
+  await expect(page.getByRole("region", { name: "Details" })).toContainText("Not recorded");
 });
 
 test("an open check-in can be answered from the wear page, once", async ({ page }) => {

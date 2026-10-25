@@ -1,8 +1,9 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Stat tile: a headline number with its label. A top rule connects tiles in a
- * row. Figures are tabular (`.numeric`) so they align and compare.
+ * Stat tile: a label over a headline number. Figures are tabular (`.numeric`)
+ * so tiles in a row align. The label comes first in the DOM so the tile reads
+ * "Wears 30" to assistive tech, as it does on screen.
  */
 export function Stat({
   label,
@@ -17,13 +18,18 @@ export function Stat({
 }) {
   return (
     <div
-      className={cn("flex flex-col gap-2 border-t-2 border-[color:var(--fg)] pt-3 pb-4", className)}
+      className={cn(
+        // Values sit on the bottom edge so a row lines up even when one label
+        // wraps to two lines.
+        "flex flex-col justify-between gap-2 rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-3 sm:p-4",
+        className,
+      )}
     >
-      <p className="text-[11px] font-medium tracking-[0.16em] text-[color:var(--fg-faint)] uppercase">
-        {label}
-      </p>
-      <p className="numeric text-3xl leading-none font-medium">{value}</p>
-      {hint ? <p className="text-xs text-[color:var(--fg-faint)]">{hint}</p> : null}
+      <p className="text-xs leading-tight font-medium text-[color:var(--fg-muted)]">{label}</p>
+      <div>
+        <p className="numeric text-[1.75rem] leading-none font-semibold tracking-tight">{value}</p>
+        {hint ? <p className="mt-1 text-xs text-[color:var(--fg-faint)]">{hint}</p> : null}
+      </div>
     </div>
   );
 }

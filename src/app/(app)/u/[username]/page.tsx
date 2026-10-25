@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, displayName } from "@/components/social/avatar";
 import { FollowButton } from "@/components/social/follow-button";
 import { WearCard } from "@/components/social/wear-card";
+import { Activity } from "lucide-react";
 
 type Params = Promise<{ username: string }>;
 type SearchParams = Promise<{ cursor?: string | string[] }>;
@@ -69,7 +70,7 @@ export default async function ProfilePage({
 
       <h2 className="sr-only">Wears</h2>
       {wears.items.length === 0 ? (
-        <EmptyState title="No wears to show">
+        <EmptyState title="No wears to show" icon={<Activity />}>
           {self
             ? "Wears you log appear here."
             : following

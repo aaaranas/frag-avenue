@@ -19,7 +19,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
 
   return (
     <div className="mx-auto max-w-xl">
-      <PageHeader eyebrow="Feed" title="Find people" />
+      <PageHeader title="Find people" />
       <form role="search" action="/people" className="mb-6 flex gap-2">
         <label htmlFor="people-q" className="sr-only">
           Search by username or name
@@ -48,7 +48,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
             return (
               <li
                 key={p.id}
-                className="flex items-center gap-3 rounded-lg border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-3"
+                className="flex items-center gap-3 rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-3"
               >
                 <Avatar name={name} image={p.image} />
                 <Link
@@ -61,7 +61,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Searc
                     {p._count.followers === 1 ? "follower" : "followers"}
                   </span>
                 </Link>
-                <FollowButton userId={p.id} following={p.followers.length > 0} name={name} />
+                <FollowButton userId={p.id} following={p.followers.length > 0} name={name} quiet />
               </li>
             );
           })}

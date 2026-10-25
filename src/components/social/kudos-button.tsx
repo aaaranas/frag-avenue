@@ -2,6 +2,7 @@
 
 import { useOptimistic, startTransition } from "react";
 import { toggleKudosAction } from "@/modules/social";
+import { Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -31,7 +32,8 @@ export function KudosButton({
 
   if (own) {
     return (
-      <span className="inline-flex min-h-11 items-center text-sm text-[color:var(--fg-muted)]">
+      <span className="inline-flex min-h-11 items-center gap-2 px-3 text-sm text-[color:var(--fg-muted)]">
+        <Heart className="size-4" aria-hidden />
         {text}
       </span>
     );
@@ -55,13 +57,14 @@ export function KudosButton({
         aria-pressed={state.given}
         aria-label={`${state.given ? "Remove kudos from" : "Give kudos to"} ${label}`}
         className={cn(
-          "inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm transition-colors",
+          "inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm transition-colors hover:bg-[color:var(--bg-sunken)]",
+          // Given: accent and a filled heart — never colour alone.
           state.given
-            ? "border-[color:var(--accent-color)] bg-[color:var(--accent-wash)] font-medium text-[color:var(--accent-color)]"
-            : "border-[color:var(--rule-strong)] hover:bg-[color:var(--bg-sunken)]",
+            ? "font-medium text-[color:var(--accent-color)]"
+            : "text-[color:var(--fg-muted)] hover:text-[color:var(--fg)]",
         )}
       >
-        <span aria-hidden>{state.given ? "♥" : "♡"}</span>
+        <Heart className={cn("size-4", state.given && "fill-current")} aria-hidden />
         <span>{text}</span>
       </button>
     </form>

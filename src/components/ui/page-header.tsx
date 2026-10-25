@@ -1,8 +1,6 @@
 import { cn } from "@/lib/utils";
-import { Eyebrow } from "./eyebrow";
 
 type Props = {
-  eyebrow?: string;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   actions?: React.ReactNode;
@@ -10,29 +8,23 @@ type Props = {
 };
 
 /**
- * Page header. Eyebrow / title / optional supporting text, with a short accent
- * rule above the eyebrow so every page opens on the same note.
- *
- * `actions` sit on the right from md up and wrap below the title on mobile.
+ * The title row of a tab page: a semibold title, optional one-line support
+ * text, and actions on the right at every width (they wrap under the title
+ * only when there is no room). No eyebrow: the tab bar already says where you
+ * are, and on a phone the old eyebrow + accent rule + title + action stack
+ * cost a third of the first screen.
  */
-export function PageHeader({ eyebrow, title, subtitle, actions, className }: Props) {
+export function PageHeader({ title, subtitle, actions, className }: Props) {
   return (
     <header
-      className={cn(
-        "mb-10 flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-8",
-        className,
-      )}
+      className={cn("mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-3", className)}
     >
-      <div className="min-w-0">
-        <div aria-hidden className="mb-4 h-[3px] w-10 rounded-full bg-[color:var(--brand)]" />
-        {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
-        <h1 className="mt-2 font-serif text-3xl leading-[1.1] tracking-tight md:text-4xl">
+      <div className="min-w-0 flex-1 basis-48">
+        <h1 className="text-[1.625rem] leading-tight font-semibold tracking-tight md:text-3xl">
           {title}
         </h1>
         {subtitle ? (
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-[color:var(--fg-muted)]">
-            {subtitle}
-          </p>
+          <p className="mt-1 max-w-xl text-sm text-[color:var(--fg-muted)]">{subtitle}</p>
         ) : null}
       </div>
       {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}

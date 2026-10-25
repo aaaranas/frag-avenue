@@ -21,7 +21,7 @@ export async function CheckInPrompts({ userId }: { userId: string }) {
       {due.map(({ wear, offset }) => (
         <div
           key={wear.id}
-          className="rounded-lg border border-[color:var(--accent-line)] bg-[color:var(--accent-wash)] p-4"
+          className="rounded-xl border border-[color:var(--accent-line)] bg-[color:var(--accent-wash)] p-4"
         >
           <p className="mb-3 text-sm">
             <span className="font-medium">{offset} hours in:</span> how is{" "}

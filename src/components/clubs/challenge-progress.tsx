@@ -18,7 +18,7 @@ export function ChallengeProgress({
     ? `Complete — ${status.count} ${UNIT[kind]}`
     : `${status.count} of ${status.target} ${UNIT[kind]}`;
   return (
-    <div className="rounded-lg border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-4">
+    <div className="rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-4">
       <h3 className="font-semibold">{title}</h3>
       {description ? (
         <p className="mt-0.5 text-sm text-[color:var(--fg-muted)]">{description}</p>

@@ -14,7 +14,7 @@ export function UsernamePrompt() {
   return (
     <section
       aria-labelledby="username-heading"
-      className="mb-6 rounded-lg border border-[color:var(--rule-strong)] bg-[color:var(--bg-elev)] p-4"
+      className="mb-6 rounded-xl border border-[color:var(--rule-strong)] bg-[color:var(--bg-elev)] p-4"
     >
       <h2 id="username-heading" className="font-semibold">
         Choose a username

@@ -22,7 +22,6 @@ export default async function ClubsPage() {
   return (
     <div className="mx-auto max-w-xl">
       <PageHeader
-        eyebrow="Clubs"
         title="Clubs & challenges"
         actions={
           <Button asChild size="sm">
@@ -90,7 +89,7 @@ function ClubSection({
           {clubs.map((c) => (
             <li
               key={c.id}
-              className="flex items-center gap-3 rounded-lg border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-3"
+              className="flex items-center gap-3 rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-3"
             >
               <Link
                 href={`/clubs/${c.slug}`}
@@ -102,7 +101,12 @@ function ClubSection({
                   {c.description ? ` · ${c.description}` : ""}
                 </span>
               </Link>
-              <MembershipButton clubId={c.id} isMember={c.memberships.length > 0} name={c.name} />
+              <MembershipButton
+                clubId={c.id}
+                isMember={c.memberships.length > 0}
+                name={c.name}
+                quiet
+              />
             </li>
           ))}
         </ul>

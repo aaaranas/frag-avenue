@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { ConfirmAction } from "@/components/forms/confirm-action";
 import { Button } from "@/components/ui/button";
 import { notFound } from "next/navigation";
@@ -13,6 +12,7 @@ import {
 import { findUserPreferences } from "@/modules/users/data";
 import { WardrobeItemForm } from "@/components/wardrobe/wardrobe-item-form";
 import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
+import { BackLink } from "@/components/ui/back-link";
 
 type Params = Promise<{ id: string }>;
 
@@ -34,12 +34,7 @@ export default async function EditWardrobeItemPage({ params }: { params: Params 
 
   return (
     <div className="mx-auto max-w-xl">
-      <Link
-        href="/wardrobe"
-        className="inline-flex min-h-11 items-center text-sm text-[color:var(--fg-muted)] hover:text-[color:var(--fg)]"
-      >
-        ← Wardrobe
-      </Link>
+      <BackLink href="/wardrobe">Wardrobe</BackLink>
 
       <header className="mt-4 mb-8 flex items-center gap-4">
         <FragranceThumb imagePath={item.fragrance.imagePath} kind={item.kind} />

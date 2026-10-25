@@ -15,6 +15,7 @@ export function SignInForm({ next }: { next?: string }) {
     <form {...formProps} className="flex flex-col gap-5" noValidate>
       {next ? <input type="hidden" name="next" value={next} /> : null}
       <Field
+        className="h-12"
         name="email"
         type="email"
         label="Email"
@@ -23,6 +24,7 @@ export function SignInForm({ next }: { next?: string }) {
         error={state.fieldErrors?.email}
       />
       <PasswordField
+        className="h-12"
         name="password"
         label="Password"
         autoComplete="current-password"
@@ -34,7 +36,7 @@ export function SignInForm({ next }: { next?: string }) {
           {state.message}
         </p>
       ) : null}
-      <Button type="submit" disabled={pending} className="mt-1">
+      <Button type="submit" size="lg" disabled={pending} className="mt-1">
         {pending ? "Signing in…" : "Sign in"}
       </Button>
     </form>

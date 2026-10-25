@@ -8,7 +8,6 @@ import {
   CHECK_IN_LABEL,
   MOOD_LABEL,
   OCCASION_LABEL,
-  VISIBILITY_LABEL,
   checkInSummary,
   checkInTimeline,
   deleteWearAction,
@@ -24,6 +23,9 @@ import { CheckInButtons } from "@/components/wear/check-in-buttons";
 import { Avatar, displayName } from "@/components/social/avatar";
 import { KudosButton } from "@/components/social/kudos-button";
 import { CommentForm } from "@/components/social/comment-form";
+import { BackLink } from "@/components/ui/back-link";
+import { VisibilityBadge } from "@/components/social/visibility-badge";
+import { WearStats } from "@/components/social/wear-stats";
 
 type Params = Promise<{ id: string }>;
 
@@ -47,72 +49,81 @@ export default async function WearPage({ params }: { params: Params }) {
 
   return (
     <article className="mx-auto max-w-xl">
-      <Link
-        href={own ? "/wears" : wear.user.username ? `/u/${wear.user.username}` : "/feed"}
-        className="inline-flex min-h-11 items-center text-sm text-[color:var(--fg-muted)] hover:text-[color:var(--fg)]"
-      >
-        ← {own ? "Your wears" : author}
-      </Link>
+      <BackLink href={own ? "/wears" : wear.user.username ? `/u/${wear.user.username}` : "/feed"}>
+        {own ? "Your wears" : author}
+      </BackLink>
 
-      <header className="mt-2 flex items-center gap-4 border-b border-[color:var(--rule)] pb-6">
+      <header className="mt-2 flex items-center gap-4 pb-5">
         <FragranceThumb
           imagePath={wear.fragrance.imagePath}
           kind={wear.collectionItem?.kind ?? "BOTTLE"}
         />
         <div className="min-w-0">
           <p className="label-caps">{wear.fragrance.brand.name}</p>
-          <h1 className="text-2xl font-semibold tracking-tight">{wear.fragrance.name}</h1>
-          <p className="text-sm text-[color:var(--fg-muted)]">
+          <h1 className="mt-0.5 text-2xl leading-tight font-semibold tracking-tight">
+            {wear.fragrance.name}
+          </h1>
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[color:var(--fg-muted)]">
             {own ? "" : `${author} · `}
             {formatDateTime(wear.wornAt, wear.timeZone)}
+            {own ? <VisibilityBadge visibility={wear.visibility} /> : null}
           </p>
         </div>
       </header>
 
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-4 border-b border-[color:var(--rule)] py-6 text-sm">
-        <Item label="Sprays" value={String(wear.sprays)} />
-        <Item
-          label="Occasion"
-          value={OCCASION_LABEL[wear.occasion as keyof typeof OCCASION_LABEL] ?? wear.occasion}
+      <section aria-label="Details">
+        <WearStats
+          className="border-y border-[color:var(--rule)] py-4"
+          stats={[
+            { label: "Sprays", value: String(wear.sprays) },
+            {
+              label: "Occasion",
+              value: OCCASION_LABEL[wear.occasion as keyof typeof OCCASION_LABEL] ?? wear.occasion,
+            },
+            { label: "Mood", value: wear.mood ? MOOD_LABEL[wear.mood] : "—" },
+          ]}
         />
-        <Item label="Mood" value={wear.mood ? MOOD_LABEL[wear.mood] : "—"} />
-        {own ? <Item label="Visible to" value={VISIBILITY_LABEL[wear.visibility]} /> : null}
-        <div className="col-span-2">
-          <dt className="text-xs text-[color:var(--fg-muted)]">Weather</dt>
-          <dd className="mt-0.5">
-            {wear.temperatureC !== null ? (
-              <>
-                {formatTemperature(wear.temperatureC, defaults.units)}
-                {wear.humidityPct !== null ? ` · ${wear.humidityPct}% humidity` : ""}
-                {condition ? ` · ${condition}` : ""}
-                {attribution ? (
-                  <span className="mt-0.5 block text-xs text-[color:var(--fg-muted)]">
-                    {attribution.href ? (
-                      <a
-                        href={attribution.href}
-                        className="underline underline-offset-2"
-                        rel="noopener"
-                      >
-                        {attribution.label}
-                      </a>
-                    ) : (
-                      attribution.label
-                    )}
+
+        <dl className="flex flex-col gap-4 border-b border-[color:var(--rule)] py-5 text-sm">
+          <div>
+            <dt className="text-xs text-[color:var(--fg-muted)]">Weather</dt>
+            <dd className="mt-0.5 text-base">
+              {wear.temperatureC !== null ? (
+                <>
+                  <span className="numeric font-semibold">
+                    {formatTemperature(wear.temperatureC, defaults.units)}
                   </span>
-                ) : null}
-              </>
-            ) : (
-              <span className="text-[color:var(--fg-muted)]">Not recorded</span>
-            )}
-          </dd>
-        </div>
-        {wear.notes ? (
-          <div className="col-span-2">
-            <dt className="text-xs text-[color:var(--fg-muted)]">Note</dt>
-            <dd className="mt-0.5 whitespace-pre-line">{wear.notes}</dd>
+                  {wear.humidityPct !== null ? ` · ${wear.humidityPct}% humidity` : ""}
+                  {condition ? ` · ${condition}` : ""}
+                  {attribution ? (
+                    <span className="mt-0.5 block text-xs text-[color:var(--fg-muted)]">
+                      {attribution.href ? (
+                        <a
+                          href={attribution.href}
+                          className="underline underline-offset-2"
+                          rel="noopener"
+                        >
+                          {attribution.label}
+                        </a>
+                      ) : (
+                        attribution.label
+                      )}
+                    </span>
+                  ) : null}
+                </>
+              ) : (
+                <span className="text-[color:var(--fg-muted)]">Not recorded</span>
+              )}
+            </dd>
           </div>
-        ) : null}
-      </dl>
+          {wear.notes ? (
+            <div>
+              <dt className="text-xs text-[color:var(--fg-muted)]">Note</dt>
+              <dd className="mt-0.5 text-base whitespace-pre-line">{wear.notes}</dd>
+            </div>
+          ) : null}
+        </dl>
+      </section>
 
       <section
         aria-labelledby="checkins-heading"
@@ -269,13 +280,4 @@ function describe(entry: TimelineEntry, timeZone: string): string {
     case "stopped":
       return "Not needed — gone";
   }
-}
-
-function Item({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <dt className="text-xs text-[color:var(--fg-muted)]">{label}</dt>
-      <dd className="mt-0.5">{value}</dd>
-    </div>
-  );
 }

@@ -10,6 +10,8 @@ import { findProfileSettings, findUserPreferences } from "@/modules/users/data";
 import { ProfileForm } from "./profile-form";
 import { selectableTimeZones } from "@/lib/time-zones";
 import { TimeZoneForm } from "./time-zone-form";
+import { Section } from "@/components/ui/section";
+import { cn } from "@/lib/utils";
 
 type SearchParams = Promise<{ error?: string; connected?: string }>;
 
@@ -27,7 +29,6 @@ export default async function ProfilePage({ searchParams }: { searchParams: Sear
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader
-        eyebrow="Account"
         title="Profile"
         actions={
           settings?.username ? (
@@ -38,33 +39,31 @@ export default async function ProfilePage({ searchParams }: { searchParams: Sear
         }
       />
 
-      <ProfileForm
-        defaults={{
-          username: settings?.username ?? "",
-          name: settings?.name ?? "",
-          bio: settings?.bio ?? "",
-          defaultVisibility: settings?.defaultVisibility ?? "FOLLOWERS",
-          units: settings?.units ?? "METRIC",
-        }}
-      />
-
-      <section
-        aria-labelledby="tz-heading"
-        className="mt-10 border-t border-[color:var(--rule)] pt-8"
+      <Section
+        id="details"
+        title="Your details"
+        description="How people see you, and your defaults."
       >
-        <h2 id="tz-heading" className="mb-4 text-lg font-semibold">
-          Time zone
-        </h2>
-        <TimeZoneForm current={timezone} zones={selectableTimeZones(timezone)} />
-      </section>
+        <Panel>
+          <ProfileForm
+            defaults={{
+              username: settings?.username ?? "",
+              name: settings?.name ?? "",
+              bio: settings?.bio ?? "",
+              defaultVisibility: settings?.defaultVisibility ?? "FOLLOWERS",
+              units: settings?.units ?? "METRIC",
+            }}
+          />
+        </Panel>
+      </Section>
 
-      <section
-        aria-labelledby="methods-heading"
-        className="mt-10 border-t border-[color:var(--rule)] pt-8"
-      >
-        <h2 id="methods-heading" className="mb-2 text-lg font-semibold">
-          Sign-in methods
-        </h2>
+      <Section id="tz" title="Time zone">
+        <Panel>
+          <TimeZoneForm current={timezone} zones={selectableTimeZones(timezone)} />
+        </Panel>
+      </Section>
+
+      <Section id="methods" title="Sign-in methods">
         {connectError ? (
           <p role="alert" className="form-error mb-2">
             {connectError}
@@ -75,23 +74,24 @@ export default async function ProfilePage({ searchParams }: { searchParams: Sear
             Google is connected.
           </p>
         ) : null}
-        <dl className="flex flex-col divide-y divide-[color:var(--rule)] border-y border-[color:var(--rule)] text-sm">
-          <Row label="Email" value={user.email} />
-          <Row label="Password" value={methods.password ? "Set" : "Not set"} />
-          {googleEnabled() || methods.google ? (
-            <Row label="Google" value={methods.google ? "Connected" : <ConnectGoogleButton />} />
-          ) : null}
-        </dl>
-      </section>
+        <Panel className="py-1">
+          <dl className="flex flex-col divide-y divide-[color:var(--rule)] text-sm">
+            <Row label="Email" value={user.email} />
+            <Row label="Password" value={methods.password ? "Set" : "Not set"} />
+            {googleEnabled() || methods.google ? (
+              <Row label="Google" value={methods.google ? "Connected" : <ConnectGoogleButton />} />
+            ) : null}
+          </dl>
+        </Panel>
+      </Section>
 
       <form
         action={async () => {
           "use server";
           await signOutAction();
         }}
-        className="mt-10"
       >
-        <Button type="submit" variant="outline">
+        <Button type="submit" variant="outline" className="w-full sm:w-auto">
           Sign out
         </Button>
       </form>
@@ -99,13 +99,25 @@ export default async function ProfilePage({ searchParams }: { searchParams: Sear
   );
 }
 
+/** A settings group: one surface, so related controls read as one block. */
+function Panel({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div
+      className={cn(
+        "rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] px-4 py-5 sm:px-5",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-[8rem_minmax(0,1fr)] items-center gap-6 py-3">
-      <dt className="text-[10px] tracking-[0.18em] text-[color:var(--fg-faint)] uppercase">
-        {label}
-      </dt>
-      <dd>{value}</dd>
+    <div className="grid min-h-14 grid-cols-[6.5rem_minmax(0,1fr)] items-center gap-4 py-2">
+      <dt className="text-[color:var(--fg-muted)]">{label}</dt>
+      <dd className="min-w-0 truncate font-medium">{value}</dd>
     </div>
   );
 }

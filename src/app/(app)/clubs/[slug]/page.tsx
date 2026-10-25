@@ -7,6 +7,7 @@ import { getClubLeaderboards } from "@/modules/clubs/service";
 import { Avatar, displayName } from "@/components/social/avatar";
 import { MembershipButton } from "@/components/clubs/membership-button";
 import { cn } from "@/lib/utils";
+import { BackLink } from "@/components/ui/back-link";
 
 type Params = Promise<{ slug: string }>;
 
@@ -27,12 +28,7 @@ export default async function ClubPage({ params }: { params: Params }) {
 
   return (
     <div className="mx-auto max-w-xl">
-      <Link
-        href="/clubs"
-        className="inline-flex min-h-11 items-center text-sm text-[color:var(--fg-muted)] hover:text-[color:var(--fg)]"
-      >
-        ← Clubs
-      </Link>
+      <BackLink href="/clubs">Clubs</BackLink>
       <header className="mt-2 mb-8 flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="text-2xl font-semibold tracking-tight">{club.name}</h1>

@@ -16,6 +16,7 @@ export function SignUpForm() {
     <form {...formProps} className="flex flex-col gap-5" noValidate>
       <DeviceTimeZoneInput />
       <Field
+        className="h-12"
         name="username"
         type="text"
         label="Username"
@@ -29,6 +30,7 @@ export function SignUpForm() {
         error={state.fieldErrors?.username}
       />
       <Field
+        className="h-12"
         name="email"
         type="email"
         label="Email"
@@ -37,6 +39,7 @@ export function SignUpForm() {
         error={state.fieldErrors?.email}
       />
       <PasswordField
+        className="h-12"
         name="password"
         label="Password"
         autoComplete="new-password"
@@ -46,6 +49,7 @@ export function SignUpForm() {
         error={state.fieldErrors?.password}
       />
       <Field
+        className="h-12"
         name="name"
         type="text"
         label="Display name (optional)"
@@ -57,7 +61,7 @@ export function SignUpForm() {
           {state.message}
         </p>
       ) : null}
-      <Button type="submit" disabled={pending} className="mt-1">
+      <Button type="submit" size="lg" disabled={pending} className="mt-1">
         {pending ? "Creating account…" : "Create account"}
       </Button>
     </form>

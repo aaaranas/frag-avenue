@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/modules/auth/session";
 import { CONCENTRATION_LABEL } from "@/modules/fragrances";
@@ -10,6 +9,7 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
 import { WardrobeItemForm } from "@/components/wardrobe/wardrobe-item-form";
 import { Badge } from "@/components/ui/badge";
+import { BackLink } from "@/components/ui/back-link";
 
 type Params = Promise<{ id: string }>;
 
@@ -38,12 +38,7 @@ export default async function FragranceDetailPage({ params }: { params: Params }
 
   return (
     <article className="mx-auto max-w-3xl">
-      <Link
-        href="/fragrances"
-        className="inline-flex min-h-11 items-center text-sm text-[color:var(--fg-muted)] hover:text-[color:var(--fg)]"
-      >
-        ← Catalogue
-      </Link>
+      <BackLink href="/fragrances">Catalogue</BackLink>
 
       <header className="mt-4 flex flex-col gap-6 border-b border-[color:var(--rule)] pb-8 sm:flex-row sm:items-end">
         <FragranceThumb imagePath={f.imagePath} size="lg" />

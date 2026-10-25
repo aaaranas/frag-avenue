@@ -11,6 +11,7 @@ import { CheckInPrompts } from "@/components/wear/check-in-prompts";
 import { PickForToday } from "@/components/social/pick-for-today";
 import { UsernamePrompt } from "@/components/social/username-prompt";
 import { WearCard } from "@/components/social/wear-card";
+import { Activity } from "lucide-react";
 
 export const metadata = { title: "Feed" };
 
@@ -35,7 +36,6 @@ export default async function FeedPage({ searchParams }: { searchParams: SearchP
         </>
       ) : null}
       <PageHeader
-        eyebrow="Feed"
         title={firstPage ? "Today" : "Earlier"}
         actions={
           <Button asChild variant="outline" size="sm">
@@ -47,18 +47,27 @@ export default async function FeedPage({ searchParams }: { searchParams: SearchP
 
       {feed.items.length === 0 ? (
         firstPage ? (
-          <EmptyState title="Your feed is quiet">
-            Wears you log, and those of people you follow, show up here.{" "}
-            <Link href="/people" className="link-editorial">
-              Find people to follow
-            </Link>
-            .
+          <EmptyState
+            title="Your feed is quiet"
+            icon={<Activity />}
+            action={
+              <Button asChild variant="outline">
+                <Link href="/people">Find people to follow</Link>
+              </Button>
+            }
+          >
+            Wears you log, and those of people you follow, show up here.
           </EmptyState>
         ) : (
-          <EmptyState title="That's everything">
-            <Link href="/feed" className="link-editorial">
-              Back to the top
-            </Link>
+          <EmptyState
+            title="That's everything"
+            action={
+              <Button asChild variant="outline">
+                <Link href="/feed">Back to the top</Link>
+              </Button>
+            }
+          >
+            You&rsquo;re all caught up.
           </EmptyState>
         )
       ) : (

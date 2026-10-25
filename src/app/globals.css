@@ -71,7 +71,7 @@
   --accent-amber: var(--accent-color);
 
   --focus: color-mix(in oklab, var(--accent-color) 70%, transparent);
-  --radius: 0.5rem;
+  --radius: 0.625rem;
 
   /* shadcn/ui contract. Note shadcn's `--accent` is its neutral hover
      surface, not our accent colour. Destructive is ink, not red: one accent
@@ -157,6 +157,17 @@
  * inherit }` silently overrode `text-primary-foreground` on every button.
  */
 @layer base {
+  /*
+   * Tailwind 4 draws a bare `border` in currentColor. shadcn components (and
+   * our own bare `border`, `border-b`, …) expect the hairline rule token, so
+   * without this every outline button and dialog got a text-coloured border.
+   */
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
+  }
+
   html,
   body {
     background-color: var(--bg);
@@ -166,6 +177,16 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Headings break into even lines; paragraphs avoid a lone last word. */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
   }
 
   ::selection {
@@ -246,9 +267,9 @@
   }
 
   .field-label {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 500;
-    color: var(--fg-muted);
+    color: var(--fg);
   }
 
   .field-input {
@@ -257,8 +278,9 @@
     border-radius: var(--radius-md);
     border: 1px solid var(--rule-strong);
     background-color: var(--bg-elev);
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
+    padding: 0.5rem 0.875rem;
+    /* 16px: iOS Safari zooms the page into any field set smaller. */
+    font-size: 1rem;
     color: var(--fg);
     transition:
       border-color 150ms,

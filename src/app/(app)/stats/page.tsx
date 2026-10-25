@@ -8,7 +8,9 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Stat } from "@/components/ui/stat";
 import { Button } from "@/components/ui/button";
 import { BarList } from "@/components/stats/bar-list";
-import { cn } from "@/lib/utils";
+import { SegmentedNav } from "@/components/ui/segmented-nav";
+import { Section } from "@/components/ui/section";
+import { BarChart3 } from "lucide-react";
 
 export const metadata = { title: "Stats" };
 
@@ -35,54 +37,53 @@ export default async function StatsPage({ searchParams }: { searchParams: Search
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader eyebrow="Stats" title="Your stats" />
+      <PageHeader title="Your stats" />
 
-      <nav aria-label="Range" className="mb-6">
-        <ul className="flex flex-wrap gap-2">
-          {STAT_RANGES.map((r) => (
-            <li key={r}>
-              <Link
-                href={r === "all" ? "/stats" : `/stats?range=${r}`}
-                aria-current={r === range ? "page" : undefined}
-                className={cn(
-                  "inline-flex min-h-11 items-center rounded-full border px-4 text-sm",
-                  r === range
-                    ? "border-[color:var(--accent-color)] bg-[color:var(--accent-color)] font-medium text-[color:var(--accent-fg)]"
-                    : "border-[color:var(--rule-strong)] hover:bg-[color:var(--bg-sunken)]",
-                )}
-              >
-                {RANGE_LABEL[r]}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <SegmentedNav
+        label="Range"
+        className="mb-5"
+        segments={STAT_RANGES.map((r) => ({
+          href: r === "all" ? "/stats" : `/stats?range=${r}`,
+          label: RANGE_LABEL[r],
+          current: r === range,
+        }))}
+      />
 
+      {/* The range control above says which period; tiles don't repeat it. */}
       <section
         aria-label="Totals"
-        className="mb-10 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-x-6 sm:grid-cols-3"
+        className="mb-10 grid grid-cols-[repeat(3,minmax(0,1fr))] gap-2 sm:gap-3"
       >
-        <Stat label="Wears" value={stats.totalWears} hint={capitalise(period)} />
-        <Stat label="Unique scents" value={stats.uniqueScents} hint={capitalise(period)} />
+        <Stat label="Wears" value={stats.totalWears} />
+        <Stat label="Unique scents" value={stats.uniqueScents} />
         <Stat
           label="Day streak"
-          value={`${stats.streakDays} ${stats.streakDays === 1 ? "day" : "days"}`}
-          hint="Consecutive days, through today or yesterday"
+          value={
+            <>
+              {stats.streakDays}
+              <span className="text-base font-medium text-[color:var(--fg-muted)]">
+                {stats.streakDays === 1 ? " day" : " days"}
+              </span>
+            </>
+          }
         />
       </section>
 
       {stats.totalWears === 0 ? (
-        <EmptyState title={range === "all" ? "No wears yet" : `No wears in ${period}`}>
-          Stats build up as you log.
-          <div className="mt-4">
+        <EmptyState
+          title={range === "all" ? "No wears yet" : `No wears in ${period}`}
+          icon={<BarChart3 />}
+          action={
             <Button asChild>
               <Link href="/log">Log a wear</Link>
             </Button>
-          </div>
+          }
+        >
+          Stats build up as you log.
         </EmptyState>
       ) : (
         <>
-          <Section id="most-worn" title="Most worn" caption={`By number of wears, ${period}.`}>
+          <Section id="most-worn" title="Most worn" description={`By number of wears, ${period}.`}>
             <BarList
               label="Most worn"
               rows={stats.mostWorn.map((m) => ({
@@ -97,7 +98,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Search
           <Section
             id="accords"
             title="Accord breakdown"
-            caption={`Share of your wears, ${period}. Each wear counts once, split across its fragrance's accords by strength.`}
+            description={`Share of your wears, ${period}. Each wear counts once, split across its fragrance's accords by strength.`}
           >
             {stats.accords.length === 0 ? (
               <p className="text-sm text-[color:var(--fg-muted)]">
@@ -121,7 +122,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Search
       <Section
         id="untouched"
         title="Untouched for 30+ days"
-        caption="Owned bottles, decants, and samples you haven't worn in a month or more."
+        description="Owned bottles, decants, and samples you haven't worn in a month or more."
       >
         {stats.untouched.length === 0 ? (
           <p className="text-sm text-[color:var(--fg-muted)]">
@@ -158,9 +159,9 @@ export default async function StatsPage({ searchParams }: { searchParams: Search
       <Section
         id="weather"
         title="Performance vs weather"
-        caption="How long each scent lasts at different temperatures."
+        description="How long each scent lasts at different temperatures."
       >
-        <div className="rounded-lg border border-dashed border-[color:var(--rule-strong)] p-4 text-sm">
+        <div className="rounded-xl border border-dashed border-[color:var(--rule-strong)] p-4 text-sm">
           <p>
             Coming soon. It needs wears with both weather attached and a check-in answered:{" "}
             <span className="numeric font-medium">
@@ -173,30 +174,4 @@ export default async function StatsPage({ searchParams }: { searchParams: Search
       </Section>
     </div>
   );
-}
-
-function Section({
-  id,
-  title,
-  caption,
-  children,
-}: {
-  id: string;
-  title: string;
-  caption: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section aria-labelledby={`${id}-heading`} className="mb-10">
-      <h2 id={`${id}-heading`} className="text-lg font-semibold">
-        {title}
-      </h2>
-      <p className="mt-1 mb-4 text-sm text-[color:var(--fg-muted)]">{caption}</p>
-      {children}
-    </section>
-  );
-}
-
-function capitalise(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
 }

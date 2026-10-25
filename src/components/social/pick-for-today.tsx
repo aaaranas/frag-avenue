@@ -26,7 +26,7 @@ export async function PickForToday({ userId, timeZone }: { userId: string; timeZ
   return (
     <section
       aria-labelledby="pick-heading"
-      className="mb-6 rounded-lg border border-[color:var(--accent-line)] bg-[color:var(--accent-wash)] p-4"
+      className="mb-6 rounded-xl border border-[color:var(--accent-line)] bg-[color:var(--accent-wash)] p-4"
     >
       <h2 id="pick-heading" className="label-caps">
         Pick for today

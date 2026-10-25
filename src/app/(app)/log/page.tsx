@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
 import { CheckInPrompts } from "@/components/wear/check-in-prompts";
 import { LogWearForm } from "./log-wear-form";
+import { BackLink } from "@/components/ui/back-link";
+import { ChevronRight, FlaskConical } from "lucide-react";
 
 export const metadata = { title: "Log a wear" };
 
@@ -35,12 +37,7 @@ export default async function LogPage({ searchParams }: { searchParams: SearchPa
     if (!item) notFound();
     return (
       <div className="mx-auto max-w-xl">
-        <Link
-          href="/log"
-          className="inline-flex min-h-11 items-center text-sm text-[color:var(--fg-muted)] hover:text-[color:var(--fg)]"
-        >
-          ← Pick something else
-        </Link>
+        <BackLink href="/log">Pick something else</BackLink>
         <h1 className="sr-only">Log a wear</h1>
         <div className="mt-2 mb-8 flex items-center gap-4">
           <FragranceThumb
@@ -81,15 +78,18 @@ export default async function LogPage({ searchParams }: { searchParams: SearchPa
   return (
     <div className="mx-auto max-w-xl">
       <CheckInPrompts userId={user.id} />
-      <PageHeader eyebrow="Log" title="What are you wearing?" />
+      <PageHeader title="What are you wearing?" />
       {items.length === 0 ? (
-        <EmptyState title="Nothing to wear yet">
-          Add a bottle, decant, or sample to your wardrobe first.
-          <div className="mt-4">
-            <Button asChild variant="outline">
+        <EmptyState
+          title="Nothing to wear yet"
+          icon={<FlaskConical />}
+          action={
+            <Button asChild>
               <Link href="/fragrances">Find a fragrance</Link>
             </Button>
-          </div>
+          }
+        >
+          Add a bottle, decant, or sample to your wardrobe first.
         </EmptyState>
       ) : (
         <ul className="flex flex-col gap-2" aria-label="Your wearable items">
@@ -101,7 +101,7 @@ export default async function LogPage({ searchParams }: { searchParams: SearchPa
               <li key={item.id}>
                 <Link
                   href={`/log?item=${item.id}`}
-                  className="flex min-h-11 items-center gap-4 rounded-lg border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-3 transition-colors hover:border-[color:var(--accent-color)]"
+                  className="flex min-h-11 items-center gap-4 rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-3 transition-colors hover:border-[color:var(--accent-color)]"
                 >
                   <FragranceThumb
                     imagePath={item.fragrance.imagePath}
@@ -125,9 +125,10 @@ export default async function LogPage({ searchParams }: { searchParams: SearchPa
                             : `Last worn ${ago} days ago`}
                     </p>
                   </div>
-                  <span aria-hidden className="text-[color:var(--fg-muted)]">
-                    →
-                  </span>
+                  <ChevronRight
+                    aria-hidden
+                    className="size-5 shrink-0 text-[color:var(--fg-faint)]"
+                  />
                 </Link>
               </li>
             );

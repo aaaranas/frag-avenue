@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { FlaskConical } from "lucide-react";
 
 export const metadata = { title: "Wardrobe" };
 
@@ -44,7 +45,6 @@ export default async function WardrobePage({ searchParams }: { searchParams: Sea
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader
-        eyebrow="Wardrobe"
         title="Your wardrobe"
         actions={
           <Button asChild>
@@ -54,22 +54,30 @@ export default async function WardrobePage({ searchParams }: { searchParams: Sea
       />
 
       {total === 0 ? (
-        <EmptyState title="Nothing here yet">
-          Find a fragrance in the{" "}
-          <Link href="/fragrances" className="link-editorial">
-            catalogue
-          </Link>{" "}
-          and add it as a bottle, decant, sample, or wishlist entry.
+        <EmptyState
+          title="Nothing here yet"
+          icon={<FlaskConical />}
+          action={
+            <Button asChild>
+              <Link href="/fragrances">Find a fragrance</Link>
+            </Button>
+          }
+        >
+          Add what you own as a bottle, decant, or sample, and what you want to your wishlist.
         </EmptyState>
       ) : (
         <>
           <FilterTabs active={kind} counts={counts} total={total} />
           {items.length === 0 ? (
-            <EmptyState title={`No ${KIND_FILTER_LABEL[kind!].toLowerCase()} yet`}>
-              <Link href="/fragrances" className="link-editorial">
-                Add one from the catalogue
-              </Link>
-              .
+            <EmptyState
+              title={`No ${KIND_FILTER_LABEL[kind!].toLowerCase()} yet`}
+              action={
+                <Button asChild variant="outline">
+                  <Link href="/fragrances">Add one from the catalogue</Link>
+                </Button>
+              }
+            >
+              Anything you add with this type shows up here.
             </EmptyState>
           ) : (
             <ul className="flex flex-col gap-3" aria-label="Wardrobe items">
@@ -114,8 +122,9 @@ function FilterTabs({
               aria-current={t.current ? "page" : undefined}
               className={cn(
                 "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 text-sm transition-colors",
+                // Ink, not the accent: the accent marks the page's action.
                 t.current
-                  ? "border-[color:var(--accent-color)] bg-[color:var(--accent-color)] font-medium text-[color:var(--accent-fg)]"
+                  ? "border-[color:var(--fg)] bg-[color:var(--fg)] font-medium text-[color:var(--bg)]"
                   : "border-[color:var(--rule-strong)] text-[color:var(--fg)] hover:bg-[color:var(--bg-sunken)]",
               )}
             >
@@ -140,7 +149,7 @@ function ItemCard({ item, units }: { item: WardrobeListItem; units: UnitSystem }
   const name = `${item.fragrance.brand.name} ${item.fragrance.name}`;
 
   return (
-    <li className="flex gap-4 rounded-lg border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-4">
+    <li className="flex gap-4 rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-4">
       <FragranceThumb imagePath={item.fragrance.imagePath} kind={item.kind} fillRatio={ratio} />
 
       <div className="flex min-w-0 flex-1 flex-col gap-2">

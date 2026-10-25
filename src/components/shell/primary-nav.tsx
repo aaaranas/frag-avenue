@@ -4,7 +4,12 @@ import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { Activity, BarChart3, FlaskConical, Plus, User, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AppMark } from "@/components/brand/app-mark";
+import { Avatar } from "@/components/social/avatar";
 import { PROFILE, TABS, isActive, type NavItem, type TabId } from "./nav-items";
+
+/** Who is signed in, for the profile link's avatar. */
+export type Viewer = { name: string; image: string | null };
 
 type Icon = React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
 
@@ -29,7 +34,7 @@ const ICONS: Record<TabId | "profile", Icon> = {
  * and dropped, because streaming the page behind a Suspense boundary lost taps
  * made while it hydrated.
  */
-export function PrimaryNav() {
+export function PrimaryNav({ viewer }: { viewer?: Viewer }) {
   const path = usePathname() ?? "/";
 
   return (
@@ -38,11 +43,12 @@ export function PrimaryNav() {
       <header className="pt-safe sticky top-0 z-40 flex items-center justify-between border-b border-[color:var(--rule)] bg-[color:var(--bg)]/95 pr-1 pl-4 backdrop-blur md:hidden">
         <Link
           href="/feed"
-          className="flex min-h-11 items-center text-base font-semibold tracking-tight"
+          className="flex min-h-11 items-center gap-2.5 text-[1.0625rem] font-semibold tracking-tight"
         >
+          <AppMark className="size-7" />
           Frag Avenue
         </Link>
-        <ProfileLink path={path} compact />
+        <ProfileLink path={path} viewer={viewer} compact />
       </header>
 
       {/* Mobile bottom tabs */}
@@ -66,8 +72,9 @@ export function PrimaryNav() {
       >
         <Link
           href="/feed"
-          className="mb-10 flex min-h-11 items-center text-lg font-semibold tracking-tight"
+          className="mb-8 flex min-h-11 items-center gap-3 text-lg font-semibold tracking-tight"
         >
+          <AppMark className="size-8" />
           Frag Avenue
         </Link>
         <ul className="flex flex-col gap-1">
@@ -78,7 +85,7 @@ export function PrimaryNav() {
           ))}
         </ul>
         <div className="mt-auto border-t border-[color:var(--rule)] pt-4">
-          <ProfileLink path={path} />
+          <ProfileLink path={path} viewer={viewer} />
         </div>
       </nav>
     </>
@@ -183,7 +190,15 @@ function SidebarItem({ item, active }: { item: NavItem; active: boolean }) {
   );
 }
 
-function ProfileLink({ path, compact = false }: { path: string; compact?: boolean }) {
+function ProfileLink({
+  path,
+  viewer,
+  compact = false,
+}: {
+  path: string;
+  viewer?: Viewer;
+  compact?: boolean;
+}) {
   const active = isActive(PROFILE, path);
   return (
     <Link
@@ -192,13 +207,32 @@ function ProfileLink({ path, compact = false }: { path: string; compact?: boolea
       aria-label={compact ? "Profile" : undefined}
       className={cn(
         "flex min-h-11 items-center gap-3 rounded-md text-sm transition-colors",
-        compact ? "min-w-11 justify-center" : "px-3",
+        compact ? "min-w-11 justify-center" : "px-2",
         active
-          ? "font-medium text-[color:var(--accent-color)]"
+          ? "font-medium text-[color:var(--fg)]"
           : "text-[color:var(--fg-muted)] hover:text-[color:var(--fg)]",
       )}
     >
-      <User className={compact ? "size-5" : "size-4"} aria-hidden />
+      {viewer ? (
+        // The current page is marked by an accent ring, not colour alone:
+        // aria-current carries it for assistive tech.
+        <Avatar
+          name={viewer.name}
+          image={viewer.image}
+          className={cn(
+            compact ? "size-8 text-xs" : "size-7 text-xs",
+            active && "ring-2 ring-[color:var(--accent-color)]",
+          )}
+        />
+      ) : (
+        <User
+          className={cn(
+            compact ? "size-5" : "size-4",
+            active && "text-[color:var(--accent-color)]",
+          )}
+          aria-hidden
+        />
+      )}
       {compact ? null : PROFILE.label}
     </Link>
   );

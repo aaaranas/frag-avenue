@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
 import { SearchInput } from "./search-input";
 import { Badge } from "@/components/ui/badge";
+import { SearchX } from "lucide-react";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -27,11 +28,7 @@ export default async function FragrancesPage({ searchParams }: { searchParams: S
 
   return (
     <div className="mx-auto max-w-5xl">
-      <PageHeader
-        eyebrow="Wardrobe"
-        title="Catalogue"
-        subtitle="Find a fragrance to add to your wardrobe."
-      />
+      <PageHeader title="Catalogue" subtitle="Find a fragrance to add to your wardrobe." />
 
       <div className="mb-8 max-w-md">
         <SearchInput initialQ={input.q ?? ""} />
@@ -72,7 +69,7 @@ function Grid({ result }: { result: FragranceListResult }) {
         <li key={f.id}>
           <Link
             href={`/fragrances/${f.id}`}
-            className="flex min-h-11 items-center gap-4 rounded-lg border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-3 transition-colors hover:border-[color:var(--rule-strong)]"
+            className="flex min-h-11 items-center gap-4 rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-3 transition-colors hover:border-[color:var(--rule-strong)]"
           >
             <FragranceThumb imagePath={f.imagePath} />
             <div className="min-w-0">
@@ -140,7 +137,17 @@ function PagerLink({ href, label }: { href: string | null; label: string }) {
 
 function EmptyStateWithQ({ q }: { q?: string }) {
   return (
-    <EmptyState title={q ? "No matches." : "The catalogue is empty."}>
+    <EmptyState
+      title={q ? "No matches." : "The catalogue is empty."}
+      icon={<SearchX />}
+      action={
+        <Button asChild variant="outline">
+          <Link href={q ? `/fragrances/new?name=${encodeURIComponent(q)}` : "/fragrances/new"}>
+            Submit a missing fragrance
+          </Link>
+        </Button>
+      }
+    >
       {q ? (
         <>
           Nothing matches <span className="font-medium">&ldquo;{q}&rdquo;</span>.
@@ -150,13 +157,6 @@ function EmptyStateWithQ({ q }: { q?: string }) {
           Run <code className="font-mono">pnpm db:seed</code> to load examples.
         </>
       )}
-      <div className="mt-4">
-        <Button asChild variant="outline">
-          <Link href={q ? `/fragrances/new?name=${encodeURIComponent(q)}` : "/fragrances/new"}>
-            Submit a missing fragrance
-          </Link>
-        </Button>
-      </div>
     </EmptyState>
   );
 }
@@ -167,7 +167,7 @@ function GridSkeleton() {
       {Array.from({ length: 6 }).map((_, i) => (
         <li
           key={i}
-          className="flex animate-pulse items-center gap-4 rounded-lg border border-[color:var(--rule)] p-3"
+          className="flex animate-pulse items-center gap-4 rounded-xl border border-[color:var(--rule)] p-3"
         >
           <div className="h-24 w-16 rounded-md bg-[color:var(--bg-sunken)]" />
           <div className="flex-1">
