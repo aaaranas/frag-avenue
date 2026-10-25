@@ -94,34 +94,60 @@ accounts never verified their email; sign in with the password and use
 ### The catalogue
 
 The catalogue is our own `Fragrance` table. It is never scraped from
-Fragrantica, Parfumo, or any other site. It comes from two sources:
+Fragrantica, Parfumo, or any other site (their terms forbid copying; type
+details from the box, the house's own site, or your nose). It comes from:
 
-- **Curated entries** in `prisma/seed.ts`: notes, accords, and photos under
-  `public/catalog/`. Photos are transparent WebP cutouts made with
-  `pnpm catalog:image <photo> "<House>" "<Fragrance>"`, which removes a plain
-  light background, trims it, and strips metadata.
-- **Wikidata** (CC0): houses, names, and years. `pnpm db:catalogue:fetch` runs
-  one SPARQL query and writes `prisma/data/wikidata-catalogue.json`; review and
-  commit it, and `pnpm db:seed` adds the fragrances the catalogue does not have
-  yet. The import is create-only, so curated rows are never overwritten.
+- **`prisma/data/catalogue.csv`**, the curated list: one row per fragrance.
+  Open it in Excel, Google Sheets, Numbers, or GitHub's editor. Columns (only
+  `house` and `fragrance` are required; order and case don't matter):
+
+  | Column                                   | Example                              |
+  | ---------------------------------------- | ------------------------------------ |
+  | `house`                                  | Rasasi                               |
+  | `fragrance`                              | Hawas Ice                            |
+  | `concentration`                          | EDP, EDT, Extrait, … (blank → Other) |
+  | `year`                                   | 2022                                 |
+  | `gender`                                 | masculine, feminine, unisex          |
+  | `perfumer`                               |                                      |
+  | `top notes`, `heart notes`, `base notes` | bergamot; lemon; grapefruit          |
+  | `accords` (name:strength, 1–5)           | aquatic:5; fresh:5; citrus:4         |
+
+- **Photos** in `public/catalog/`, matched to rows by name. For one photo:
+  `pnpm catalog:image <photo> "<House>" "<Fragrance>"`. For many, name each
+  file `House - Fragrance.jpg`, put them in a folder, and run
+  `pnpm catalog:image <folder>`. Each becomes a transparent WebP cutout
+  (plain light background removed, trimmed, metadata stripped), and any
+  fragrance the CSV doesn't list yet gets a row to fill in.
+- **Wikidata** (CC0): houses, names, and years in bulk. `pnpm db:catalogue:fetch`
+  runs one SPARQL query and writes `prisma/data/wikidata-catalogue.json`;
+  review and commit it. Create-only: it never overwrites a curated row.
+
+**Getting it live:** commit and push. The Vercel build runs
+`pnpm catalog:apply` after migrations: it validates the whole CSV (a bad row
+fails the build, so the old version keeps serving), then adds new rows and
+updates changed ones. It never deletes a fragrance, and rows the CSV doesn't
+list (user submissions, Wikidata) are left alone. `pnpm db:seed` does the same
+locally, and `pnpm catalog:apply --check` validates the CSV without a database.
+CI also validates it (`catalogue-file.test.ts`).
 
 ## Commands
 
-| Command                         | What it does                                           |
-| ------------------------------- | ------------------------------------------------------ |
-| `pnpm dev`                      | Next.js dev server                                     |
-| `pnpm build` / `pnpm start`     | Production build / server                              |
-| `pnpm typecheck`                | `tsc --noEmit`                                         |
-| `pnpm lint` / `pnpm format`     | ESLint / Prettier                                      |
-| `pnpm test` / `pnpm test:watch` | Vitest                                                 |
-| `pnpm test:e2e`                 | Playwright (needs `db:up + migrate + seed + build`)    |
-| `pnpm db:up` / `pnpm db:down`   | Start / stop Postgres container                        |
-| `pnpm db:migrate`               | `prisma migrate dev`                                   |
-| `pnpm db:seed`                  | Catalogue (curated + Wikidata snapshot) + dev accounts |
-| `pnpm db:catalogue:fetch`       | Refresh the Wikidata snapshot (needs network)          |
-| `pnpm catalog:image`            | Cut out a product photo for `public/catalog/`          |
-| `pnpm db:studio`                | Prisma Studio                                          |
-| `pnpm db:generate`              | Regenerate Prisma client                               |
+| Command                         | What it does                                                                  |
+| ------------------------------- | ----------------------------------------------------------------------------- |
+| `pnpm dev`                      | Next.js dev server                                                            |
+| `pnpm build` / `pnpm start`     | Production build / server                                                     |
+| `pnpm typecheck`                | `tsc --noEmit`                                                                |
+| `pnpm lint` / `pnpm format`     | ESLint / Prettier                                                             |
+| `pnpm test` / `pnpm test:watch` | Vitest                                                                        |
+| `pnpm test:e2e`                 | Playwright (needs `db:up + migrate + seed + build`)                           |
+| `pnpm db:up` / `pnpm db:down`   | Start / stop Postgres container                                               |
+| `pnpm db:migrate`               | `prisma migrate dev`                                                          |
+| `pnpm db:seed`                  | Catalogue (curated + Wikidata snapshot) + dev accounts                        |
+| `pnpm db:catalogue:fetch`       | Refresh the Wikidata snapshot (needs network)                                 |
+| `pnpm catalog:image`            | Cut out one photo, or a folder of them, for the catalogue                     |
+| `pnpm catalog:apply`            | Apply `catalogue.csv` (+ Wikidata) to the database (`--check`: validate only) |
+| `pnpm db:studio`                | Prisma Studio                                                                 |
+| `pnpm db:generate`              | Regenerate Prisma client                                                      |
 
 ## Architecture
 
@@ -197,8 +223,9 @@ transaction-mode pooler (so migrations need a direct route). Per provider:
 
 ### Build
 
-`vercel.json` sets the build command to `pnpm prisma migrate deploy && pnpm build`,
-so committed migrations are applied on every deploy. Nothing to configure in the
+`vercel.json` sets the build command to
+`pnpm prisma migrate deploy && pnpm catalog:apply && pnpm build`, so committed
+migrations and the catalogue are applied on every deploy. Nothing to configure in the
 dashboard — and if you have overridden the build command there, clear it, because
 the dashboard value wins over `vercel.json`.
 
@@ -206,18 +233,18 @@ Preview deployments run that same command. If previews share the production
 database, a branch carrying a migration will apply it to production — scope
 `DATABASE_URL` to the Production environment, or give previews their own database.
 
-### Seeding production
+### The catalogue in production
 
-A fresh database has an empty catalogue. Seed it once from your machine:
+Every deploy applies `prisma/data/catalogue.csv` (and the Wikidata snapshot,
+if committed) after migrations, so production needs no manual seeding. The
+same preview caveat applies: a preview build pointed at the production
+database writes the branch's catalogue there.
 
-```powershell
-$env:DATABASE_URL="<prod pooled url>"; $env:DIRECT_DATABASE_URL="<prod direct url>"; pnpm db:seed
-```
-
-The seed refuses to create the dev accounts unless `DATABASE_URL`
-points at a local host, so this populates the catalogue only. That guard is
-deliberately based on which database you are pointed at rather than `NODE_ENV`,
-because the dangerous case is exactly when the two disagree.
+`pnpm db:seed` against production is still safe if you ever need it: the seed
+refuses to create the dev accounts unless `DATABASE_URL` points at a local
+host. That guard is deliberately based on which database you are pointed at
+rather than `NODE_ENV`, because the dangerous case is exactly when the two
+disagree.
 
 ### Known follow-ups before scale
 

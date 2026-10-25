@@ -43,7 +43,7 @@ For every change, answer explicitly:
 
 ## 6. Seed impact
 
-- If the change affects seed data, update `prisma/seed.ts`.
+- If the change affects seed data, update `prisma/seed.ts` (dev accounts) or `prisma/data/catalogue.csv` (catalogue).
 - Seed must be idempotent (`upsert`, not `create`) so re-running does not duplicate rows.
 - Never assume the seed runs against an empty database.
 

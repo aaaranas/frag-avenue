@@ -39,7 +39,7 @@ Canonical fragrance. Shared across users.
 - `submittedById → User?` (`onDelete: SetNull`).
 - `createdAt`, `updatedAt`.
 
-The catalogue is our own table. It is never scraped from Fragrantica, Parfumo, or any site against its terms; seed data comes from licence-compatible sources: curated entries in `prisma/seed.ts`, and Wikidata (CC0) through the committed snapshot `prisma/data/wikidata-catalogue.json` (create-only import; concentration `OTHER`, since Wikidata does not say).
+The catalogue is our own table. It is never scraped from Fragrantica, Parfumo, or any site against its terms; seed data comes from licence-compatible sources: the curated `prisma/data/catalogue.csv` and Wikidata (CC0) through the committed snapshot `prisma/data/wikidata-catalogue.json` (create-only; concentration `OTHER`, since Wikidata does not say). Both are applied by `pnpm catalog:apply` (`prisma/catalogue.ts`) on every deploy and by the seed.
 
 Curated bottle appearance (legacy): all nullable; shape and colour only,
 deliberately not logos, label artwork, or trade dress.

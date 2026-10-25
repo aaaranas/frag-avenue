@@ -26,6 +26,7 @@
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "db:catalogue:fetch": "tsx prisma/fetch-wikidata-catalogue.ts",
+    "catalog:apply": "tsx prisma/catalog-apply.ts",
     "catalog:image": "tsx prisma/catalog-image.ts",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate"

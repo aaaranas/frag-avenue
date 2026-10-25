@@ -5,7 +5,7 @@ import { slugify } from "../../lib/slug";
 /**
  * Catalogue import from Wikidata (CC0). Pure: the fetch lives in
  * `prisma/fetch-wikidata-catalogue.ts`, which writes a committed snapshot that
- * `prisma/seed.ts` reads, so seeding never needs the network.
+ * `prisma/catalogue.ts` applies (seed and every deploy), so that never needs the network.
  *
  * Wikidata gives house, name, and year only. Notes and accords stay
  * first-party curated; concentration is unknown, so imports are `OTHER`.

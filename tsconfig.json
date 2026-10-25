@@ -32,7 +32,7 @@
     "vitest.config.ts",
     "playwright.config.ts",
     "prisma.config.ts",
-    "prisma/seed.ts"
+    "prisma/**/*.ts"
   ],
   "exclude": ["node_modules", ".next", "playwright-report", "test-results"]
 }
