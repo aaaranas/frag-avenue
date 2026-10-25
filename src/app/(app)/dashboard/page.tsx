@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Plus } from "lucide-react";
 import { requireUser } from "@/modules/auth/session";
+import { CheckInPrompts } from "@/components/wear/check-in-prompts";
 import { getDashboardStats, type RecentWear } from "@/modules/analytics/data";
 import { formatMoney, type MoneyByCurrency, type NeglectedFragrance } from "@/modules/analytics";
 import { PageHeader } from "@/components/ui/page-header";
@@ -53,6 +54,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
+      <CheckInPrompts userId={user.id} />
       <PageHeader
         eyebrow={greeting}
         title="Today"
@@ -60,7 +62,7 @@ export default async function DashboardPage() {
           hasCollection ? (
             <>
               <Button asChild variant="outline">
-                <Link href="/wear/new">
+                <Link href="/log">
                   <Plus /> Log a wear
                 </Link>
               </Button>
@@ -79,7 +81,7 @@ export default async function DashboardPage() {
             adding a fragrance
           </Link>{" "}
           or{" "}
-          <Link href="/wear/new" className="link-editorial">
+          <Link href="/log" className="link-editorial">
             logging a wear
           </Link>
           .
@@ -122,7 +124,7 @@ export default async function DashboardPage() {
                   </CardTitle>
                   <div className="col-start-2 row-span-2 row-start-1 self-center justify-self-end">
                     <Button asChild variant="ghost" size="sm">
-                      <Link href="/wear">
+                      <Link href="/wears">
                         All wears <ArrowRight />
                       </Link>
                     </Button>

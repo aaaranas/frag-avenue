@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useFormAction } from "@/components/forms/use-form-action";
 import {
   CONCENTRATIONS,
   CONCENTRATION_LABEL,
@@ -13,11 +13,11 @@ import { Button } from "@/components/ui/button";
 const INITIAL: FormState = { ok: false };
 
 export function SubmitFragranceForm({ defaultName }: { defaultName: string }) {
-  const [state, action, pending] = useActionState(submitFragranceAction, INITIAL);
+  const { state, pending, formProps } = useFormAction(submitFragranceAction, INITIAL);
   const err = state.fieldErrors ?? {};
 
   return (
-    <form action={action} className="flex flex-col gap-5" noValidate>
+    <form {...formProps} className="flex flex-col gap-5" noValidate>
       <Field
         name="brand"
         label="House"

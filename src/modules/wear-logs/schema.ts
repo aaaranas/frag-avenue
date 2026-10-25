@@ -1,105 +1,131 @@
 import { z } from "zod";
 import { isWallTime, zonedWallTimeToUtc } from "@/lib/time-zone";
+import { CHECK_IN_OFFSETS } from "./check-ins";
+
+export const OCCASIONS = ["CASUAL", "WORK", "EVENING", "DATE", "FORMAL", "SPORT", "OTHER"] as const;
+export type Occasion = (typeof OCCASIONS)[number];
+export const OCCASION_LABEL: Record<Occasion, string> = {
+  CASUAL: "Casual",
+  WORK: "Work",
+  EVENING: "Evening",
+  DATE: "Date",
+  FORMAL: "Formal",
+  SPORT: "Sport",
+  OTHER: "Other",
+};
+
+export const MOODS = [
+  "CONFIDENT",
+  "RELAXED",
+  "HAPPY",
+  "COZY",
+  "FOCUSED",
+  "ROMANTIC",
+  "ENERGETIC",
+  "OTHER",
+] as const;
+export type Mood = (typeof MOODS)[number];
+export const MOOD_LABEL: Record<Mood, string> = {
+  CONFIDENT: "Confident",
+  RELAXED: "Relaxed",
+  HAPPY: "Happy",
+  COZY: "Cozy",
+  FOCUSED: "Focused",
+  ROMANTIC: "Romantic",
+  ENERGETIC: "Energetic",
+  OTHER: "Other",
+};
+
+export const VISIBILITIES = ["FOLLOWERS", "PUBLIC", "PRIVATE"] as const;
+export type Visibility = (typeof VISIBILITIES)[number];
+export const VISIBILITY_LABEL: Record<Visibility, string> = {
+  FOLLOWERS: "Followers",
+  PUBLIC: "Everyone",
+  PRIVATE: "Only me",
+};
+
+export const CHECK_IN_RESULTS = ["STRONG", "FAINT", "GONE"] as const;
+export const CHECK_IN_LABEL: Record<(typeof CHECK_IN_RESULTS)[number], string> = {
+  STRONG: "Strong",
+  FAINT: "Faint",
+  GONE: "Gone",
+};
+
+export const MIN_SPRAYS = 1;
+export const MAX_SPRAYS = 10;
 
 const emptyToUndef = <T extends z.ZodTypeAny>(schema: T) =>
   z.preprocess((v) => (v === "" || v === null ? undefined : v), schema);
 
-export const OCCASIONS = ["WORK", "CASUAL", "EVENING", "FORMAL", "SPORT", "DATE", "OTHER"] as const;
-export const ENVIRONMENTS = ["INDOOR", "OUTDOOR", "MIXED"] as const;
-export const WEATHER_CONDITIONS = ["clear", "clouds", "rain", "snow", "storm", "fog"] as const;
-
-/**
- * Form-shaped input from an HTML wear form. `fragranceId` is required; the
- * server resolves it from `collectionItemId` when possible (see actions.ts).
- * A client-supplied `fragranceId` is validated against the picked collection
- * item on the server so users cannot attribute a wear to a bottle they don't own.
- */
-export const WearFormInput = z.object({
-  fragranceId: z.string().trim().min(1, "Fragrance is required."),
-  collectionItemId: emptyToUndef(z.string().trim().min(1).optional()),
+/** Fields shared by logging and editing a wear. */
+const wearFields = {
   /**
-   * Wall-clock time as typed into `<input type="datetime-local">`
-   * ("YYYY-MM-DDTHH:mm"). It has no zone of its own: `toPersistenceInput`
-   * interprets it in the wear's zone. Parsing it with `new Date()` would use the
-   * server's zone, which is UTC in production.
+   * Wall-clock time from `<input type="datetime-local">` ("YYYY-MM-DDTHH:mm"),
+   * read in the wear's zone by `toWearFields`. Never parsed with `new Date()`:
+   * that would use the server's zone (UTC in production).
    */
   wornAt: z
-    .string({ invalid_type_error: "Enter a valid date/time." })
+    .string({ invalid_type_error: "Enter a valid date and time." })
     .trim()
-    .refine(isWallTime, "Enter a valid date/time."),
+    .refine(isWallTime, "Enter a valid date and time."),
   sprays: z.coerce
     .number({ invalid_type_error: "Sprays must be a number." })
     .int("Whole sprays only.")
-    .min(1, "At least 1 spray.")
-    .max(20, "20 sprays is the maximum."),
-  occasion: z.enum(OCCASIONS).default("CASUAL"),
-  environment: z.enum(ENVIRONMENTS).default("MIXED"),
-  temperatureC: emptyToUndef(
-    z.coerce.number().min(-50, "Too cold.").max(60, "Too hot.").optional(),
-  ),
-  humidityPct: emptyToUndef(z.coerce.number().int().min(0).max(100).optional()),
-  weatherCondition: emptyToUndef(z.enum(WEATHER_CONDITIONS).optional()),
-  weatherSource: emptyToUndef(z.enum(["AUTO", "MANUAL"]).optional()),
-  longevityHours: emptyToUndef(z.coerce.number().min(0).max(24).optional()),
-  projection: emptyToUndef(
-    z.coerce.number().int().min(1, "1–5 only.").max(5, "1–5 only.").optional(),
-  ),
-  enjoyment: emptyToUndef(
-    z.coerce.number().int().min(1, "1–5 only.").max(5, "1–5 only.").optional(),
-  ),
-  notes: emptyToUndef(z.string().trim().max(2000).optional()),
+    .min(MIN_SPRAYS, `At least ${MIN_SPRAYS} spray.`)
+    .max(MAX_SPRAYS, `${MAX_SPRAYS} sprays at most.`),
+  occasion: z.enum(OCCASIONS, { errorMap: () => ({ message: "Choose an occasion." }) }),
+  mood: emptyToUndef(z.enum(MOODS, { errorMap: () => ({ message: "Choose a mood." }) }).optional()),
+  notes: emptyToUndef(z.string().trim().max(1000, "Keep notes under 1,000 characters.").optional()),
+  visibility: z.enum(VISIBILITIES, { errorMap: () => ({ message: "Choose who can see it." }) }),
+};
+
+/**
+ * Log a wear of an owned wardrobe item. `lat`/`lon` (both or neither) are the
+ * browser's location, used only to fetch the weather snapshot and never stored.
+ */
+export const LogWearInput = z
+  .object({
+    itemId: z.string().trim().min(1, "Pick what you're wearing.").max(64),
+    ...wearFields,
+    lat: emptyToUndef(z.coerce.number().min(-90).max(90).optional()),
+    lon: emptyToUndef(z.coerce.number().min(-180).max(180).optional()),
+  })
+  .superRefine((v, ctx) => {
+    if ((v.lat === undefined) !== (v.lon === undefined)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Incomplete location.", path: ["lat"] });
+    }
+  });
+export type LogWearInput = z.infer<typeof LogWearInput>;
+
+/** Edit an existing wear. The item, zone, and weather snapshot are fixed. */
+export const EditWearInput = z.object(wearFields);
+export type EditWearInput = z.infer<typeof EditWearInput>;
+
+/** A check-in answer, as submitted from a prompt. */
+export const CheckInInput = z.object({
+  wearId: z.string().trim().min(1).max(64),
+  offsetHours: z.coerce
+    .number()
+    .refine((n) => (CHECK_IN_OFFSETS as readonly number[]).includes(n), "Unknown check-in."),
+  result: z.enum(CHECK_IN_RESULTS),
 });
 
-export type WearFormInput = z.infer<typeof WearFormInput>;
-
-/**
- * Pure. Returns:
- *  - "NONE" when no weather field is set,
- *  - the explicit `sourceHint` (AUTO or MANUAL) when weather is present and a
- *    hint is provided by the form. The auto-fill client sends "AUTO", which
- *    flips to "MANUAL" as soon as the user edits any weather field.
- *  - "MANUAL" as the safe default when weather is present without a hint.
- */
-export function deriveWeatherSource(input: {
-  temperatureC?: number;
-  humidityPct?: number;
-  weatherCondition?: string;
-  sourceHint?: "AUTO" | "MANUAL";
-}): "AUTO" | "MANUAL" | "NONE" {
-  const any =
-    input.temperatureC !== undefined ||
-    input.humidityPct !== undefined ||
-    (input.weatherCondition !== undefined && input.weatherCondition !== "");
-  if (!any) return "NONE";
-  return input.sourceHint ?? "MANUAL";
-}
-
-/**
- * `timeZone` is the IANA zone the wear belongs to — the user's zone for a new
- * wear, the wear's own stored zone for an edit. `wornAt` is interpreted in it.
- */
-export function toPersistenceInput(input: WearFormInput, timeZone: string) {
-  const weatherSource = deriveWeatherSource({
-    temperatureC: input.temperatureC,
-    humidityPct: input.humidityPct,
-    weatherCondition: input.weatherCondition,
-    sourceHint: input.weatherSource,
-  });
+/** Converts validated fields to columns, reading `wornAt` in `timeZone`. */
+export function toWearFields(input: EditWearInput, timeZone: string) {
   return {
-    fragranceId: input.fragranceId,
-    collectionItemId: input.collectionItemId ?? null,
     wornAt: zonedWallTimeToUtc(input.wornAt, timeZone),
-    timeZone,
     sprays: input.sprays,
     occasion: input.occasion,
-    environment: input.environment,
-    temperatureC: input.temperatureC ?? null,
-    humidityPct: input.humidityPct ?? null,
-    weatherCondition: input.weatherCondition ?? null,
-    weatherSource,
-    longevityHours: input.longevityHours ?? null,
-    projection: input.projection ?? null,
-    enjoyment: input.enjoyment ?? null,
+    mood: input.mood ?? null,
     notes: input.notes ?? null,
+    visibility: input.visibility,
   };
+}
+export type WearFields = ReturnType<typeof toWearFields>;
+
+/** Clock-skew allowance for "now"; anything later is a typo, not a wear. */
+const FUTURE_SLACK_MS = 5 * 60 * 1000;
+
+export function isInFuture(wornAt: Date, now: Date): boolean {
+  return wornAt.getTime() - now.getTime() > FUTURE_SLACK_MS;
 }

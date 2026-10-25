@@ -62,3 +62,37 @@ export function checkInSummary(recorded: readonly RecordedCheckIn[]): string | n
     )
     .join(" · ");
 }
+
+export type TimelineEntry =
+  | { offsetHours: CheckInOffset; status: "answered"; result: CheckInResult }
+  | { offsetHours: CheckInOffset; status: "open" }
+  | { offsetHours: CheckInOffset; status: "upcoming"; opensAt: Date }
+  | { offsetHours: CheckInOffset; status: "missed" }
+  | { offsetHours: CheckInOffset; status: "stopped" };
+
+/**
+ * The state of each of a wear's three check-ins at `now`, for the wear page:
+ * answered (with the result), open (answerable now), upcoming (with when it
+ * opens), missed (its window passed unanswered), or stopped (an earlier
+ * answer was Gone).
+ */
+export function checkInTimeline(
+  wornAt: Date,
+  recorded: readonly RecordedCheckIn[],
+  now: Date,
+): TimelineEntry[] {
+  const open = dueCheckIn(wornAt, recorded, now);
+  const goneAt = recorded
+    .filter((c) => c.result === "GONE")
+    .reduce<number>((min, c) => Math.min(min, c.offsetHours), Number.POSITIVE_INFINITY);
+
+  return CHECK_IN_OFFSETS.map((offsetHours): TimelineEntry => {
+    const answer = recorded.find((c) => c.offsetHours === offsetHours);
+    if (answer) return { offsetHours, status: "answered", result: answer.result };
+    if (offsetHours > goneAt) return { offsetHours, status: "stopped" };
+    if (open === offsetHours) return { offsetHours, status: "open" };
+    const opensAt = new Date(wornAt.getTime() + offsetHours * HOUR_MS);
+    if (opensAt.getTime() > now.getTime()) return { offsetHours, status: "upcoming", opensAt };
+    return { offsetHours, status: "missed" };
+  });
+}

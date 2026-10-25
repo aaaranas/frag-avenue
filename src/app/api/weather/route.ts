@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@/modules/auth/session";
-import { CoordsInput, fetchCurrentWeather } from "@/modules/weather";
+import { CoordsInput } from "@/modules/weather";
+import { getWeatherService } from "@/modules/weather/service";
 import { takeToken } from "@/lib/rate-limit";
 import { requestIp } from "@/lib/request-ip";
 import { logger } from "@/lib/logger";
@@ -10,9 +11,10 @@ export const runtime = "nodejs"; // uses Prisma-backed session via auth()
 /**
  * GET /api/weather?lat=..&lon=..
  *
- * Requires a session — we do not proxy Open-Meteo anonymously. Returns
- * { temperatureC, humidityPct, condition } on success or { error } on failure.
- * Rate limited to 60 requests / minute per (user, ip).
+ * Current weather for a preview (the log form; the legacy advisor). Requires a
+ * session — we do not proxy the provider anonymously. Coordinates are rounded
+ * by the service before leaving the server. Rate limited to 60/min per
+ * (user, ip).
  */
 export async function GET(req: Request) {
   const user = await currentUser();
@@ -37,9 +39,14 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "invalid coordinates" }, { status: 400 });
   }
 
-  const weather = await fetchCurrentWeather(parsed.data.lat, parsed.data.lon);
+  const weather = await getWeatherService().snapshot(parsed.data, new Date());
   if (!weather) {
     return NextResponse.json({ error: "weather unavailable" }, { status: 502 });
   }
-  return NextResponse.json(weather);
+  return NextResponse.json({
+    temperatureC: weather.temperatureC,
+    humidityPct: weather.humidityPct,
+    condition: weather.condition,
+    provider: weather.provider,
+  });
 }

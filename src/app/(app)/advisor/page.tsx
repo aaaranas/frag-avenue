@@ -155,7 +155,7 @@ export default async function AdvisorPage({ searchParams }: { searchParams: Sear
                     <Button asChild size="sm">
                       <Link
                         href={{
-                          pathname: "/wear/new",
+                          pathname: "/log",
                           query: { collectionItemId: r.collectionItemId },
                         }}
                       >

@@ -39,6 +39,11 @@ const config: NextConfig = {
     return [
       { source: "/collection", destination: "/wardrobe", permanent: true },
       { source: "/collection/:id/edit", destination: "/wardrobe/:id", permanent: true },
+      // The Log flow replaced the wear journal (refactor Phase 4). Query
+      // strings (e.g. ?collectionItemId=) carry over.
+      { source: "/wear", destination: "/wears", permanent: true },
+      { source: "/wear/new", destination: "/log", permanent: true },
+      { source: "/wear/:id/edit", destination: "/wears/:id/edit", permanent: true },
     ];
   },
   async headers() {

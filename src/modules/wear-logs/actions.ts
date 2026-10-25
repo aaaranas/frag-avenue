@@ -3,14 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/modules/auth/session";
-import { WearFormInput, toPersistenceInput } from "./schema";
+import { getWeatherService } from "@/modules/weather/service";
+import { CheckInInput, EditWearInput, LogWearInput, isInFuture, toWearFields } from "./schema";
+import { dueCheckIn } from "./check-ins";
 import {
-  createWearForUser,
+  createCheckIn,
+  createWear,
   deleteWearForUser,
-  findCollectionItemOwnedByUser,
-  findUserTimeZone,
+  findLogDefaults,
+  findWearForCheckIn,
   findWearTimeZoneForUser,
-  fragranceExists,
+  findWearableItem,
   updateWearForUser,
 } from "./data";
 
@@ -24,66 +27,68 @@ function collectFieldErrors(issues: readonly { path: (string | number)[]; messag
   const out: Record<string, string> = {};
   for (const i of issues) {
     const key = String(i.path[0] ?? "form");
-    if (!out[key]) out[key] = i.message;
+    out[key] ??= i.message;
   }
   return out;
 }
 
-function readForm(formData: FormData) {
+const field = (formData: FormData, name: string) => formData.get(name) ?? undefined;
+
+function readWearFields(formData: FormData) {
   return {
-    fragranceId: formData.get("fragranceId"),
-    collectionItemId: formData.get("collectionItemId"),
-    wornAt: formData.get("wornAt"),
-    sprays: formData.get("sprays"),
-    occasion: formData.get("occasion") ?? "CASUAL",
-    environment: formData.get("environment") ?? "MIXED",
-    temperatureC: formData.get("temperatureC"),
-    humidityPct: formData.get("humidityPct"),
-    weatherCondition: formData.get("weatherCondition"),
-    longevityHours: formData.get("longevityHours"),
-    projection: formData.get("projection"),
-    enjoyment: formData.get("enjoyment"),
-    notes: formData.get("notes"),
+    wornAt: field(formData, "wornAt"),
+    sprays: field(formData, "sprays"),
+    occasion: field(formData, "occasion"),
+    mood: field(formData, "mood"),
+    notes: field(formData, "notes"),
+    visibility: field(formData, "visibility"),
   };
 }
 
+function revalidateWears() {
+  // Wear counts, cost per wear, and check-in prompts appear across the app.
+  revalidatePath("/", "layout");
+}
+
+/**
+ * Log a wear of one of the user's own (non-wishlist) items. The wear is logged
+ * in the user's zone; weather for its time is attached when the browser sent a
+ * location, and the location itself is not stored.
+ */
 export async function logWearAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const user = await requireUser();
-  const parsed = WearFormInput.safeParse(readForm(formData));
-  if (!parsed.success) {
-    return { ok: false, fieldErrors: collectFieldErrors(parsed.error.issues) };
+  const parsed = LogWearInput.safeParse({
+    itemId: field(formData, "itemId"),
+    ...readWearFields(formData),
+    lat: field(formData, "lat"),
+    lon: field(formData, "lon"),
+  });
+  if (!parsed.success) return { ok: false, fieldErrors: collectFieldErrors(parsed.error.issues) };
+
+  const item = await findWearableItem(user.id, parsed.data.itemId);
+  if (!item) return { ok: false, message: "That item isn't in your wardrobe." };
+
+  const { timezone } = await findLogDefaults(user.id);
+  const fields = toWearFields(parsed.data, timezone);
+  if (isInFuture(fields.wornAt, new Date())) {
+    return { ok: false, fieldErrors: { wornAt: "That's in the future." } };
   }
 
-  // Authorization: if a collectionItemId is supplied, it must belong to this
-  // user, and its fragranceId overrides the client-supplied one. Otherwise the
-  // wear is a sample/borrow — verify the fragrance exists (FK safety).
-  let fragranceId = parsed.data.fragranceId;
-  const collectionItemId = parsed.data.collectionItemId ?? null;
+  const { lat, lon } = parsed.data;
+  const weather =
+    lat !== undefined && lon !== undefined
+      ? await getWeatherService().snapshot({ lat, lon }, fields.wornAt)
+      : null;
 
-  if (collectionItemId) {
-    const owned = await findCollectionItemOwnedByUser(user.id, collectionItemId);
-    if (!owned) {
-      return { ok: false, message: "That bottle is not in your collection." };
-    }
-    fragranceId = owned.fragranceId;
-  } else {
-    const exists = await fragranceExists(user.id, fragranceId);
-    if (!exists) {
-      return { ok: false, message: "That fragrance no longer exists." };
-    }
-  }
-
-  // New wears are logged in the user's current zone (server-side, so the
-  // stored zone always matches the one the form's default time was shown in).
-  const timeZone = await findUserTimeZone(user.id);
-  const persistence = toPersistenceInput(
-    { ...parsed.data, fragranceId, collectionItemId: collectionItemId ?? undefined },
-    timeZone,
-  );
-  await createWearForUser(user.id, persistence);
-  revalidatePath("/wear");
-  revalidatePath("/dashboard");
-  redirect("/wear");
+  const wear = await createWear(user.id, {
+    ...fields,
+    fragranceId: item.fragranceId,
+    collectionItemId: item.id,
+    timeZone: timezone,
+    weather,
+  });
+  revalidateWears();
+  redirect(`/wears/${wear.id}`);
 }
 
 export async function updateWearAction(
@@ -92,32 +97,50 @@ export async function updateWearAction(
   formData: FormData,
 ): Promise<FormState> {
   const user = await requireUser();
-  const parsed = WearFormInput.safeParse(readForm(formData));
-  if (!parsed.success) {
-    return { ok: false, fieldErrors: collectFieldErrors(parsed.error.issues) };
-  }
+  const parsed = EditWearInput.safeParse(readWearFields(formData));
+  if (!parsed.success) return { ok: false, fieldErrors: collectFieldErrors(parsed.error.issues) };
 
-  // An edited time is read in the zone the wear was logged in — the zone the
-  // edit form displayed it in — not the user's current zone.
+  // Read the edited time in the zone the wear was logged in — the zone the
+  // form displayed it in — not the user's current zone.
   const timeZone = await findWearTimeZoneForUser(user.id, wearId);
-  if (!timeZone) {
+  if (!timeZone) return { ok: false, message: "This wear is no longer available." };
+
+  const fields = toWearFields(parsed.data, timeZone);
+  if (isInFuture(fields.wornAt, new Date())) {
+    return { ok: false, fieldErrors: { wornAt: "That's in the future." } };
+  }
+  if (!(await updateWearForUser(user.id, wearId, fields))) {
     return { ok: false, message: "This wear is no longer available." };
   }
-  const persistence = toPersistenceInput(parsed.data, timeZone);
-  const ok = await updateWearForUser(user.id, wearId, persistence);
-  if (!ok) {
-    return { ok: false, message: "This wear is no longer available." };
-  }
-  revalidatePath("/wear");
-  revalidatePath(`/wear/${wearId}/edit`);
-  revalidatePath("/dashboard");
-  redirect("/wear");
+  revalidateWears();
+  redirect(`/wears/${wearId}`);
 }
 
 export async function deleteWearAction(wearId: string): Promise<void> {
   const user = await requireUser();
   await deleteWearForUser(user.id, wearId);
-  revalidatePath("/wear");
-  revalidatePath("/dashboard");
-  redirect("/wear");
+  revalidateWears();
+  redirect("/wears");
+}
+
+/**
+ * Answer a check-in prompt. Accepted only for the user's own wear and only
+ * while that prompt is open (see `dueCheckIn`): late, early, repeated, and
+ * after-"Gone" answers are ignored. Plain form post, so it works without JS.
+ */
+export async function recordCheckInAction(formData: FormData): Promise<void> {
+  const user = await requireUser();
+  const parsed = CheckInInput.safeParse({
+    wearId: formData.get("wearId"),
+    offsetHours: formData.get("offsetHours"),
+    result: formData.get("result"),
+  });
+  if (!parsed.success) return;
+
+  const wear = await findWearForCheckIn(user.id, parsed.data.wearId);
+  if (!wear) return;
+  if (dueCheckIn(wear.wornAt, wear.checkIns, new Date()) !== parsed.data.offsetHours) return;
+
+  await createCheckIn(user.id, wear.id, parsed.data.offsetHours, parsed.data.result);
+  revalidateWears();
 }

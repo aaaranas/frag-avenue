@@ -22,7 +22,7 @@ export const TABS: readonly NavItem[] = [
     label: "Wardrobe",
     prefixes: ["/wardrobe", "/fragrances"],
   },
-  { id: "log", href: "/log", label: "Log", prefixes: ["/log", "/wear"] },
+  { id: "log", href: "/log", label: "Log", prefixes: ["/log", "/wears"] },
   { id: "stats", href: "/stats", label: "Stats", prefixes: ["/stats", "/insights"] },
   { id: "clubs", href: "/clubs", label: "Clubs", prefixes: ["/clubs"] },
 ];

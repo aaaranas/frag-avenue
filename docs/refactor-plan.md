@@ -1,6 +1,6 @@
 # Frag Avenue — Refactor Plan (Phase 0 audit)
 
-Status: **approved 2026-10-25** (see §11 for the decisions). Phases 1–3 complete; later phases pending.
+Status: **approved 2026-10-25** (see §11 for the decisions). Phases 1–4 complete; later phases pending.
 
 Target: refactor the existing personal-analytics PWA into a Strava-style wear-log platform (Feed · Wardrobe · Log · Stats · Clubs) without breaking the app or losing data at any point.
 
@@ -358,3 +358,12 @@ Non-blocking defaults I'll use unless you object: delete Advisor/recommendations
 - Visuals: a wireframe outline glyph per kind (accent fill = level) replaces the coloured bottle renderer in the Wardrobe and catalogue; catalogue photos show where present.
 - User request (2026-10-25): catalogue photos in the repo; Hawas Ice gets one and is corrected from brand "Hawas" to **Rasasi** by moving the existing row (same id). Rayhaan deferred until the user names it. To get it into production: deploy, run `pnpm db:seed` against production once, then add it from the Wardrobe.
 - Dropped the "log a sample wear without adding a bottle" shortcut; samples are a wardrobe kind and Log picks an owned item.
+
+### Phase 4 notes
+
+- `/log`: pick an owned item ("what are you wearing?", with last-worn), then when / sprays (1–10 stepper) / occasion / mood / note / visibility (default from `User.defaultVisibility`, i.e. Followers). Wishlist entries and other users' items are not found.
+- Weather: `WeatherService` interface with an Open-Meteo provider (current conditions for a wear within the last hour, otherwise the hourly reading nearest the wear's time, up to 92 days back) and a `static` provider for tests. The browser sends coordinates rounded to ~1 km; the server fetches and stores only the reading. "Don't attach" is always available, including while the location prompt is pending. Attribution is shown with the reading.
+- Check-ins: `checkInTimeline` (answered / open / upcoming / missed / stopped) on the wear page; `<CheckInPrompts>` on Feed (dashboard), Log, and Your wears. `recordCheckInAction` is a plain form post that re-checks the prompt is open; duplicates are absorbed by the unique constraint.
+- Pages: `/wears` (list), `/wears/[id]` (detail, check-ins, edit/delete), `/wears/[id]/edit`. Legacy `/wear`, `/wear/new`, `/wear/:id/edit` redirect (query strings carry over); the legacy wear form, weather fieldset, and pages are deleted, as is the "log a sample without an item" path.
+- Fixed in passing: React 19 resets a `<form action>` after every action call, so a validation error silently reverted typed values (on the log form, "When" reset to now and a resubmit logged the wrong time). All multi-field forms (log, edit wear, wardrobe, submit fragrance, sign-in, sign-up) now use `useFormAction`, which submits in a transition without the reset.
+- Web Push (P9) still needs a scheduler decision: Vercel Hobby cron is daily-only.

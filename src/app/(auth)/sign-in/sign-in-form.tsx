@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useFormAction } from "@/components/forms/use-form-action";
 import { signInAction, type FormState } from "@/modules/auth";
 import { Field } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 const INITIAL: FormState = { ok: false };
 
 export function SignInForm({ next }: { next?: string }) {
-  const [state, action, pending] = useActionState(signInAction, INITIAL);
+  const { state, pending, formProps } = useFormAction(signInAction, INITIAL);
 
   return (
-    <form action={action} className="flex flex-col gap-5" noValidate>
+    <form {...formProps} className="flex flex-col gap-5" noValidate>
       {next ? <input type="hidden" name="next" value={next} /> : null}
       <Field
         name="email"

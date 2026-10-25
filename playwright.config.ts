@@ -49,6 +49,9 @@ export default defineConfig({
       // limiter in play without it becoming the thing under test.
       AUTH_SIGNIN_ATTEMPTS: "500",
       AUTH_SIGNUP_ATTEMPTS: "200",
+      // Fixed weather readings instead of calling Open-Meteo: deterministic,
+      // and CI need not reach the internet. Never set in production.
+      WEATHER_PROVIDER: "static",
     },
   },
 });

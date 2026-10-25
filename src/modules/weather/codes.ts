@@ -23,3 +23,17 @@ export function wmoCodeToCondition(code: number): WeatherBucket | null {
   if (code >= 95 && code <= 99) return "storm";
   return null;
 }
+
+export const CONDITION_LABEL: Record<WeatherBucket, string> = {
+  clear: "Clear",
+  clouds: "Cloudy",
+  rain: "Rain",
+  snow: "Snow",
+  storm: "Storm",
+  fog: "Fog",
+};
+
+/** Label for a stored condition string; null for anything unrecognised. */
+export function conditionLabel(value: string | null): string | null {
+  return value && value in CONDITION_LABEL ? CONDITION_LABEL[value as WeatherBucket] : null;
+}

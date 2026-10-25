@@ -38,10 +38,10 @@ test("golden path: add a bottle, log a wear, and see wear count and cost per wea
   await expect(card).toContainText("— (0 wears)");
 
   await card.getByRole("link", { name: "Log a wear of Creed Aventus" }).click();
-  await expect(page.getByRole("heading", { name: "Log a wear" })).toBeVisible();
+  await expect(page).toHaveURL(/\/log\?item=/);
   await page.getByLabel("Sprays").fill("3");
   await page.getByRole("button", { name: "Log wear" }).click();
-  await expect(page).toHaveURL(/\/wear$/);
+  await expect(page).toHaveURL(/\/wears\/\w+$/);
 
   await page.goto("/wardrobe");
   const after = page.getByRole("listitem").filter({ hasText: "Aventus" });
@@ -73,8 +73,8 @@ test("a wishlist entry needs no size, has no fill level, and cannot be worn", as
   await expect(card.getByRole("link", { name: /^Log a wear/ })).toHaveCount(0);
 
   // Nor does it appear in the log picker.
-  await page.goto("/wear/new");
-  await expect(page.getByText(/your wardrobe is empty/i)).toBeVisible();
+  await page.goto("/log");
+  await expect(page.getByText("Nothing to wear yet")).toBeVisible();
 });
 
 test("an owned item needs a size", async ({ page }) => {
@@ -128,7 +128,7 @@ test("a fresh account sees empty states rather than errors", async ({ page }) =>
   await page.goto("/wardrobe");
   await expect(page.getByText("Nothing here yet")).toBeVisible();
 
-  await page.goto("/wear");
+  await page.goto("/wears");
   await expect(page.getByText(/no wears logged yet/i)).toBeVisible();
 
   await page.goto("/advisor");

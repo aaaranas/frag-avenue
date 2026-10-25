@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useFormAction } from "@/components/forms/use-form-action";
+import { useState } from "react";
 import { ITEM_KINDS, KIND_LABEL, type FormState, type ItemKind } from "@/modules/wardrobe";
 import { Field } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
@@ -40,13 +41,13 @@ export function WardrobeItemForm({
   defaults: WardrobeFormDefaults;
   submitLabel: string;
 }) {
-  const [state, formAction, pending] = useActionState(action, INITIAL);
+  const { state, pending, formProps } = useFormAction(action, INITIAL);
   const [kind, setKind] = useState<ItemKind>(defaults.kind);
   const wishlist = kind === "WISHLIST";
   const err = state.fieldErrors ?? {};
 
   return (
-    <form action={formAction} className="flex flex-col gap-6" noValidate>
+    <form {...formProps} className="flex flex-col gap-6" noValidate>
       <input type="hidden" name="fragranceId" value={fragranceId} />
 
       <fieldset className="flex flex-col gap-2">

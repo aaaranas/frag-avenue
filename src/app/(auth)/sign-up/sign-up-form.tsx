@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useFormAction } from "@/components/forms/use-form-action";
 import { signUpAction, type FormState } from "@/modules/auth";
 import { Field } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
@@ -9,10 +9,10 @@ import { DeviceTimeZoneInput } from "@/components/forms/device-time-zone-input";
 const INITIAL: FormState = { ok: false };
 
 export function SignUpForm() {
-  const [state, action, pending] = useActionState(signUpAction, INITIAL);
+  const { state, pending, formProps } = useFormAction(signUpAction, INITIAL);
 
   return (
-    <form action={action} className="flex flex-col gap-5" noValidate>
+    <form {...formProps} className="flex flex-col gap-5" noValidate>
       <DeviceTimeZoneInput />
       <Field
         name="name"

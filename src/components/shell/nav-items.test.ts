@@ -22,7 +22,7 @@ describe("primary tabs", () => {
     expect(activeTab("/advisor")).toEqual(["feed"]);
     expect(activeTab("/wardrobe/abc")).toEqual(["wardrobe"]);
     expect(activeTab("/fragrances/xyz")).toEqual(["wardrobe"]);
-    expect(activeTab("/wear/new")).toEqual(["log"]);
+    expect(activeTab("/wears/abc/edit")).toEqual(["log"]);
     expect(activeTab("/insights")).toEqual(["stats"]);
   });
 

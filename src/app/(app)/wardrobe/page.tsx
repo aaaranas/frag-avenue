@@ -180,7 +180,7 @@ function ItemCard({ item, units }: { item: WardrobeListItem; units: UnitSystem }
         <div className="mt-1 flex flex-wrap gap-2">
           {wishlist ? null : (
             <Button asChild size="sm">
-              <Link href={`/log?collectionItemId=${item.id}`} aria-label={`Log a wear of ${name}`}>
+              <Link href={`/log?item=${item.id}`} aria-label={`Log a wear of ${name}`}>
                 Log wear
               </Link>
             </Button>

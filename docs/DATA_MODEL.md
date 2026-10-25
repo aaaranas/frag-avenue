@@ -113,7 +113,7 @@ One application of a fragrance. Model renamed from `WearLog` with `@@map`.
 - `mood: Mood?` (`CONFIDENT | RELAXED | HAPPY | COZY | FOCUSED | ROMANTIC | ENERGETIC | OTHER`).
 - `visibility: Visibility` (`PUBLIC | FOLLOWERS | PRIVATE`). The column default is `PRIVATE`, so every pre-social wear, and any write that doesn't set it, stays private. The new log flow sets it explicitly from `User.defaultVisibility`.
 - `notes: String?`
-- Weather snapshot, inline because it is strictly 1:1, immutable, and always read with the wear: `temperatureC: Float?`, `humidityPct: Int?`, `weatherCondition: String?`, `weatherSource: WeatherSource` (`AUTO | MANUAL | NONE`), `weatherProvider: String?` (e.g. `"open-meteo"`, drives attribution), `weatherObservedAt: DateTime?`. No coordinates are stored.
+- Weather snapshot, inline because it is strictly 1:1, immutable, and always read with the wear: `temperatureC: Float?`, `humidityPct: Int?`, `weatherCondition: String?`, `weatherSource: WeatherSource` (`AUTO | MANUAL | NONE`), `weatherProvider: String?` (e.g. `"open-meteo"`, drives attribution; `"static"` marks test data), `weatherObservedAt: DateTime?` (the hour the reading applies to). Filled server-side by `WeatherService.snapshot(coords, wornAt)` from coordinates the browser sends rounded to 2 decimals; no coordinates are stored. `weatherSource` is `AUTO` for these, `NONE` when no snapshot.
 - Legacy, read-only, hidden from new UI (superseded by check-ins): `environment`, `longevityHours`, `projection`, `enjoyment`.
 - `createdAt`, `updatedAt`.
 - `@@index([userId, wornAt])` — journal, profile, and time-window stats.

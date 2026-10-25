@@ -41,7 +41,7 @@ function readForm(formData: FormData) {
 
 function revalidateWardrobe() {
   revalidatePath("/wardrobe");
-  revalidatePath("/wear/new");
+  revalidatePath("/log");
   revalidatePath("/dashboard");
 }
 

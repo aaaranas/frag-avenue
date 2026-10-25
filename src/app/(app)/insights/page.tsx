@@ -116,7 +116,7 @@ function ColdStart({ totalWears }: { totalWears: number }) {
         ? "No wears logged."
         : `Only ${totalWears} wear${totalWears === 1 ? "" : "s"} so far.`}{" "}
       Insights open up at {MIN_WEARS_FOR_INSIGHTS}, because below that any pattern would be noise.{" "}
-      <Link href="/wear/new" className="link-editorial">
+      <Link href="/log" className="link-editorial">
         Log a wear
       </Link>
       .
