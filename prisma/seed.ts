@@ -227,6 +227,19 @@ const FRAGRANCES: SeedFragrance[] = [
       finish: GlassFinish.CLEAR,
     },
   },
+  {
+    // Photo only for now. Concentration, year, notes, and accords are left
+    // unknown until confirmed, rather than guessed.
+    brand: "Rasasi",
+    name: "Rayhaan Elixir",
+    image: "/catalog/rasasi-rayhaan-elixir.webp",
+    concentration: Concentration.OTHER,
+    gender: GenderClass.UNISEX,
+    top: [],
+    middle: [],
+    base: [],
+    accords: [],
+  },
 ];
 
 async function upsertBrand(name: string) {

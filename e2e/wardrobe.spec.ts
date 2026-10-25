@@ -114,7 +114,8 @@ test("a submitted fragrance is visible only to its submitter until reviewed", as
   const otherPage = await other.newPage();
   await signUpFreshUser(otherPage);
   await otherPage.goto(`/fragrances?q=${encodeURIComponent(house)}`);
-  await expect(otherPage.getByText("No matches.")).toBeVisible();
+  // Scoped to main: while the page streams, a hidden copy can exist briefly.
+  await expect(otherPage.getByRole("main").getByText("No matches.")).toBeVisible();
   await otherPage.goto(pendingUrl);
   await expect(otherPage.getByText("Not in the catalogue")).toBeVisible();
   await other.close();
