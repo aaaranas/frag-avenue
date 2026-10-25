@@ -107,7 +107,7 @@ function WearRow({ wear }: { wear: WearListRow }) {
 
       <Link
         href={`/wear/${wear.id}/edit`}
-        className="shrink-0 rounded-sm border border-[color:var(--rule-strong)] px-3 py-1.5 text-xs hover:bg-[color:var(--bg-elev)]"
+        className="inline-flex min-h-11 shrink-0 items-center rounded-sm border border-[color:var(--rule-strong)] px-3 text-xs hover:bg-[color:var(--bg-elev)]"
       >
         Edit
       </Link>
@@ -137,7 +137,8 @@ function Pager({ page, pages, total }: { page: number; pages: number; total: num
 }
 
 function PageBtn({ href, label }: { href: string | null; label: string }) {
-  const base = "rounded-sm border border-[color:var(--rule-strong)] px-3 py-1.5 tracking-wide";
+  const base =
+    "inline-flex min-h-11 items-center rounded-sm border border-[color:var(--rule-strong)] px-3 tracking-wide";
   if (!href) return <span className={`${base} text-[color:var(--fg-faint)]`}>{label}</span>;
   return (
     <Link href={href} className={`${base} hover:bg-[color:var(--bg-elev)]`}>

@@ -156,7 +156,7 @@ export function AdvisorControls({ initialOccasion, initialTemp, initialCondition
           type="button"
           onClick={requestWeather}
           disabled={pending}
-          className="shrink-0 rounded-sm border border-[color:var(--rule-strong)] px-3 py-1.5 text-xs hover:bg-[color:var(--bg-elev)] disabled:opacity-60"
+          className="min-h-11 shrink-0 rounded-sm border border-[color:var(--rule-strong)] px-3 text-xs hover:bg-[color:var(--bg-elev)] disabled:opacity-60"
         >
           Use my location
         </button>

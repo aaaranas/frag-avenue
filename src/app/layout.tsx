@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Cormorant_Garamond } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { RegisterServiceWorker } from "@/components/pwa/register-sw";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,20 +10,12 @@ const inter = Inter({
   display: "swap",
 });
 
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
-  variable: "--font-serif",
-  display: "swap",
-});
-
 export const metadata: Metadata = {
   title: {
     default: "Frag Avenue",
     template: "%s · Frag Avenue",
   },
-  description: "Your fragrance wardrobe, quantified.",
+  description: "Log what you wear, check in on how it performs, and share it.",
   manifest: "/manifest.webmanifest",
   applicationName: "Frag Avenue",
   appleWebApp: {
@@ -39,8 +31,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f1ea" },
-    { media: "(prefers-color-scheme: dark)", color: "#100f0b" },
+    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
+    { media: "(prefers-color-scheme: dark)", color: "#111111" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -49,7 +41,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${cormorant.variable}`}>
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
       <body className="min-h-dvh antialiased">
         <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
         <RegisterServiceWorker />

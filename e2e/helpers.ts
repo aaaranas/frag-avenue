@@ -21,6 +21,7 @@ export async function signIn(page: Page, email: string, password: string): Promi
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
+  // /feed forwards to the legacy dashboard until the feed ships.
   await expect(page).toHaveURL(/\/dashboard$/);
 }
 
@@ -32,6 +33,7 @@ export async function signUpFreshUser(page: Page): Promise<string> {
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("e2e-password-123");
   await page.getByRole("button", { name: /create account/i }).click();
+  // /feed forwards to the legacy dashboard until the feed ships.
   await expect(page).toHaveURL(/\/dashboard$/);
   return email;
 }

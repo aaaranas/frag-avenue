@@ -5,7 +5,7 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const user = await currentUser();
-  if (user) redirect("/dashboard");
+  if (user) redirect("/feed");
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6 py-12">

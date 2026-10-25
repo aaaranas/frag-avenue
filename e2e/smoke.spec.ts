@@ -21,7 +21,19 @@ test("the landing page routes a signed-out visitor to sign-in", async ({ page })
   await expect(page.getByLabel("Email")).toBeVisible();
 });
 
-const PROTECTED = ["/dashboard", "/collection", "/wear", "/insights", "/advisor", "/profile"];
+const PROTECTED = [
+  "/feed",
+  "/wardrobe",
+  "/log",
+  "/stats",
+  "/clubs",
+  "/dashboard",
+  "/collection",
+  "/wear",
+  "/insights",
+  "/advisor",
+  "/profile",
+];
 
 for (const path of PROTECTED) {
   test(`unauthenticated access to ${path} is redirected to sign-in`, async ({ page }) => {

@@ -66,7 +66,7 @@ export async function signInAction(_prev: FormState, formData: FormData): Promis
   }
 
   const nextRaw = formData.get("next");
-  const next = typeof nextRaw === "string" && nextRaw.startsWith("/") ? nextRaw : "/dashboard";
+  const next = typeof nextRaw === "string" && nextRaw.startsWith("/") ? nextRaw : "/feed";
 
   try {
     await signIn("credentials", {
@@ -126,7 +126,7 @@ export async function signUpAction(_prev: FormState, formData: FormData): Promis
     await signIn("credentials", {
       email: parsed.data.email,
       password: parsed.data.password,
-      redirectTo: "/dashboard",
+      redirectTo: "/feed",
     });
   } catch (err) {
     if (err instanceof AuthError) {

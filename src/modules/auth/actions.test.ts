@@ -37,7 +37,7 @@ import { signInAction, signOutAction, signUpAction } from "./actions";
 const INITIAL = { ok: false } as const;
 
 /** What next-auth's `signIn` really does on success: it throws a redirect. */
-function signInSucceeds(destination = "/dashboard") {
+function signInSucceeds(destination = "/feed") {
   vi.mocked(signIn).mockImplementation(() => {
     throw new RedirectError(destination);
   });
@@ -56,19 +56,19 @@ beforeEach(() => {
 });
 
 describe("signInAction", () => {
-  it("signs in with the submitted credentials and lands on the dashboard", async () => {
+  it("signs in with the submitted credentials and lands on the feed", async () => {
     signInSucceeds();
 
     const url = await expectRedirect(
       signInAction(INITIAL, formData({ email: "Owner@Frag.test", password: "correct-horse" })),
     );
 
-    expect(url).toBe("/dashboard");
+    expect(url).toBe("/feed");
     expect(signIn).toHaveBeenCalledWith("credentials", {
       // The schema lower-cases the address, so casing can't fork an account.
       email: "owner@frag.test",
       password: "correct-horse",
-      redirectTo: "/dashboard",
+      redirectTo: "/feed",
     });
   });
 
@@ -98,7 +98,7 @@ describe("signInAction", () => {
     expect(vi.mocked(signIn).mock.calls[0]![1]).toMatchObject({ redirectTo: "/insights" });
   });
 
-  it("refuses an absolute `next` destination, falling back to the dashboard", async () => {
+  it("refuses an absolute `next` destination, falling back to the feed", async () => {
     signInSucceeds();
 
     // Open-redirect guard: only same-origin paths beginning with "/" are used.
@@ -113,7 +113,7 @@ describe("signInAction", () => {
       ),
     );
 
-    expect(vi.mocked(signIn).mock.calls[0]![1]).toMatchObject({ redirectTo: "/dashboard" });
+    expect(vi.mocked(signIn).mock.calls[0]![1]).toMatchObject({ redirectTo: "/feed" });
   });
 
   it("rate-limits repeated attempts against the same email", async () => {
@@ -147,7 +147,7 @@ describe("signUpAction", () => {
 
     const url = await expectRedirect(signUpAction(INITIAL, formData(validSignUp)));
 
-    expect(url).toBe("/dashboard");
+    expect(url).toBe("/feed");
     expect(hashPassword).toHaveBeenCalledWith("long-enough-pw");
     expect(createUserWithPassword).toHaveBeenCalledWith({
       email: "new@frag.test",

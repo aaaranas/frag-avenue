@@ -110,7 +110,7 @@ export default async function AdvisorPage({ searchParams }: { searchParams: Sear
                       <h2 className="mt-1 font-serif text-3xl leading-tight">
                         <Link
                           href={`/fragrances/${r.fragranceId}`}
-                          className="decoration-[color:var(--rule-strong)] underline-offset-4 hover:underline hover:decoration-[color:var(--fg)]"
+                          className="inline-flex min-h-11 items-center decoration-[color:var(--rule-strong)] underline-offset-4 hover:underline hover:decoration-[color:var(--fg)]"
                         >
                           {r.fragranceName}
                         </Link>

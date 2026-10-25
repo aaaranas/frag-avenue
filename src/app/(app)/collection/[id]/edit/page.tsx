@@ -36,7 +36,7 @@ export default async function EditCollectionItemPage({ params }: { params: Param
     <div className="mx-auto max-w-2xl">
       <Link
         href="/collection"
-        className="text-xs tracking-[0.14em] text-[color:var(--fg-faint)] uppercase hover:text-[color:var(--fg)]"
+        className="inline-flex min-h-11 items-center text-xs tracking-[0.14em] text-[color:var(--fg-faint)] uppercase hover:text-[color:var(--fg)]"
       >
         ← Collection
       </Link>
@@ -55,7 +55,7 @@ export default async function EditCollectionItemPage({ params }: { params: Param
         </p>
         <button
           type="submit"
-          className="mt-3 rounded-sm border border-red-700/40 px-4 py-2 text-sm text-red-800 hover:bg-red-50 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-950/30"
+          className="mt-3 min-h-11 rounded-sm border border-[color:var(--fg)] px-4 text-sm font-medium text-[color:var(--fg)] hover:bg-[color:var(--bg-sunken)]"
         >
           Remove from collection
         </button>

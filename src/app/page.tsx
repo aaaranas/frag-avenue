@@ -27,7 +27,7 @@ export default async function LandingPage() {
   return (
     <main className="min-h-dvh">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6 md:px-10">
-        <Link href="/" className="flex items-baseline gap-2.5">
+        <Link href="/" className="flex min-h-11 items-center gap-2.5">
           <span className="font-serif text-xl leading-none">Frag Avenue</span>
           <span className="hidden text-[color:var(--fg-faint)] sm:inline">·</span>
           <span className="label-caps hidden sm:inline">Wardrobe</span>
@@ -36,7 +36,7 @@ export default async function LandingPage() {
         <nav className="flex items-center gap-2">
           {user ? (
             <Button asChild size="sm">
-              <Link href="/dashboard">Open the app</Link>
+              <Link href="/feed">Open the app</Link>
             </Button>
           ) : (
             <>
@@ -54,7 +54,7 @@ export default async function LandingPage() {
       {/* ---------------------------------------------------------------- */}
       {/* Hero                                                             */}
       {/* ---------------------------------------------------------------- */}
-      <section className="mx-auto grid max-w-6xl items-center gap-12 px-6 pt-8 pb-16 md:grid-cols-[1.1fr_1fr] md:gap-14 md:px-10 md:pt-14 md:pb-20">
+      <section className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] items-center gap-12 px-6 pt-8 pb-16 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-14 md:px-10 md:pt-14 md:pb-20">
         <div>
           <Badge
             variant="outline"
@@ -75,7 +75,7 @@ export default async function LandingPage() {
 
           <div className="mt-9 flex flex-wrap items-center gap-3">
             <Button asChild size="lg">
-              <Link href={user ? "/dashboard" : "/sign-up"}>
+              <Link href={user ? "/feed" : "/sign-up"}>
                 {user ? "Open the app" : "Start your wardrobe"}
               </Link>
             </Button>
@@ -94,8 +94,8 @@ export default async function LandingPage() {
         {/* The shelf. Decorative, so it is hidden from assistive tech — the
             paragraph above already says what it shows. */}
         <div aria-hidden className="relative">
-          <div className="rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-8 shadow-sm md:p-10">
-            <div className="flex items-end justify-center gap-3 md:gap-5">
+          <div className="rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-5 shadow-sm sm:p-8 md:p-10">
+            <div className="flex items-end justify-center gap-2 sm:gap-3 md:gap-5">
               {SHELF.map((b, i) => (
                 <Bottle
                   key={i}
@@ -105,7 +105,8 @@ export default async function LandingPage() {
                   finish={b.finish}
                   fillRatio={b.fill}
                   size={i === 1 ? 112 : 94}
-                  className="drop-shadow-[0_10px_20px_rgba(0,0,0,0.14)]"
+                  // Shrinks in proportion (viewBox) when the row is narrower than the bottles.
+                  className="h-auto min-w-0 shrink drop-shadow-[0_10px_20px_rgba(0,0,0,0.14)]"
                 />
               ))}
             </div>
@@ -216,7 +217,7 @@ export default async function LandingPage() {
             One entry is enough to begin. The rest accumulates.
           </p>
           <Button asChild size="lg" className="mt-8">
-            <Link href={user ? "/dashboard" : "/sign-up"}>
+            <Link href={user ? "/feed" : "/sign-up"}>
               {user ? "Open the app" : "Create your account"}
             </Link>
           </Button>

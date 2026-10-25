@@ -96,7 +96,7 @@ export function WeatherFieldset({
           type="button"
           onClick={requestAutoFill}
           disabled={fetchState === "locating" || fetchState === "loading"}
-          className="rounded-sm border border-[color:var(--rule-strong)] px-3 py-1 text-xs hover:bg-[color:var(--bg-elev)] disabled:opacity-60"
+          className="min-h-11 rounded-sm border border-[color:var(--rule-strong)] px-3 text-xs hover:bg-[color:var(--bg-elev)] disabled:opacity-60"
         >
           {source === "AUTO" ? "Refresh location" : "Use my location"}
         </button>

@@ -37,7 +37,7 @@ export default async function FragranceDetailPage({ params }: { params: Params }
     <article className="mx-auto max-w-5xl">
       <Link
         href="/fragrances"
-        className="text-xs tracking-[0.14em] text-[color:var(--fg-faint)] uppercase hover:text-[color:var(--fg)]"
+        className="inline-flex min-h-11 items-center text-xs tracking-[0.14em] text-[color:var(--fg-faint)] uppercase hover:text-[color:var(--fg)]"
       >
         ← Fragrances
       </Link>

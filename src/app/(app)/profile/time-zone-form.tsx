@@ -38,7 +38,7 @@ export function TimeZoneForm({ current, zones }: { current: string; zones: reado
         zone they were logged in.
       </p>
       {state.fieldErrors?.timezone ? (
-        <p role="alert" className="text-xs text-[color:var(--destructive)]">
+        <p role="alert" className="form-error">
           {state.fieldErrors.timezone}
         </p>
       ) : null}

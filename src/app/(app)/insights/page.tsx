@@ -47,7 +47,7 @@ export default async function InsightsPage() {
           full-width rows: the sections carry very different amounts of
           content, and stacked full-width they left the page half empty.
         */
-        <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
           <Panel title="Preferred accords" hint="Share of wears, weighted by enjoyment.">
             {insights.preferredAccords.length > 0 ? (
               <AccordList rows={insights.preferredAccords} />

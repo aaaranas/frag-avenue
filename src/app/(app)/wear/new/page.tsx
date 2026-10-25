@@ -82,7 +82,7 @@ export default async function LogWearPage({ searchParams }: { searchParams: Sear
           collection.length > 0 ? (
             <Link
               href="/advisor"
-              className="rounded-sm border border-[color:var(--rule-strong)] px-3 py-1.5 text-xs hover:bg-[color:var(--bg-elev)]"
+              className="inline-flex min-h-11 items-center rounded-sm border border-[color:var(--rule-strong)] px-3 text-xs hover:bg-[color:var(--bg-elev)]"
             >
               Ask the advisor
             </Link>
@@ -111,7 +111,7 @@ export default async function LogWearPage({ searchParams }: { searchParams: Sear
                   pathname: "/wear/new",
                   query: { collectionItemId: item.id },
                 }}
-                className="group flex items-center justify-between gap-4 rounded-sm border border-[color:var(--rule)] bg-[color:var(--bg-elev)] px-4 py-3.5 transition-colors hover:border-[color:var(--accent)] hover:bg-[color:var(--accent-wash)]"
+                className="group flex items-center justify-between gap-4 rounded-sm border border-[color:var(--rule)] bg-[color:var(--bg-elev)] px-4 py-3.5 transition-colors hover:border-[color:var(--accent-color)] hover:bg-[color:var(--accent-wash)]"
               >
                 <div className="min-w-0">
                   <p className="text-[11px] font-medium tracking-[0.16em] text-[color:var(--fg-faint)] uppercase">
@@ -125,7 +125,7 @@ export default async function LogWearPage({ searchParams }: { searchParams: Sear
                   </span>
                   <span
                     aria-hidden
-                    className="text-[color:var(--fg-faint)] transition-transform group-hover:translate-x-0.5 group-hover:text-[color:var(--accent)]"
+                    className="text-[color:var(--fg-faint)] transition-transform group-hover:translate-x-0.5 group-hover:text-[color:var(--accent-color)]"
                   >
                     →
                   </span>
@@ -152,7 +152,7 @@ function FormShell({ eyebrow, children }: { eyebrow: string; children: React.Rea
     <div className="mx-auto max-w-2xl">
       <Link
         href="/wear/new"
-        className="text-xs tracking-[0.14em] text-[color:var(--fg-faint)] uppercase hover:text-[color:var(--fg)]"
+        className="inline-flex min-h-11 items-center text-xs tracking-[0.14em] text-[color:var(--fg-faint)] uppercase hover:text-[color:var(--fg)]"
       >
         ← Pick something else
       </Link>

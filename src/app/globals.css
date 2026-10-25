@@ -2,52 +2,42 @@
 @import "tw-animate-css";
 
 /*
- * Frag Avenue design tokens — "apothecary".
+ * Frag Avenue design tokens — greyscale wireframe + one accent.
  *
- * Warm paper, near-black ink, a deep bottle green as the structural colour, and
- * a fixative amber for emphasis. The green is what stops the interface reading
- * as monochrome; it carries primary actions, active states, and section rules.
- * Amber is rationed — it marks the single most important number on a screen.
+ * Everything is a neutral grey except `--accent-color`, the single accent. It
+ * marks the primary action, the current tab, focus, and links — nothing else.
+ * Tints of it (washes, lines) are derived with color-mix, never new hues.
+ * State is never carried by colour alone: errors have text and role="alert",
+ * the current tab has aria-current and a bar.
  *
- * Two type families do different jobs: the serif is for names and titles, the
- * sans for anything you read as data. See `.numeric`.
+ * Contrast (WCAG AA), light / dark:
+ *   --fg          18.1 / 16.9   body text
+ *   --fg-muted     8.1 / 10.1   secondary text
+ *   --fg-faint     5.1 /  6.7   metadata — the floor for any text
+ *   --accent-color 6.0 /  9.5   links, accent text; --accent-fg on it: 6.3 / 9.5
+ *   --rule-strong  3.3 /  3.7   input borders, icons (non-text, needs 3:1)
+ * Ratios against --bg. On --bg-elev and --bg-sunken every text token stays
+ * >= 4.5:1 and --rule-strong >= 3:1 (lowest: --fg-faint on --bg-sunken, 4.7).
+ *
+ * One type family: the old serif is gone, and `--font-serif` resolves to the
+ * sans so existing `font-serif` call sites need no edit.
  */
 @theme {
   --font-sans:
     var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-serif: var(--font-serif), ui-serif, Georgia, "Times New Roman", serif;
+  --font-serif: var(--font-sans);
 
-  /* Ink — warm off-black to bone. Every step from 500 up clears AA on paper. */
-  --color-paper: #f4f1ea;
-  --color-vellum: #eae5d9;
-  --color-rule: #d7d1c2;
-  --color-ink-100: #eae5d9;
-  --color-ink-200: #d7d1c2;
-  --color-ink-300: #a9a08d;
-  --color-ink-400: #857d6d;
-  --color-ink-500: #676153; /* 5.6:1 on paper */
-  --color-ink-600: #4a4539; /* 8.7:1 on paper */
-  --color-ink-700: #302c24;
-  --color-ink-800: #1d1b16;
-  --color-ink-900: #14130f;
-
-  /* Bottle green — the structural colour. */
-  --color-green-900: #1e352f;
-  --color-green-700: #2f5147; /* 8.0:1 on paper */
-  --color-green-500: #4a7a6c;
-  --color-green-200: #c3d5cd;
-  --color-green-50: #e4ece8;
-
-  /* Fixative amber — emphasis only. */
-  --color-amber-700: #9c5524; /* 5.0:1 on paper */
-  --color-amber-500: #bd7434;
-  --color-amber-200: #ecd3b8;
-  --color-amber-50: #f7ecdf;
-
-  /* Semantics */
-  --color-good: #3f6b4a;
-  --color-warn: #8a6923;
-  --color-bad: #8f3a2b;
+  --color-grey-0: #ffffff;
+  --color-grey-50: #fafafa;
+  --color-grey-100: #f0f0f0;
+  --color-grey-200: #e2e2e2;
+  --color-grey-300: #c4c4c4;
+  --color-grey-400: #8a8a8a;
+  --color-grey-500: #6b6b6b;
+  --color-grey-600: #4d4d4d;
+  --color-grey-700: #333333;
+  --color-grey-800: #1f1f1f;
+  --color-grey-900: #111111;
 }
 
 /* ------------------------------------------------------------------ */
@@ -57,92 +47,71 @@
 :root {
   color-scheme: light;
 
-  /* Frag Avenue surface + text roles */
-  --bg: var(--color-paper);
-  --bg-elev: #faf8f3;
-  --bg-sunken: var(--color-vellum);
-  --fg: var(--color-ink-900);
-  --fg-muted: var(--color-ink-600); /* 8.7:1 */
-  --fg-faint: var(--color-ink-500); /* 5.6:1 */
-  --rule: var(--color-rule);
-  --rule-strong: var(--color-ink-300);
+  /* The one accent. Change this line to re-theme the app. */
+  --accent-color: #4f46e5;
+  --accent-fg: #ffffff;
+  --accent-wash: color-mix(in oklab, var(--accent-color) 8%, var(--bg));
+  --accent-line: color-mix(in oklab, var(--accent-color) 30%, var(--bg));
 
-  --brand: var(--color-green-700);
-  --brand-fg: #f6f4ee;
-  --brand-wash: var(--color-green-50);
-  --brand-line: var(--color-green-200);
+  --bg: var(--color-grey-50);
+  --bg-elev: var(--color-grey-0);
+  --bg-sunken: var(--color-grey-100);
+  --fg: var(--color-grey-900);
+  --fg-muted: var(--color-grey-600);
+  --fg-faint: var(--color-grey-500);
+  --rule: var(--color-grey-200);
+  --rule-strong: var(--color-grey-400);
 
-  --accent-amber: var(--color-amber-700);
-  --accent-wash: var(--color-amber-50);
-  --accent-line: var(--color-amber-200);
+  /* Legacy names from the previous palette, kept so existing pages restyle
+     without edits. All resolve to greys or the single accent. */
+  --brand: var(--accent-color);
+  --brand-fg: var(--accent-fg);
+  --brand-wash: var(--accent-wash);
+  --brand-line: var(--accent-line);
+  --accent-amber: var(--accent-color);
 
-  /* Kept for the pre-existing call sites that reference it directly. */
-  --color-accent: var(--color-amber-700);
-
-  --focus: color-mix(in oklab, var(--color-green-700) 65%, transparent);
+  --focus: color-mix(in oklab, var(--accent-color) 70%, transparent);
   --radius: 0.5rem;
 
-  /* shadcn/ui contract — mapped onto the palette above rather than
-     shipped as a separate grey scale, so the two systems cannot drift. */
+  /* shadcn/ui contract. Note shadcn's `--accent` is its neutral hover
+     surface, not our accent colour. Destructive is ink, not red: one accent
+     only, and destructive actions say what they do. */
   --background: var(--bg);
   --foreground: var(--fg);
   --card: var(--bg-elev);
   --card-foreground: var(--fg);
   --popover: var(--bg-elev);
   --popover-foreground: var(--fg);
-  --primary: var(--brand);
-  --primary-foreground: var(--brand-fg);
+  --primary: var(--accent-color);
+  --primary-foreground: var(--accent-fg);
   --secondary: var(--bg-sunken);
   --secondary-foreground: var(--fg);
   --muted: var(--bg-sunken);
   --muted-foreground: var(--fg-muted);
-  --accent: var(--brand-wash);
-  --accent-foreground: var(--color-green-900);
-  --destructive: var(--color-bad);
-  --destructive-foreground: #fdf6f4;
+  --accent: var(--bg-sunken);
+  --accent-foreground: var(--fg);
+  --destructive: var(--fg);
+  --destructive-foreground: var(--bg-elev);
   --border: var(--rule);
   --input: var(--rule-strong);
-  --ring: var(--brand);
+  --ring: var(--accent-color);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
 
-    --bg: #100f0b;
-    --bg-elev: #191710;
-    --bg-sunken: #0a0906;
-    --fg: #ece8de;
-    --fg-muted: #b7b1a1; /* 9.6:1 */
-    --fg-faint: #8d8676; /* 5.4:1 */
-    --rule: #2f2c24;
-    --rule-strong: #474337;
+    --accent-color: #a5b4fc;
+    --accent-fg: #111111;
 
-    --brand: #6f9c8c;
-    --brand-fg: #0e1613;
-    --brand-wash: #17241f;
-    --brand-line: #2c443b;
-
-    --accent-amber: #d08b4e;
-    --accent-wash: #251a10;
-    --accent-line: #4a3520;
-
-    --color-accent: #d08b4e;
-
-    --focus: color-mix(in oklab, #6f9c8c 70%, transparent);
-
-    --card: var(--bg-elev);
-    --popover: var(--bg-elev);
-    --primary: var(--brand);
-    --primary-foreground: var(--brand-fg);
-    --secondary: #221f18;
-    --secondary-foreground: var(--fg);
-    --muted: #221f18;
-    --accent: var(--brand-wash);
-    --accent-foreground: #cfe0d9;
-    --destructive: #b8503c;
-    --input: var(--rule-strong);
-    --ring: var(--brand);
+    --bg: var(--color-grey-900);
+    --bg-elev: #1a1a1a;
+    --bg-sunken: #0a0a0a;
+    --fg: #f2f2f2;
+    --fg-muted: #bdbdbd;
+    --fg-faint: #9a9a9a;
+    --rule: #2e2e2e;
+    --rule-strong: #6e6e6e;
   }
 }
 
@@ -182,151 +151,155 @@
 /* Base                                                                */
 /* ------------------------------------------------------------------ */
 
-html,
-body {
-  background-color: var(--bg);
-  color: var(--fg);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-}
+/*
+ * In @layer base, not bare: Tailwind v4 utilities live in a layer, and any
+ * unlayered rule beats every layered one. The old bare `button { color:
+ * inherit }` silently overrode `text-primary-foreground` on every button.
+ */
+@layer base {
+  html,
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
 
-::selection {
-  background: color-mix(in oklab, var(--brand) 22%, transparent);
-  color: var(--fg);
-}
+  ::selection {
+    background: color-mix(in oklab, var(--accent-color) 22%, transparent);
+    color: var(--fg);
+  }
 
-:where(a, button, [role="button"], input, select, textarea):focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
+  :where(a, button, [role="button"], input, select, textarea):focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
 
-input,
-textarea,
-select,
-button {
-  font-family: inherit;
-  color: inherit;
-}
+  input,
+  textarea,
+  select,
+  button {
+    font-family: inherit;
+    color: inherit;
+  }
 
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
-  -webkit-text-fill-color: var(--fg);
-  transition: background-color 9999s ease-out 0s;
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--fg);
+    transition: background-color 9999s ease-out 0s;
+  }
 }
 
 /* ------------------------------------------------------------------ */
 /* Type                                                                */
 /* ------------------------------------------------------------------ */
 
-/*
- * Cormorant Garamond ships old-style figures by default: `1` is drawn at
- * x-height and reads as a small-cap I, and 3/4/5/7/9 descend. Handsome in
- * prose, a bug in "127 sprays" — the dashboard genuinely rendered `I 27`.
- */
-.font-serif {
-  font-family: var(--font-serif);
-  font-feature-settings: "liga", "dlig";
-  font-variant-numeric: lining-nums;
-}
+@layer components {
+  /* Tabular figures, so columns of numbers align. */
+  .numeric {
+    font-family: var(--font-sans);
+    font-variant-numeric: lining-nums tabular-nums;
+    font-feature-settings: "tnum", "lnum";
+    letter-spacing: -0.01em;
+  }
 
-/*
- * Data numerals use the sans. Inter's figures are upright, even in colour, and
- * tabular, so columns align and a 1 cannot be mistaken for a letter. The serif
- * carries names; the sans carries anything you are meant to compare.
- */
-.numeric {
-  font-family: var(--font-sans);
-  font-variant-numeric: lining-nums tabular-nums;
-  font-feature-settings: "tnum", "lnum";
-  letter-spacing: -0.01em;
-}
+  /*
+   * Small caps label. Previously every label on every page used the same 10px
+   * uppercase 0.22em treatment, which flattened the hierarchy — a section
+   * heading and a table column read identically. This is now reserved for
+   * column headers and metadata, and section headings use real headings.
+   */
+  .label-caps {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-faint);
+  }
 
-/*
- * Small caps label. Previously every label on every page used the same 10px
- * uppercase 0.22em treatment, which flattened the hierarchy — a section
- * heading and a table column read identically. This is now reserved for
- * column headers and metadata, and section headings use real headings.
- */
-.label-caps {
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--fg-faint);
-}
+  /* ------------------------------------------------------------------ */
+  /* Forms                                                               */
+  /* ------------------------------------------------------------------ */
 
-/* ------------------------------------------------------------------ */
-/* Forms                                                               */
-/* ------------------------------------------------------------------ */
+  /*
+   * One definition for every text input, number input, and select in the app.
+   * These two rules were previously copy-pasted as string constants into five
+   * separate form files, so the inputs drifted and none of them picked up a
+   * palette change.
+   *
+   * Labels are sentence case rather than 0.14em uppercase: with every label,
+   * heading, and column header set in tracked caps, nothing on a form read as
+   * more or less important than anything else.
+   */
+  /* Form errors: ink and weight, not red — the single accent is reserved, and
+     errors are announced via role="alert" and tied to their field with
+     aria-describedby / aria-invalid, so colour carries nothing. */
+  .form-error {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--fg);
+  }
 
-/*
- * One definition for every text input, number input, and select in the app.
- * These two rules were previously copy-pasted as string constants into five
- * separate form files, so the inputs drifted and none of them picked up a
- * palette change.
- *
- * Labels are sentence case rather than 0.14em uppercase: with every label,
- * heading, and column header set in tracked caps, nothing on a form read as
- * more or less important than anything else.
- */
-.field-label {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--fg-muted);
-}
+  .field-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--fg-muted);
+  }
 
-.field-input {
-  width: 100%;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--rule-strong);
-  background-color: var(--bg-elev);
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  color: var(--fg);
-  transition:
-    border-color 150ms,
-    box-shadow 150ms;
-}
-.field-input::placeholder {
-  color: var(--fg-faint);
-}
-.field-input:hover {
-  border-color: var(--fg-faint);
-}
-.field-input:focus,
-.field-input:focus-visible {
-  border-color: var(--brand);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 22%, transparent);
-}
-.field-input[aria-invalid="true"] {
-  border-color: var(--destructive);
-}
-.field-input[aria-invalid="true"]:focus-visible {
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--destructive) 22%, transparent);
-}
+  .field-input {
+    width: 100%;
+    min-height: 2.75rem; /* 44px touch target */
+    border-radius: var(--radius-md);
+    border: 1px solid var(--rule-strong);
+    background-color: var(--bg-elev);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--fg);
+    transition:
+      border-color 150ms,
+      box-shadow 150ms;
+  }
+  .field-input::placeholder {
+    color: var(--fg-faint);
+  }
+  .field-input:hover {
+    border-color: var(--fg-faint);
+  }
+  .field-input:focus,
+  .field-input:focus-visible {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 22%, transparent);
+  }
+  .field-input[aria-invalid="true"] {
+    border-color: var(--destructive);
+  }
+  .field-input[aria-invalid="true"]:focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--destructive) 22%, transparent);
+  }
 
-/* iOS PWA safe areas */
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-.pt-safe {
-  padding-top: env(safe-area-inset-top);
-}
+  /* iOS PWA safe areas */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
 
-.link-editorial {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-  text-decoration-color: color-mix(in oklab, var(--brand) 45%, transparent);
-  transition: text-decoration-color 200ms;
-}
-.link-editorial:hover {
-  text-decoration-color: var(--brand);
+  .link-editorial {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: color-mix(in oklab, var(--brand) 45%, transparent);
+    transition: text-decoration-color 200ms;
+  }
+  .link-editorial:hover {
+    text-decoration-color: var(--brand);
+  }
 }
 
 /* ------------------------------------------------------------------ */

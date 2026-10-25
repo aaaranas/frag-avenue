@@ -10,7 +10,7 @@
 export function BottleLegend({ showFill = false }: { showFill?: boolean }) {
   return (
     <details className="group mt-8 border-t border-[color:var(--rule)] pt-4">
-      <summary className="cursor-pointer list-none text-[10px] tracking-[0.18em] text-[color:var(--fg-faint)] uppercase hover:text-[color:var(--fg)] focus-visible:text-[color:var(--fg)]">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center text-[10px] tracking-[0.18em] text-[color:var(--fg-faint)] uppercase hover:text-[color:var(--fg)] focus-visible:text-[color:var(--fg)]">
         <span className="group-open:hidden">What the bottles show +</span>
         <span className="hidden group-open:inline">What the bottles show −</span>
       </summary>

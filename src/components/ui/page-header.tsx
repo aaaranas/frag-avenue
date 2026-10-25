@@ -10,9 +10,8 @@ type Props = {
 };
 
 /**
- * Page header. Eyebrow / title (serif) / optional supporting text, with a short
- * brand-green rule above the eyebrow so every page opens on the same note and
- * the top of the page has one piece of colour to anchor it.
+ * Page header. Eyebrow / title / optional supporting text, with a short accent
+ * rule above the eyebrow so every page opens on the same note.
  *
  * `actions` sit on the right from md up and wrap below the title on mobile.
  */

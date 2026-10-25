@@ -1,6 +1,6 @@
 # Frag Avenue — Refactor Plan (Phase 0 audit)
 
-Status: **approved 2026-10-25** (see §11 for the decisions). Phase 1 complete; later phases pending.
+Status: **approved 2026-10-25** (see §11 for the decisions). Phases 1–2 complete; later phases pending.
 
 Target: refactor the existing personal-analytics PWA into a Strava-style wear-log platform (Feed · Wardrobe · Log · Stats · Clubs) without breaking the app or losing data at any point.
 
@@ -340,3 +340,11 @@ Non-blocking defaults I'll use unless you object: delete Advisor/recommendations
 - Legacy wears get `timeZone = 'UTC'` rather than `User.timezone`. They are equal today, and `UTC` is the correct reading: the old form parsed the typed wall-clock time on a UTC server.
 - The check-in schedule lives in `src/modules/wear-logs/check-ins.ts` (wear domain), not `analytics`. `dueCheckIn` returns the single open prompt.
 - Fixed in passing: the legacy log/edit forms parsed and displayed `datetime-local` values in the server's zone (UTC in production). They now use the user's zone (new wears) or the wear's zone (edits).
+
+### Phase 2 notes
+
+- Tokens: greyscale ramp + `--accent-color` (#4f46e5 light / #a5b4fc dark), AA-verified; legacy token names (`--brand`, `--accent-amber`, …) alias onto them so legacy pages restyle without edits. The serif is dropped; `font-serif` resolves to the sans.
+- Fixed in passing: global `button { color: inherit }` sat outside any CSS layer and overrode every Tailwind text colour on buttons (dark text on the primary button). Base rules now live in `@layer base`.
+- `/feed`, `/wardrobe`, `/log`, `/stats` authenticate, then forward to `/dashboard`, `/collection`, `/wear/new`, `/insights`; `/clubs` is a placeholder. Sign-in, sign-up, the landing page, and the PWA `start_url` go to `/feed`.
+- Legacy pages: every target ≥ 44px, red removed (errors and delete buttons are ink), horizontal overflow at 390px fixed on the landing page and Insights.
+- Not yet greyscale, by plan: the bottle illustrations keep their curated colours until the Wardrobe rebuild (P3). The landing page copy still describes the personal-analytics product; rewrite with the README in P8.
