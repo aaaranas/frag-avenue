@@ -4,3 +4,4 @@
 export * from "./aggregations";
 export * from "./insights";
 export { formatMoney, costPerWearMinor } from "./money";
+export * from "./wear-stats";

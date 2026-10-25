@@ -153,10 +153,27 @@ describe("signUpAction", () => {
       email: "new@frag.test",
       name: "New User",
       passwordHash: "hashed:long-enough-pw",
+      timezone: "UTC",
     });
     // The plaintext must never reach the data layer.
     const persisted = JSON.stringify(vi.mocked(createUserWithPassword).mock.calls[0]![0]);
     expect(persisted).not.toContain('"long-enough-pw"');
+  });
+
+  it("stores the time zone the browser reported", async () => {
+    signInSucceeds();
+    await expectRedirect(
+      signUpAction(INITIAL, formData({ ...validSignUp, timezone: "Asia/Manila" })),
+    );
+    expect(vi.mocked(createUserWithPassword).mock.calls[0]![0].timezone).toBe("Asia/Manila");
+  });
+
+  it("falls back to UTC for an unrecognised time zone instead of failing sign-up", async () => {
+    signInSucceeds();
+    await expectRedirect(
+      signUpAction(INITIAL, formData({ ...validSignUp, timezone: "Not/AZone" })),
+    );
+    expect(vi.mocked(createUserWithPassword).mock.calls[0]![0].timezone).toBe("UTC");
   });
 
   it("refuses an email that already has an account", async () => {
@@ -167,7 +184,11 @@ describe("signUpAction", () => {
       emailVerified: null,
       image: null,
       passwordHash: "hashed:whatever",
+      username: null,
+      bio: null,
       timezone: "UTC",
+      units: "METRIC",
+      defaultVisibility: "FOLLOWERS",
       defaultCurrency: "PHP",
       createdAt: new Date("2026-01-01T00:00:00Z"),
       updatedAt: new Date("2026-01-01T00:00:00Z"),

@@ -16,16 +16,19 @@ const PageInput = z.object({
 
 export const metadata = { title: "Wear journal" };
 
-function formatDate(d: Date): string {
+// Dates are shown in the zone each wear was logged in.
+function formatDate(d: Date, timeZone: string): string {
   return new Intl.DateTimeFormat("en-US", {
+    timeZone,
     weekday: "short",
     month: "short",
     day: "numeric",
   }).format(d);
 }
 
-function formatTime(d: Date): string {
+function formatTime(d: Date, timeZone: string): string {
   return new Intl.DateTimeFormat("en-US", {
+    timeZone,
     hour: "numeric",
     minute: "2-digit",
   }).format(d);
@@ -80,8 +83,8 @@ function WearRow({ wear }: { wear: WearListRow }) {
   return (
     <li className="grid grid-cols-[5rem_1fr_auto] items-start gap-4 py-5">
       <div className="text-xs text-[color:var(--fg-muted)] tabular-nums">
-        <p>{formatDate(wear.wornAt)}</p>
-        <p className="text-[color:var(--fg-faint)]">{formatTime(wear.wornAt)}</p>
+        <p>{formatDate(wear.wornAt, wear.timeZone)}</p>
+        <p className="text-[color:var(--fg-faint)]">{formatTime(wear.wornAt, wear.timeZone)}</p>
       </div>
 
       <div className="min-w-0">

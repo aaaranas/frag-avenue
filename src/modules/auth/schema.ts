@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidTimeZone } from "@/lib/time-zone";
 
 export const SignInInput = z.object({
   email: z.string().trim().toLowerCase().email("Enter a valid email address."),
@@ -16,5 +17,12 @@ export const SignUpInput = z.object({
     .optional()
     .or(z.literal("").transform(() => undefined)),
   password: z.string().min(8, "Use at least 8 characters.").max(200, "Password is too long."),
+  /**
+   * The browser's IANA zone, filled in client-side. Missing or unrecognised
+   * falls back to UTC rather than failing sign-up; the user can change it later.
+   */
+  timezone: z
+    .unknown()
+    .transform((v) => (typeof v === "string" && isValidTimeZone(v.trim()) ? v.trim() : "UTC")),
 });
 export type SignUpInput = z.infer<typeof SignUpInput>;

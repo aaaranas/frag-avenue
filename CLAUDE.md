@@ -1,8 +1,8 @@
 # Frag Avenue
 
-Intelligent fragrance wardrobe and personal fragrance analytics PWA. Core loop: Collect → Wear → Record → Learn → Recommend. The differentiator is turning longitudinal wear data into explainable personal fragrance intelligence — not just collection tracking.
+Strava-style wear-log PWA for fragrance enthusiasts. Core loop: Collect → Wear → Check in → Share → Learn. Five tabs: Feed, Wardrobe, Log (centre "+"), Stats, Clubs.
 
-See `docs/PRODUCT.md` for product scope and `docs/ARCHITECTURE.md` for architectural rationale.
+See `docs/PRODUCT.md` for product scope, `docs/ARCHITECTURE.md` for architectural rationale, `docs/DATA_MODEL.md` for the schema, and `docs/refactor-plan.md` for the in-progress refactor (phases, decisions, open items).
 
 ## Stack
 
@@ -10,7 +10,7 @@ See `docs/PRODUCT.md` for product scope and `docs/ARCHITECTURE.md` for architect
 - pnpm, Node 22 LTS
 - Tailwind CSS 4, shadcn/ui, Recharts (only where charts communicate better than a stat card)
 - PostgreSQL 16 (Docker Compose locally), Prisma 6
-- Auth.js v5 (NextAuth v5) with Prisma adapter — credentials + email; targets Next 15 App Router
+- Auth.js v5 (NextAuth v5) with Prisma adapter — credentials (email + password), JWT sessions
 - Zod for validation, React Hook Form for complex forms
 - Open-Meteo for weather/geocoding (no API key)
 - Vitest + React Testing Library, Playwright for critical E2E
@@ -26,8 +26,9 @@ Modular monolith. Layer boundaries are enforced by convention:
 src/app          UI / route composition (Server Components by default)
 src/components   Presentational + shell UI
 src/modules/*    Domain modules (auth, users, fragrances, collection, wear-logs,
-                 weather, analytics, recommendations). Each module owns its
-                 application services, domain logic, and data access.
+                 weather, analytics, recommendations; social and clubs arrive
+                 with their phases). Each module owns its application services,
+                 domain logic, and data access.
 src/lib          Cross-cutting infrastructure (prisma client, env, utils)
 ```
 
@@ -36,6 +37,16 @@ src/lib          Cross-cutting infrastructure (prisma client, env, utils)
 - Weather fetching is isolated in `src/modules/weather` so a future native client can share the abstraction.
 - Server-only code uses `import "server-only"` at the top of the file.
 - Public server actions and route handlers MUST validate input with Zod and MUST authorize using the server session — never trust a client-supplied user id.
+
+## Domain conventions
+
+- **Time.** Store instants in UTC. Each wear stores the IANA zone it was logged in (`Wear.timeZone`, immutable); its day is its local date in that zone. "Today" is the local date in the user's current `User.timezone`. Use `src/lib/time-zone.ts` (`localDate`, `wallTime`, `zonedWallTimeToUtc`); never `Date#getHours()`/`getDate()`/`new Date("YYYY-MM-DDTHH:mm")` on user data — the server runs in UTC. A `datetime-local` value is a wall time, interpreted in the wear's zone.
+- **Units.** Store metric (°C, ml). Convert only for display with `src/lib/units.ts`, according to `User.units`.
+- **Visibility.** Every wear has a `visibility`. The column default is `PRIVATE`; only the new log flow sets anything else, from `User.defaultVisibility`. Every query that returns other users' wears must filter on visibility and follow state, and has an authorization test.
+- **Derived state.** Streaks, untouched items, challenge progress, pick-for-today, and pending check-ins are computed by pure functions (`src/modules/analytics/wear-stats.ts`, `src/modules/wear-logs/check-ins.ts`) that take `today`/`now` as an argument. Never store what can be derived.
+- **Wishlist.** `WardrobeItem.kind = WISHLIST` is not owned: exclude it from pickers, cost per wear, untouched, and pick-for-today.
+- **Catalogue.** Our own `Fragrance` table. Never scrape Fragrantica, Parfumo, or any site against its terms. Seed from licence-compatible sources only (currently Wikidata, CC0). User submissions are `PENDING` until moderated.
+- **Weather.** Open-Meteo's free tier is non-commercial only and requires the attribution "Weather data by Open-Meteo.com" next to displayed data. Revisit the provider if the project becomes commercial.
 
 ## Directory conventions
 
@@ -64,11 +75,13 @@ src/lib          Cross-cutting infrastructure (prisma client, env, utils)
 
 - Never run `prisma migrate reset`, `db push --force-reset`, or drop the database non-interactively. Ask first.
 - Migrations are committed. `prisma db push` is only for throwaway prototyping.
+- Migrations are **expand-only**: add tables, nullable/defaulted columns, indexes, constraints. No drops, physical renames, or narrowing in the same release as the code change — Vercel runs `migrate deploy` before the new build takes traffic, so the old build must keep working. Rename models with `@@map`. Review generated SQL for `DROP`.
+- `prisma migrate dev` is interactive; to author a migration non-interactively use `prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url <scratch db> --script`.
 - Every schema change goes through the `database-change` skill.
 
 ## Git safety
 
-- Do not commit or push unless the user explicitly asks.
+- Do not commit or push unless the user explicitly asks. For the refactor, the user asked for one commit per phase directly on `main` (rollback point: tag `pre-refactor`). Pushing to `main` deploys to Vercel and applies migrations to production.
 - Never force-push, reset --hard, clean -fd, or delete branches.
 - Inspect `git status` before large changes; preserve unrelated modifications.
 

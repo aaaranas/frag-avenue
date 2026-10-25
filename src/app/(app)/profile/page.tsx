@@ -2,9 +2,14 @@ import { requireUser } from "@/modules/auth/session";
 import { signOutAction } from "@/modules/auth";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
+import { findUserPreferences } from "@/modules/users/data";
+import { selectableTimeZones } from "@/lib/time-zones";
+import { TimeZoneForm } from "./time-zone-form";
 
 export default async function ProfilePage() {
   const user = await requireUser("/profile");
+  const prefs = await findUserPreferences(user.id);
+  const timezone = prefs?.timezone ?? "UTC";
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -15,6 +20,13 @@ export default async function ProfilePage() {
         {user.name ? <Row label="Name" value={user.name} /> : null}
         <Row label="User ID" value={<span className="font-mono text-xs">{user.id}</span>} />
       </dl>
+
+      <section aria-labelledby="prefs-heading" className="mt-10">
+        <h2 id="prefs-heading" className="eyebrow mb-4">
+          Preferences
+        </h2>
+        <TimeZoneForm current={timezone} zones={selectableTimeZones(timezone)} />
+      </section>
 
       <form
         action={async () => {

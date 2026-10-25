@@ -9,11 +9,15 @@ Authoritative reference. If code and this doc disagree, one of them is wrong —
 Auth.js core fields (`id`, `email`, `emailVerified`, `name`, `image`) plus:
 
 - `passwordHash: String?` — nullable to allow magic-link users later.
-- `timezone: String` — IANA tz, default `"UTC"`.
-- `defaultCurrency: String` — ISO 4217, default `"USD"`.
+- `username: String?` (unique) — public handle. Nullable only so pre-social accounts could be migrated; new accounts are asked for one.
+- `bio: String?`
+- `timezone: String` — IANA zone, default `"UTC"`. Captured from the browser at sign-up, editable on the profile, and offered by the shell nudge when the device disagrees. Defines "today" for streaks; snapshotted onto each new wear.
+- `units: UnitSystem` (`METRIC | IMPERIAL`) — display only; storage is always metric.
+- `defaultVisibility: Visibility` — applied to wears from the new log flow (default `FOLLOWERS`).
+- `defaultCurrency: String` — ISO 4217, default `"PHP"`.
 - `createdAt`, `updatedAt`.
 
-Owns: `CollectionItem[]`, `WearLog[]`, Auth.js `Account[]`, `Session[]`.
+Owns: `WardrobeItem[]`, `Wear[]`, `CheckIn[]`, `Kudos[]`, `Comment[]`, `Follow[]` (both directions), `ClubMembership[]`, Auth.js `Account[]`, `Session[]`.
 
 ### Brand
 
@@ -30,7 +34,11 @@ Canonical fragrance. Shared across users.
 - `releaseYear: Int?`
 - `perfumer: String?`
 - `gender: GenderClass` (enum: `MASCULINE | FEMININE | UNISEX`).
+- `status: CatalogStatus` (`APPROVED | PENDING | REJECTED`, default `APPROVED`) — user submissions start `PENDING` and are visible only to their submitter until approved.
+- `submittedById → User?` (`onDelete: SetNull`).
 - `createdAt`, `updatedAt`.
+
+The catalogue is our own table. It is never scraped from Fragrantica, Parfumo, or any site against its terms; seed data comes from licence-compatible sources (Wikidata, CC0).
 
 Curated bottle appearance — all nullable, because curation is ongoing and will
 never be complete. When a field is null the renderer derives the look instead
@@ -75,64 +83,101 @@ Join with strength.
 - `@@id([fragranceId, accordId])`
 - `@@index([accordId])`
 
-### CollectionItem
+### WardrobeItem (table `CollectionItem`)
 
-A user's ownership of a specific bottle.
+A user's bottle, decant, sample, or wishlist entry. The Prisma model was renamed from `CollectionItem` with `@@map`, so the table keeps its name (see "Renames" below).
 
 - `id`, `userId → User (onDelete: Cascade)`, `fragranceId → Fragrance (onDelete: Restrict)`.
-- `bottleSizeMl: Int` (positive).
-- `remainingMl: Int?` (nullable; when null, treat as unknown, not zero).
+- `kind: ItemKind` (`BOTTLE | DECANT | SAMPLE | WISHLIST`, default `BOTTLE`). `WISHLIST` items are not owned: excluded from wear pickers, cost per wear, "untouched", and "pick for today".
+- `bottleSizeMl: Int` (positive). Becomes nullable when wishlist entries ship (Phase 3).
+- `remainingMl: Int?` — fill level is `remainingMl / bottleSizeMl`; null means unknown, not empty.
 - `purchasePriceMinor: Int?` — money as integer minor units.
 - `currency: String?` — ISO 4217; required when `purchasePriceMinor` is set (application-validated).
-- `purchaseDate: DateTime?`
-- `purchaseSource: String?`
-- `batchCode: String?`
-- `condition: BottleCondition` (enum: `NEW | USED | DECANT`).
-- `personalRating: Int?` (1–5).
-- `personalNotes: String?`
+- `purchaseDate: DateTime?`, `purchaseSource: String?`, `batchCode: String?`
+- `condition: BottleCondition` (`NEW | USED | DECANT`) — legacy; superseded by `kind`.
+- `personalRating: Int?` (1–5), `personalNotes: String?`
 - `createdAt`, `updatedAt`.
-- `@@index([userId])`
-- `@@index([userId, fragranceId])`
+- `@@index([userId])`, `@@index([userId, fragranceId])`
 
-### WearLog
+### Wear (table `WearLog`)
 
-One act of wearing a fragrance.
+One application of a fragrance. Model renamed from `WearLog` with `@@map`.
 
 - `id`, `userId → User (onDelete: Cascade)`, `fragranceId → Fragrance (onDelete: Restrict)`.
-- `collectionItemId → CollectionItem?` — nullable so users can log samples/borrows.
-- `wornAt: DateTime` (UTC).
-- `sprays: Int` (1–20).
-- `occasion: Occasion` (enum: `WORK | CASUAL | EVENING | FORMAL | SPORT | DATE | OTHER`).
-- `environment: Environment` (enum: `INDOOR | OUTDOOR | MIXED`).
-- `temperatureC: Float?`
-- `humidityPct: Int?`
-- `weatherCondition: String?` — free text short code from Open-Meteo mapping (e.g. `"clear"`, `"rain"`).
-- `weatherSource: WeatherSource` (enum: `AUTO | MANUAL | NONE`).
-- `longevityHours: Float?` (0.5 step, ≤ 24).
-- `projection: Int?` (1–5).
-- `enjoyment: Int?` (1–5).
+- `collectionItemId → WardrobeItem?` (`onDelete: SetNull`). The new log flow always picks an owned item; legacy wears may have none (samples/borrows). `fragranceId` is kept on the wear so it survives item deletion and powers "unique scents/houses".
+- `wornAt: DateTime` — UTC instant.
+- `timeZone: String` — IANA zone the wear was logged in (default `"UTC"`). The wear's **day** is its local date in this zone. Immutable after create. Legacy rows are `UTC`: the old form parsed the typed wall-clock time on a UTC server, so `UTC` keeps them on the day the user entered.
+- `sprays: Int` — 1–10 for new and edited wears (legacy rows may be up to 20).
+- `occasion: Occasion` (`WORK | CASUAL | EVENING | FORMAL | SPORT | DATE | OTHER`).
+- `mood: Mood?` (`CONFIDENT | RELAXED | HAPPY | COZY | FOCUSED | ROMANTIC | ENERGETIC | OTHER`).
+- `visibility: Visibility` (`PUBLIC | FOLLOWERS | PRIVATE`). The column default is `PRIVATE`, so every pre-social wear, and any write that doesn't set it, stays private. The new log flow sets it explicitly from `User.defaultVisibility`.
 - `notes: String?`
+- Weather snapshot, inline because it is strictly 1:1, immutable, and always read with the wear: `temperatureC: Float?`, `humidityPct: Int?`, `weatherCondition: String?`, `weatherSource: WeatherSource` (`AUTO | MANUAL | NONE`), `weatherProvider: String?` (e.g. `"open-meteo"`, drives attribution), `weatherObservedAt: DateTime?`. No coordinates are stored.
+- Legacy, read-only, hidden from new UI (superseded by check-ins): `environment`, `longevityHours`, `projection`, `enjoyment`.
 - `createdAt`, `updatedAt`.
-- `@@index([userId, wornAt])` — powers the wear feed and time-window aggregations.
-- `@@index([userId, fragranceId])` — powers per-fragrance analytics.
+- `@@index([userId, wornAt])` — journal, profile, and time-window stats.
+- `@@index([userId, fragranceId])` — per-fragrance counts.
+
+### CheckIn
+
+"How is it doing?" at 2h, 4h, 8h after a wear.
+
+- `id`, `wearId → Wear (Cascade)`, `userId → User (Cascade)`, `offsetHours: Int` (CHECK `IN (2, 4, 8)`), `result: CheckInResult` (`STRONG | FAINT | GONE`), `recordedAt`.
+- `@@unique([wearId, offsetHours])`, `@@index([userId])`.
+- Pending prompts are **derived**, not stored (`dueCheckIn` in `src/modules/wear-logs/check-ins.ts`): each prompt is open from its offset until the next one (the 8h prompt until 24h), closes once answered, and none opens after a `GONE`.
+
+### Kudos
+
+- `@@id([wearId, userId])`, `createdAt`, both `Cascade`. `@@index([userId])`.
+
+### Comment
+
+- `id`, `wearId → Wear (Cascade)`, `userId → User (Cascade)`, `body: VarChar(1000)`, `createdAt`, `deletedAt?` (soft delete; body cleared).
+- `@@index([wearId, createdAt])`, `@@index([userId])`.
+
+### Follow
+
+Open follows: anyone can follow anyone.
+
+- `@@id([followerId, followeeId])`, `createdAt`, both `→ User (Cascade)`. CHECK `followerId <> followeeId`.
+- `@@index([followeeId])` — "who follows me" / feed fan-in.
+
+### Club / ClubMembership
+
+- `Club`: `id`, `slug` (unique), `name`, `description?`, `createdById → User? (SetNull)`, timestamps.
+- `ClubMembership`: `@@id([clubId, userId])`, `role: ClubRole` (`ADMIN | MEMBER`), `joinedAt`. `@@index([userId])`.
+
+### Challenge
+
+- `id`, `slug` (unique), `title`, `description?`, `kind: ChallengeKind` (`UNIQUE_FRAGRANCES | UNIQUE_HOUSES`), `target: Int` (CHECK `> 0`), `windowDays: Int` (default 30, CHECK `> 0`), `clubId → Club? (Cascade)` — null for a global challenge.
+- Progress is **derived** from the user's wears in the rolling `windowDays` window ending today, so there is no participation table.
 
 ## Enums
 
-`Concentration`, `GenderClass`, `NoteLayer`, `BottleCondition`, `Occasion`, `Environment`, `WeatherSource`.
+`Concentration`, `GenderClass`, `NoteLayer`, `BottleCondition`, `BottleShape`, `GlassFinish`, `Occasion`, `Environment`, `WeatherSource`, `ItemKind`, `Mood`, `Visibility`, `CheckInResult`, `CatalogStatus`, `ChallengeKind`, `UnitSystem`, `ClubRole`.
 
 ## Auth.js tables
 
 `Account`, `Session`, `VerificationToken` per Auth.js Prisma adapter — schema fields not repeated here; kept in `prisma/schema.prisma` as canonical.
 
-## Deferred (not in v1 schema)
+## Deferred (not in the schema yet)
 
 - `Purchase` — separate history of purchase events per collection item. Only add when we have a real "sold my bottle / bought a decant" flow.
 - `UserPreference` — explicit preferences (e.g. blocked accords). Deferred; preferences are inferred from wears first.
 - `RecommendationSnapshot` — persisted recommendation history. Deferred; recommendations are computed on demand until we have a reason to store them (feed history, A/B, etc.).
+- `PushSubscription` — Web Push endpoints. Added only if push reminders for check-ins are approved (needs a per-minute scheduler; see `docs/refactor-plan.md`).
+- Wear photos — deferred until after the MVP.
 
 Adding a table "because we might need it" is a bug. Add it when a real query needs it.
 
-## Money & time invariants
+## Money, time, and unit invariants
 
 - Money: integer minor units + ISO 4217 code, both columns or neither.
-- Time: UTC in DB, grouped in `User.timezone` at read time.
+- Time: instants are UTC in the DB. A wear's day is its local date in `Wear.timeZone`; "today" is the local date in the user's current `User.timezone`. Conversions live in `src/lib/time-zone.ts`; never use `Date#getHours()`/`getDate()` (server-local) on user data.
+- Units: stored metric (°C, ml); converted for display by `src/lib/units.ts` according to `User.units`.
+
+## Renames and migrations
+
+Migrations are **expand-only**: they add types, tables, nullable or defaulted columns, indexes, and constraints, and never drop, rename, or narrow in the same release as the code change. Vercel applies migrations before the new build takes traffic, so the previous build must keep working against the new schema.
+
+Model renames use `@@map` so the table name is unchanged (`WardrobeItem` → `CollectionItem`, `Wear` → `WearLog`). A physical rename, and dropping legacy columns (`environment`, `longevityHours`, `projection`, `enjoyment`, `condition`), are separate, explicitly approved migrations after the code no longer uses them.

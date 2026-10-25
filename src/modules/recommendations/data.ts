@@ -33,7 +33,7 @@ export async function getRecommendations(
   context: { weather: WeatherContext; occasion: string; now: Date; limit?: number },
 ): Promise<RecommendationsResult> {
   const [items, wears] = await Promise.all([
-    prisma.collectionItem.findMany({
+    prisma.wardrobeItem.findMany({
       where: { userId },
       select: {
         id: true,
@@ -59,7 +59,7 @@ export async function getRecommendations(
         },
       },
     }),
-    prisma.wearLog.findMany({
+    prisma.wear.findMany({
       where: { userId },
       select: {
         fragranceId: true,

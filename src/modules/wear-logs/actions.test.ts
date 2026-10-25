@@ -10,6 +10,8 @@ vi.mock("./data", () => ({
   createWearForUser: vi.fn(),
   deleteWearForUser: vi.fn(),
   findCollectionItemOwnedByUser: vi.fn(),
+  findUserTimeZone: vi.fn(),
+  findWearTimeZoneForUser: vi.fn(),
   fragranceExists: vi.fn(),
   updateWearForUser: vi.fn(),
 }));
@@ -19,6 +21,8 @@ import {
   createWearForUser,
   deleteWearForUser,
   findCollectionItemOwnedByUser,
+  findUserTimeZone,
+  findWearTimeZoneForUser,
   fragranceExists,
   updateWearForUser,
 } from "./data";
@@ -65,6 +69,8 @@ beforeEach(() => {
   });
   vi.mocked(updateWearForUser).mockResolvedValue(true);
   vi.mocked(deleteWearForUser).mockResolvedValue(true);
+  vi.mocked(findUserTimeZone).mockResolvedValue("UTC");
+  vi.mocked(findWearTimeZoneForUser).mockResolvedValue("UTC");
 });
 
 describe("logWearAction", () => {
@@ -85,6 +91,27 @@ describe("logWearAction", () => {
       projection: 4,
       enjoyment: 5,
     });
+  });
+
+  it("reads the typed time in the user's zone and snapshots that zone", async () => {
+    signedIn();
+    vi.mocked(findUserTimeZone).mockResolvedValue("Asia/Manila");
+
+    await expectRedirect(logWearAction(INITIAL, validForm({ wornAt: "2026-08-19T20:00" })));
+
+    expect(findUserTimeZone).toHaveBeenCalledWith(SESSION_USER.id);
+    const input = vi.mocked(createWearForUser).mock.calls[0]![1];
+    expect(input.wornAt.toISOString()).toBe("2026-08-19T12:00:00.000Z");
+    expect(input.timeZone).toBe("Asia/Manila");
+  });
+
+  it("rejects a malformed time without writing", async () => {
+    signedIn();
+
+    const state = await logWearAction(INITIAL, validForm({ wornAt: "2026-02-30T10:00" }));
+
+    expect(state.fieldErrors?.wornAt).toBeDefined();
+    expect(createWearForUser).not.toHaveBeenCalled();
   });
 
   it("refuses to run without a session, and writes nothing", async () => {
@@ -187,6 +214,30 @@ describe("updateWearAction", () => {
       "wear_1",
       expect.objectContaining({ sprays: 5 }),
     );
+  });
+
+  it("reads an edited time in the wear's own zone, not the user's current one", async () => {
+    signedIn();
+    vi.mocked(findWearTimeZoneForUser).mockResolvedValue("America/New_York");
+    vi.mocked(findUserTimeZone).mockResolvedValue("Asia/Manila");
+
+    await expectRedirect(
+      updateWearAction("wear_1", INITIAL, validForm({ wornAt: "2026-08-19T20:00" })),
+    );
+
+    expect(findWearTimeZoneForUser).toHaveBeenCalledWith(SESSION_USER.id, "wear_1");
+    const input = vi.mocked(updateWearForUser).mock.calls[0]![2];
+    expect(input.wornAt.toISOString()).toBe("2026-08-20T00:00:00.000Z");
+  });
+
+  it("does not update a wear that is not the session user's", async () => {
+    signedIn();
+    vi.mocked(findWearTimeZoneForUser).mockResolvedValue(null);
+
+    const state = await updateWearAction("wear_owned_by_someone_else", INITIAL, validForm());
+
+    expect(state).toMatchObject({ ok: false, message: expect.stringContaining("no longer") });
+    expect(updateWearForUser).not.toHaveBeenCalled();
   });
 
   it("scopes the update to the session user, so another user's wear is not found", async () => {

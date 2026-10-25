@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/modules/auth/session";
-import { findCollectionItemOwnedByUser, listCollectionForPicker } from "@/modules/wear-logs/data";
+import {
+  findCollectionItemOwnedByUser,
+  findUserTimeZone,
+  listCollectionForPicker,
+} from "@/modules/wear-logs/data";
+import { wallTime } from "@/lib/time-zone";
 import { findFragranceById } from "@/modules/fragrances";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -13,17 +18,10 @@ type SearchParams = Promise<{ collectionItemId?: string; fragranceId?: string }>
 
 export const metadata = { title: "Log a wear" };
 
-function pad(n: number) {
-  return String(n).padStart(2, "0");
-}
-function nowLocalIso(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function blankDefaults(): WearFieldDefaults {
+/** `timeZone` is the user's: the zone the wear will be logged in. */
+function blankDefaults(timeZone: string): WearFieldDefaults {
   return {
-    wornAt: nowLocalIso(),
+    wornAt: wallTime(new Date(), timeZone),
     sprays: "4",
     occasion: "CASUAL",
     environment: "MIXED",
@@ -40,6 +38,7 @@ function blankDefaults(): WearFieldDefaults {
 export default async function LogWearPage({ searchParams }: { searchParams: SearchParams }) {
   const user = await requireUser("/wear/new");
   const params = await searchParams;
+  const timeZone = await findUserTimeZone(user.id);
 
   // Mode A: prefilled from a collection item.
   if (params.collectionItemId) {
@@ -50,7 +49,7 @@ export default async function LogWearPage({ searchParams }: { searchParams: Sear
         <LogWearForm
           fragranceId={owned.fragranceId}
           collectionItemId={owned.id}
-          defaults={blankDefaults()}
+          defaults={blankDefaults(timeZone)}
         />
       </FormShell>
     );
@@ -65,7 +64,7 @@ export default async function LogWearPage({ searchParams }: { searchParams: Sear
         <p className="mb-6 text-xs text-[color:var(--fg-muted)]">
           Logging as a sample — this bottle isn&apos;t in your wardrobe.
         </p>
-        <LogWearForm fragranceId={f.id} defaults={blankDefaults()} />
+        <LogWearForm fragranceId={f.id} defaults={blankDefaults(timeZone)} />
       </FormShell>
     );
   }

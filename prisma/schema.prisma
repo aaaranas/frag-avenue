@@ -60,17 +60,17 @@ enum BottleCondition {
 /// concentration.
 enum BottleShape {
   RECTANGULAR // classic tall rectangle (Bleu de Chanel)
-  FLASK       // flattened, rounded-shoulder flask (Aventus)
+  FLASK // flattened, rounded-shoulder flask (Aventus)
   CYLINDRICAL // round column (Layton)
-  TAPERED     // shoulders narrow toward the neck (Sauvage)
-  SQUAT       // wide and short (many extraits)
+  TAPERED // shoulders narrow toward the neck (Sauvage)
+  SQUAT // wide and short (many extraits)
 }
 
 /// How the glass reads: whether the liquid is visible through it.
 enum GlassFinish {
-  CLEAR   // liquid visible; glassColor describes the juice
+  CLEAR // liquid visible; glassColor describes the juice
   FROSTED // liquid diffused
-  OPAQUE  // coloured/lacquered glass; glassColor describes the bottle
+  OPAQUE // coloured/lacquered glass; glassColor describes the bottle
 }
 
 enum Occasion {
@@ -95,26 +95,101 @@ enum WeatherSource {
   NONE
 }
 
+/// What kind of thing a wardrobe entry is. WISHLIST items are not owned: they
+/// are excluded from wear pickers, cost per wear, and "untouched".
+enum ItemKind {
+  BOTTLE
+  DECANT
+  SAMPLE
+  WISHLIST
+}
+
+enum Mood {
+  CONFIDENT
+  RELAXED
+  HAPPY
+  COZY
+  FOCUSED
+  ROMANTIC
+  ENERGETIC
+  OTHER
+}
+
+/// Who can see a wear. PUBLIC: anyone signed in. FOLLOWERS: the author's
+/// followers. PRIVATE: only the author.
+enum Visibility {
+  PUBLIC
+  FOLLOWERS
+  PRIVATE
+}
+
+enum CheckInResult {
+  STRONG
+  FAINT
+  GONE
+}
+
+/// Moderation state of a catalogue entry. PENDING entries are user submissions
+/// visible only to their submitter until approved.
+enum CatalogStatus {
+  APPROVED
+  PENDING
+  REJECTED
+}
+
+enum ChallengeKind {
+  UNIQUE_FRAGRANCES
+  UNIQUE_HOUSES
+}
+
+/// Display preference only. Storage is always metric (°C, ml).
+enum UnitSystem {
+  METRIC
+  IMPERIAL
+}
+
+enum ClubRole {
+  ADMIN
+  MEMBER
+}
+
 // ------------------------------------------------------------------
 // Auth.js core
 // ------------------------------------------------------------------
 
 model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
-  emailVerified   DateTime?
-  name            String?
-  image           String?
-  passwordHash    String?
-  timezone        String    @default("UTC")
-  defaultCurrency String    @default("PHP")
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                String     @id @default(cuid())
+  email             String     @unique
+  emailVerified     DateTime?
+  name              String?
+  image             String?
+  passwordHash      String?
+  /// Public handle for profiles and the feed. Nullable so existing accounts
+  /// can be migrated; new accounts are asked for one.
+  username          String?    @unique
+  bio               String?
+  /// IANA zone, e.g. "Asia/Manila". Defines what "today" means for streaks and
+  /// is snapshotted onto each wear.
+  timezone          String     @default("UTC")
+  units             UnitSystem @default(METRIC)
+  /// Visibility applied to new wears from the new log flow.
+  defaultVisibility Visibility @default(FOLLOWERS)
+  defaultCurrency   String     @default("PHP")
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 
-  accounts        Account[]
-  sessions        Session[]
-  collectionItems CollectionItem[]
-  wearLogs        WearLog[]
+  accounts            Account[]
+  sessions            Session[]
+  wardrobeItems       WardrobeItem[]
+  wears               Wear[]
+  checkIns            CheckIn[]
+  kudos               Kudos[]
+  comments            Comment[]
+  following           Follow[]         @relation("Follower")
+  followers           Follow[]         @relation("Followee")
+  clubMemberships     ClubMembership[]
+  clubsCreated        Club[]
+  submittedFragrances Fragrance[]
 }
 
 model Account {
@@ -184,29 +259,36 @@ model Fragrance {
   // look from the fragrance's accords and concentration, so a fragrance with no
   // curation still draws a sensible bottle. Colours are `#rrggbb`, validated in
   // the application layer (Postgres has no cheap check for it).
-  bottleShape   BottleShape?
-  glassColor    String?       @db.VarChar(7)
-  capColor      String?       @db.VarChar(7)
-  glassFinish   GlassFinish?
+  bottleShape BottleShape?
+  glassColor  String?      @db.VarChar(7)
+  capColor    String?      @db.VarChar(7)
+  glassFinish GlassFinish?
 
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  // --- Moderation ----------------------------------------------------------
+  // Existing and seeded rows are APPROVED. User submissions start PENDING.
+  status        CatalogStatus @default(APPROVED)
+  submittedById String?
 
-  brand           Brand             @relation(fields: [brandId], references: [id], onDelete: Restrict)
-  notes           FragranceNote[]
-  accords         FragranceAccord[]
-  collectionItems CollectionItem[]
-  wearLogs        WearLog[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  brand         Brand             @relation(fields: [brandId], references: [id], onDelete: Restrict)
+  submittedBy   User?             @relation(fields: [submittedById], references: [id], onDelete: SetNull)
+  notes         FragranceNote[]
+  accords       FragranceAccord[]
+  wardrobeItems WardrobeItem[]
+  wears         Wear[]
 
   @@unique([brandId, slug])
   @@index([brandId])
+  @@index([submittedById])
 }
 
 model Note {
-  id        String          @id @default(cuid())
-  name      String          @unique
-  slug      String          @unique
-  createdAt DateTime        @default(now())
+  id         String          @id @default(cuid())
+  name       String          @unique
+  slug       String          @unique
+  createdAt  DateTime        @default(now())
   fragrances FragranceNote[]
 }
 
@@ -243,58 +325,206 @@ model FragranceAccord {
 }
 
 // ------------------------------------------------------------------
-// User-owned data
+// User-owned data (wardrobe, wears)
 // ------------------------------------------------------------------
 
-model CollectionItem {
-  id                  String          @id @default(cuid())
-  userId              String
-  fragranceId         String
-  bottleSizeMl        Int
-  remainingMl         Int?
-  purchasePriceMinor  Int?
-  currency            String? // ISO 4217; required when purchasePriceMinor is set (app-validated)
-  purchaseDate        DateTime?
-  purchaseSource      String?
-  batchCode           String?
-  condition           BottleCondition @default(NEW)
-  personalRating      Int?
-  personalNotes       String?
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
+/// A user's bottle, decant, sample, or wishlist entry for a catalogue fragrance.
+/// Model renamed from CollectionItem; the table keeps its name so code deployed
+/// before the rename keeps working while migrations run.
+model WardrobeItem {
+  id                 String          @id @default(cuid())
+  userId             String
+  fragranceId        String
+  kind               ItemKind        @default(BOTTLE)
+  bottleSizeMl       Int
+  remainingMl        Int?
+  purchasePriceMinor Int?
+  currency           String? // ISO 4217; required when purchasePriceMinor is set (app-validated)
+  purchaseDate       DateTime?
+  purchaseSource     String?
+  batchCode          String?
+  condition          BottleCondition @default(NEW)
+  personalRating     Int?
+  personalNotes      String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
 
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   fragrance Fragrance @relation(fields: [fragranceId], references: [id], onDelete: Restrict)
-  wearLogs  WearLog[]
+  wears     Wear[]
 
   @@index([userId])
   @@index([userId, fragranceId])
+  @@map("CollectionItem")
 }
 
-model WearLog {
-  id                String        @id @default(cuid())
-  userId            String
-  fragranceId       String
-  collectionItemId  String?
-  wornAt            DateTime
-  sprays            Int
-  occasion          Occasion      @default(CASUAL)
-  environment       Environment   @default(MIXED)
+/// One application of a fragrance. Model renamed from WearLog; the table keeps
+/// its name (see WardrobeItem).
+model Wear {
+  id               String     @id @default(cuid())
+  userId           String
+  fragranceId      String
+  collectionItemId String?
+  /// UTC instant.
+  wornAt           DateTime
+  /// IANA zone the wear was logged in. Its local date is what streaks and
+  /// challenges count. Rows from before this column existed are 'UTC': the old
+  /// form stored the typed wall-clock time as if it were UTC, so 'UTC' keeps
+  /// them on the day the user entered.
+  timeZone         String     @default("UTC")
+  sprays           Int
+  occasion         Occasion   @default(CASUAL)
+  mood             Mood?
+  /// Defaults to PRIVATE so nothing logged before the social features (or by
+  /// code that does not set it) is ever shown to other people.
+  visibility       Visibility @default(PRIVATE)
+  notes            String?
+
+  // --- Weather snapshot ------------------------------------------------------
   temperatureC      Float?
   humidityPct       Int?
   weatherCondition  String?
   weatherSource     WeatherSource @default(NONE)
-  longevityHours    Float?
-  projection        Int?
-  enjoyment         Int?
-  notes             String?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  /// Provider id, e.g. "open-meteo" — drives the attribution line.
+  weatherProvider   String?
+  weatherObservedAt DateTime?
 
-  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fragrance      Fragrance       @relation(fields: [fragranceId], references: [id], onDelete: Restrict)
-  collectionItem CollectionItem? @relation(fields: [collectionItemId], references: [id], onDelete: SetNull)
+  // --- Legacy, kept read-only: superseded by check-ins ---------------------
+  environment    Environment @default(MIXED)
+  longevityHours Float?
+  projection     Int?
+  enjoyment      Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fragrance      Fragrance     @relation(fields: [fragranceId], references: [id], onDelete: Restrict)
+  collectionItem WardrobeItem? @relation(fields: [collectionItemId], references: [id], onDelete: SetNull)
+  checkIns       CheckIn[]
+  kudos          Kudos[]
+  comments       Comment[]
 
   @@index([userId, wornAt])
   @@index([userId, fragranceId])
+  @@map("WearLog")
+}
+
+// ------------------------------------------------------------------
+// Performance check-ins
+// ------------------------------------------------------------------
+
+/// "How is it doing?" at 2h, 4h, 8h after a wear. Pending prompts are derived
+/// (wornAt + offset <= now, none recorded, no earlier GONE), so only answers
+/// are stored.
+model CheckIn {
+  id          String        @id @default(cuid())
+  wearId      String
+  userId      String
+  offsetHours Int // 2 | 4 | 8 (app-validated)
+  result      CheckInResult
+  recordedAt  DateTime      @default(now())
+
+  wear Wear @relation(fields: [wearId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([wearId, offsetHours])
+  @@index([userId])
+}
+
+// ------------------------------------------------------------------
+// Social
+// ------------------------------------------------------------------
+
+model Kudos {
+  wearId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  wear Wear @relation(fields: [wearId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([wearId, userId])
+  @@index([userId])
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  wearId    String
+  userId    String
+  body      String    @db.VarChar(1000)
+  createdAt DateTime  @default(now())
+  /// Soft delete keeps thread positions stable; body is cleared on delete.
+  deletedAt DateTime?
+
+  wear Wear @relation(fields: [wearId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([wearId, createdAt])
+  @@index([userId])
+}
+
+/// Open follows: anyone can follow anyone. A CHECK constraint in the migration
+/// forbids following yourself.
+model Follow {
+  followerId String
+  followeeId String
+  createdAt  DateTime @default(now())
+
+  follower User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followee User @relation("Followee", fields: [followeeId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followeeId])
+  @@index([followeeId])
+}
+
+// ------------------------------------------------------------------
+// Clubs and challenges
+// ------------------------------------------------------------------
+
+model Club {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy   User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  memberships ClubMembership[]
+  challenges  Challenge[]
+
+  @@index([createdById])
+}
+
+model ClubMembership {
+  clubId   String
+  userId   String
+  role     ClubRole @default(MEMBER)
+  joinedAt DateTime @default(now())
+
+  club Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([clubId, userId])
+  @@index([userId])
+}
+
+/// Progress is derived from wears in a rolling `windowDays` window ending
+/// today, so there is no participation table. `clubId` null = global.
+model Challenge {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  title       String
+  description String?
+  kind        ChallengeKind
+  target      Int
+  windowDays  Int           @default(30)
+  clubId      String?
+  createdAt   DateTime      @default(now())
+
+  club Club? @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@index([clubId])
 }

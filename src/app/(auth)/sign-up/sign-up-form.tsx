@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { signUpAction, type FormState } from "@/modules/auth";
 import { Field } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { DeviceTimeZoneInput } from "@/components/forms/device-time-zone-input";
 
 const INITIAL: FormState = { ok: false };
 
@@ -12,6 +13,7 @@ export function SignUpForm() {
 
   return (
     <form action={action} className="flex flex-col gap-5" noValidate>
+      <DeviceTimeZoneInput />
       <Field
         name="name"
         type="text"

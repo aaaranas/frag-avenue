@@ -575,8 +575,8 @@ async function seedDevUser() {
   // — that is what keeps the relative dates (and therefore the "neglected" and
   // seasonal insights) meaningful. Scoped to this user id; nothing else in the
   // database is touched.
-  await prisma.wearLog.deleteMany({ where: { userId: user.id } });
-  await prisma.collectionItem.deleteMany({ where: { userId: user.id } });
+  await prisma.wear.deleteMany({ where: { userId: user.id } });
+  await prisma.wardrobeItem.deleteMany({ where: { userId: user.id } });
 
   const idsByKey = await fragranceIdsByKey();
   const missing = [...COLLECTION.map((c) => c.key), ...WEARS.map((w) => w.key)].filter(
@@ -590,7 +590,7 @@ async function seedDevUser() {
   for (const c of COLLECTION) {
     const fragranceId = idsByKey.get(c.key)!;
     const owned = daysAgo(c.ownedForDays);
-    const item = await prisma.collectionItem.create({
+    const item = await prisma.wardrobeItem.create({
       data: {
         userId: user.id,
         fragranceId,
@@ -612,7 +612,7 @@ async function seedDevUser() {
     collectionItemIdByKey.set(c.key, item.id);
   }
 
-  await prisma.wearLog.createMany({
+  await prisma.wear.createMany({
     data: WEARS.map((w) => ({
       userId: user.id,
       fragranceId: idsByKey.get(w.key)!,

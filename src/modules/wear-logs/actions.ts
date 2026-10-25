@@ -8,6 +8,8 @@ import {
   createWearForUser,
   deleteWearForUser,
   findCollectionItemOwnedByUser,
+  findUserTimeZone,
+  findWearTimeZoneForUser,
   fragranceExists,
   updateWearForUser,
 } from "./data";
@@ -71,11 +73,13 @@ export async function logWearAction(_prev: FormState, formData: FormData): Promi
     }
   }
 
-  const persistence = toPersistenceInput({
-    ...parsed.data,
-    fragranceId,
-    collectionItemId: collectionItemId ?? undefined,
-  });
+  // New wears are logged in the user's current zone (server-side, so the
+  // stored zone always matches the one the form's default time was shown in).
+  const timeZone = await findUserTimeZone(user.id);
+  const persistence = toPersistenceInput(
+    { ...parsed.data, fragranceId, collectionItemId: collectionItemId ?? undefined },
+    timeZone,
+  );
   await createWearForUser(user.id, persistence);
   revalidatePath("/wear");
   revalidatePath("/dashboard");
@@ -93,7 +97,13 @@ export async function updateWearAction(
     return { ok: false, fieldErrors: collectFieldErrors(parsed.error.issues) };
   }
 
-  const persistence = toPersistenceInput(parsed.data);
+  // An edited time is read in the zone the wear was logged in — the zone the
+  // edit form displayed it in — not the user's current zone.
+  const timeZone = await findWearTimeZoneForUser(user.id, wearId);
+  if (!timeZone) {
+    return { ok: false, message: "This wear is no longer available." };
+  }
+  const persistence = toPersistenceInput(parsed.data, timeZone);
   const ok = await updateWearForUser(user.id, wearId, persistence);
   if (!ok) {
     return { ok: false, message: "This wear is no longer available." };

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isWallTime, zonedWallTimeToUtc } from "@/lib/time-zone";
 
 const emptyToUndef = <T extends z.ZodTypeAny>(schema: T) =>
   z.preprocess((v) => (v === "" || v === null ? undefined : v), schema);
@@ -16,7 +17,16 @@ export const WEATHER_CONDITIONS = ["clear", "clouds", "rain", "snow", "storm", "
 export const WearFormInput = z.object({
   fragranceId: z.string().trim().min(1, "Fragrance is required."),
   collectionItemId: emptyToUndef(z.string().trim().min(1).optional()),
-  wornAt: z.coerce.date({ invalid_type_error: "Enter a valid date/time." }),
+  /**
+   * Wall-clock time as typed into `<input type="datetime-local">`
+   * ("YYYY-MM-DDTHH:mm"). It has no zone of its own: `toPersistenceInput`
+   * interprets it in the wear's zone. Parsing it with `new Date()` would use the
+   * server's zone, which is UTC in production.
+   */
+  wornAt: z
+    .string({ invalid_type_error: "Enter a valid date/time." })
+    .trim()
+    .refine(isWallTime, "Enter a valid date/time."),
   sprays: z.coerce
     .number({ invalid_type_error: "Sprays must be a number." })
     .int("Whole sprays only.")
@@ -64,7 +74,11 @@ export function deriveWeatherSource(input: {
   return input.sourceHint ?? "MANUAL";
 }
 
-export function toPersistenceInput(input: WearFormInput) {
+/**
+ * `timeZone` is the IANA zone the wear belongs to — the user's zone for a new
+ * wear, the wear's own stored zone for an edit. `wornAt` is interpreted in it.
+ */
+export function toPersistenceInput(input: WearFormInput, timeZone: string) {
   const weatherSource = deriveWeatherSource({
     temperatureC: input.temperatureC,
     humidityPct: input.humidityPct,
@@ -74,7 +88,8 @@ export function toPersistenceInput(input: WearFormInput) {
   return {
     fragranceId: input.fragranceId,
     collectionItemId: input.collectionItemId ?? null,
-    wornAt: input.wornAt,
+    wornAt: zonedWallTimeToUtc(input.wornAt, timeZone),
+    timeZone,
     sprays: input.sprays,
     occasion: input.occasion,
     environment: input.environment,

@@ -15,7 +15,7 @@ describe("WearFormInput", () => {
       expect(r.data.occasion).toBe("CASUAL");
       expect(r.data.environment).toBe("MIXED");
       expect(r.data.sprays).toBe(4);
-      expect(r.data.wornAt).toBeInstanceOf(Date);
+      expect(r.data.wornAt).toBe("2026-08-13T14:00");
     }
   });
 
@@ -83,7 +83,7 @@ describe("deriveWeatherSource", () => {
 describe("toPersistenceInput", () => {
   it("promotes optional fields to explicit null and stamps weatherSource", () => {
     const parsed = WearFormInput.parse({ ...base, temperatureC: "22", weatherCondition: "clear" });
-    const p = toPersistenceInput(parsed);
+    const p = toPersistenceInput(parsed, "UTC");
     expect(p.temperatureC).toBe(22);
     expect(p.weatherCondition).toBe("clear");
     expect(p.weatherSource).toBe("MANUAL");
@@ -92,9 +92,24 @@ describe("toPersistenceInput", () => {
     expect(p.notes).toBeNull();
   });
 
+  it("interprets wornAt in the given zone and carries the zone through", () => {
+    const parsed = WearFormInput.parse(base); // 2026-08-13T14:00
+    expect(toPersistenceInput(parsed, "UTC").wornAt.toISOString()).toBe("2026-08-13T14:00:00.000Z");
+    const manila = toPersistenceInput(parsed, "Asia/Manila");
+    expect(manila.wornAt.toISOString()).toBe("2026-08-13T06:00:00.000Z");
+    expect(manila.timeZone).toBe("Asia/Manila");
+  });
+
+  it("rejects a wornAt that is not a datetime-local value", () => {
+    expect(WearFormInput.safeParse({ ...base, wornAt: "2026-08-13T14:00:00Z" }).success).toBe(
+      false,
+    );
+    expect(WearFormInput.safeParse({ ...base, wornAt: "" }).success).toBe(false);
+  });
+
   it("weatherSource is NONE when no weather was entered", () => {
     const parsed = WearFormInput.parse(base);
-    const p = toPersistenceInput(parsed);
+    const p = toPersistenceInput(parsed, "UTC");
     expect(p.weatherSource).toBe("NONE");
   });
 });

@@ -38,7 +38,7 @@ export async function getDashboardStats(userId: string, now: Date): Promise<Dash
   const windowStart = new Date(now.getTime() - 90 * DAY_MS);
 
   const [items, aggr, lastWorn, wearsIn90d, recent5] = await Promise.all([
-    prisma.collectionItem.findMany({
+    prisma.wardrobeItem.findMany({
       where: { userId },
       select: {
         id: true,
@@ -55,17 +55,17 @@ export async function getDashboardStats(userId: string, now: Date): Promise<Dash
         },
       },
     }),
-    prisma.wearLog.aggregate({
+    prisma.wear.aggregate({
       where: { userId },
       _sum: { sprays: true },
       _count: { _all: true },
     }),
-    prisma.wearLog.groupBy({
+    prisma.wear.groupBy({
       by: ["fragranceId"],
       where: { userId },
       _max: { wornAt: true },
     }),
-    prisma.wearLog.findMany({
+    prisma.wear.findMany({
       where: { userId, wornAt: { gte: windowStart } },
       select: {
         id: true,
@@ -80,7 +80,7 @@ export async function getDashboardStats(userId: string, now: Date): Promise<Dash
         },
       },
     }),
-    prisma.wearLog.findMany({
+    prisma.wear.findMany({
       where: { userId },
       orderBy: { wornAt: "desc" },
       take: 5,

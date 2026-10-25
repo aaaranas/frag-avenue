@@ -33,7 +33,7 @@ export async function getInsights(
   hemisphere: Hemisphere = "north",
 ): Promise<Insights> {
   const [wears, items] = await Promise.all([
-    prisma.wearLog.findMany({
+    prisma.wear.findMany({
       where: { userId },
       select: {
         fragranceId: true,
@@ -43,7 +43,7 @@ export async function getInsights(
         fragrance: { select: { brand: { select: { name: true } } } },
       },
     }),
-    prisma.collectionItem.findMany({
+    prisma.wardrobeItem.findMany({
       where: { userId },
       select: {
         fragranceId: true,

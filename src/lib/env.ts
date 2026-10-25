@@ -3,6 +3,9 @@ import { z } from "zod";
 
 const EnvSchema = z.object({
   DATABASE_URL: z.string().url(),
+  // Only `prisma migrate` needs this; the running app does not, so a deploy
+  // that sets it for builds alone must still boot. Checked when present.
+  DIRECT_DATABASE_URL: z.string().url().optional(),
   AUTH_SECRET: z.string().min(16, "AUTH_SECRET must be at least 16 characters"),
   AUTH_URL: z.string().url().optional(),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),

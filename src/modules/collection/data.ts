@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma";
  */
 
 export function listCollectionForUser(userId: string) {
-  return prisma.collectionItem.findMany({
+  return prisma.wardrobeItem.findMany({
     where: { userId },
     orderBy: [{ createdAt: "desc" }],
     select: {
@@ -59,7 +59,7 @@ export function listCollectionForUser(userId: string) {
 export type CollectionListItem = Awaited<ReturnType<typeof listCollectionForUser>>[number];
 
 export function findCollectionItemForUser(userId: string, id: string) {
-  return prisma.collectionItem.findFirst({
+  return prisma.wardrobeItem.findFirst({
     where: { id, userId },
     include: {
       fragrance: {
@@ -105,7 +105,7 @@ type PersistenceInput = {
 };
 
 export function createCollectionItem(userId: string, input: PersistenceInput) {
-  return prisma.collectionItem.create({
+  return prisma.wardrobeItem.create({
     data: { userId, ...input },
     select: { id: true },
   });
@@ -123,7 +123,7 @@ export async function updateCollectionItemForUser(
 ): Promise<boolean> {
   const { fragranceId: _ignore, ...updatable } = input;
   void _ignore; // fragranceId is immutable after create
-  const res = await prisma.collectionItem.updateMany({
+  const res = await prisma.wardrobeItem.updateMany({
     where: { id, userId },
     data: updatable,
   });
@@ -131,6 +131,6 @@ export async function updateCollectionItemForUser(
 }
 
 export async function deleteCollectionItemForUser(userId: string, id: string): Promise<boolean> {
-  const res = await prisma.collectionItem.deleteMany({ where: { id, userId } });
+  const res = await prisma.wardrobeItem.deleteMany({ where: { id, userId } });
   return res.count === 1;
 }

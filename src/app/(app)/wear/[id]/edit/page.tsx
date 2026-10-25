@@ -4,19 +4,13 @@ import { requireUser } from "@/modules/auth/session";
 import { deleteWearAction } from "@/modules/wear-logs";
 import { findWearForUser } from "@/modules/wear-logs/data";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { wallTime } from "@/lib/time-zone";
 import { EditWearForm } from "./edit-wear-form";
 import type { WearFieldDefaults } from "../../wear-form-fields";
 
 type Params = Promise<{ id: string }>;
 
 export const metadata = { title: "Edit wear" };
-
-function pad(n: number) {
-  return String(n).padStart(2, "0");
-}
-function toDatetimeLocal(d: Date): string {
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
 export default async function EditWearPage({ params }: { params: Params }) {
   const { id } = await params;
@@ -25,7 +19,8 @@ export default async function EditWearPage({ params }: { params: Params }) {
   if (!wear) notFound();
 
   const defaults: WearFieldDefaults = {
-    wornAt: toDatetimeLocal(wear.wornAt),
+    // Shown in the zone the wear was logged in; the update action reads it back in the same zone.
+    wornAt: wallTime(wear.wornAt, wear.timeZone),
     sprays: wear.sprays.toString(),
     occasion: wear.occasion,
     environment: wear.environment,

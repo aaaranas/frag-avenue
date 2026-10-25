@@ -91,6 +91,7 @@ export async function signUpAction(_prev: FormState, formData: FormData): Promis
     email: formData.get("email"),
     name: formData.get("name") ?? undefined,
     password: formData.get("password"),
+    timezone: formData.get("timezone"),
   };
   const parsed = SignUpInput.safeParse(raw);
   if (!parsed.success) {
@@ -118,6 +119,7 @@ export async function signUpAction(_prev: FormState, formData: FormData): Promis
     email: parsed.data.email,
     name: parsed.data.name,
     passwordHash,
+    timezone: parsed.data.timezone,
   });
 
   try {

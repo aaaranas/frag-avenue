@@ -1,6 +1,6 @@
 # Frag Avenue — Refactor Plan (Phase 0 audit)
 
-Status: **draft, awaiting approval**. No application code has changed. This document is the only Phase 0 output.
+Status: **approved 2026-10-25** (see §11 for the decisions). Phase 1 complete; later phases pending.
 
 Target: refactor the existing personal-analytics PWA into a Strava-style wear-log platform (Feed · Wardrobe · Log · Stats · Clubs) without breaking the app or losing data at any point.
 
@@ -308,7 +308,7 @@ One commit per phase on `main` (see Q6), tagged `pre-refactor` before Phase 1. A
 | Catalogue licensing                                                     | No scraping; seed only from a licence-compatible source (Q1); user submissions moderated                       |
 | Scope creep from the deleted Advisor                                    | Code stays recoverable from `pre-refactor`; weather ranking documented as post-MVP                             |
 
-## 10. Open questions (blocking, batched)
+## 10. Open questions (answered — see §11)
 
 1. **Catalogue seed source.** Options I'd consider licence-safe: **(a)** Wikidata perfume items (CC0; brand, name, year, sometimes perfumer; no accords or notes), **(b)** Open Beauty Facts perfume category (ODbL share-alike + attribution; barcodes and brands, thin on notes), **(c)** first-party hand curation of ~100 popular fragrances (names and houses are facts; we write accord tags ourselves) plus user submissions. Kaggle "Fragrantica" dumps are scraped and excluded. _My recommendation: (a) for houses and names + (c) for accords on a starter set._ Which do you want?
 2. **Is Frag Avenue commercial** (ads, subscriptions, a company behind it), now or soon? If yes, Open-Meteo's free API is off-limits and I'll implement MET Norway as the default.
@@ -319,3 +319,24 @@ One commit per phase on `main` (see Q6), tagged `pre-refactor` before Phase 1. A
 7. **Default visibility for new wears:** `FOLLOWERS` (my recommendation, Strava-like) or `PUBLIC`? And are follows open (anyone can follow), or approval-based for private accounts? I'd ship open follows in the MVP.
 
 Non-blocking defaults I'll use unless you object: delete Advisor/recommendations in P8; the accent colour is a single blue-violet token (`#4f46e5`, AA on white); mood list as in §3; clubs are user-creatable (any user can create a club and becomes its admin).
+
+## 11. Decisions (2026-10-25)
+
+| #   | Question                     | Decision                                           | Effect on the plan                                                                                                                                  |
+| --- | ---------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Catalogue seed               | **Wikidata** (CC0) for now                         | P8 seed imports houses/names/years from Wikidata; accords stay first-party curated.                                                                 |
+| 2   | Commercial?                  | **Personal project for now**                       | Keep **Open-Meteo** as the `WeatherService` default, with attribution. Revisit (MET Norway) if that changes.                                        |
+| 3   | Photos                       | **After the MVP**                                  | No photo column, upload, or storage vendor in P4. CSP stays as is.                                                                                  |
+| 4   | Real data in production?     | **Unsure**                                         | Treat production as holding real data: expand-only migrations, legacy wears `PRIVATE`, and take a `pg_dump` before pushing a migration if possible. |
+| 5   | Web Push scheduling          | **Not on Vercel Pro**                              | Hobby cron is once a day, so push reminders need a queue (e.g. QStash) or stay out. In-app prompts are the MVP; P9 needs a fresh decision.          |
+| 6   | Branch                       | **`main`**, one commit per phase                   | Tag `pre-refactor` at `865fc45`. Pushing to `main` deploys and runs `migrate deploy` on production.                                                 |
+| 7   | Follows / default visibility | **Open follows**; default visibility not specified | Open follows. New wears default to `FOLLOWERS` (my recommendation; easy to change via `User.defaultVisibility`).                                    |
+
+### Phase 1 deviations from §3 / §7
+
+- `WardrobeItem.bottleSizeMl` stays non-null until wishlist entries ship in P3, so the legacy UI does not need null handling it would never exercise.
+- `Wear.photoKey` dropped (decision 3).
+- `Wear.visibility` gets a column default of `PRIVATE` (not just a backfill), so the legacy form, which does not set it, also writes private wears during the transition.
+- Legacy wears get `timeZone = 'UTC'` rather than `User.timezone`. They are equal today, and `UTC` is the correct reading: the old form parsed the typed wall-clock time on a UTC server.
+- The check-in schedule lives in `src/modules/wear-logs/check-ins.ts` (wear domain), not `analytics`. `dueCheckIn` returns the single open prompt.
+- Fixed in passing: the legacy log/edit forms parsed and displayed `datetime-local` values in the server's zone (UTC in production). They now use the user's zone (new wears) or the wear's zone (edits).
