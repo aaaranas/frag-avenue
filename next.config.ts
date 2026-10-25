@@ -18,7 +18,9 @@ const CSP = [
   "worker-src 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",
-  "form-action 'self'",
+  // Google sign-in: without JS the form posts here and is redirected to Google,
+  // and Chromium applies form-action to that redirect.
+  "form-action 'self' https://accounts.google.com",
 ].join("; ");
 
 const SECURITY_HEADERS = [

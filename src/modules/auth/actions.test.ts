@@ -22,6 +22,8 @@ vi.mock("./passwords", () => ({
   hashPassword: vi.fn(async (plain: string) => `hashed:${plain}`),
   verifyPassword: vi.fn(),
 }));
+vi.mock("./google", () => ({ googleEnabled: vi.fn(() => true) }));
+vi.mock("./session", () => ({ currentUser: vi.fn(async () => null) }));
 vi.mock("./data", () => ({
   createUserWithPassword: vi.fn(),
   findUserByEmail: vi.fn(),
@@ -33,7 +35,15 @@ import { signIn, signOut } from "@/auth";
 import { _resetRateLimitStore } from "@/lib/rate-limit";
 import { hashPassword } from "./passwords";
 import { createUserWithPassword, findUserByEmail, isUsernameTaken } from "./data";
-import { signInAction, signOutAction, signUpAction } from "./actions";
+import { googleEnabled } from "./google";
+import { currentUser } from "./session";
+import {
+  connectGoogleAction,
+  signInAction,
+  signInWithGoogleAction,
+  signOutAction,
+  signUpAction,
+} from "./actions";
 
 const INITIAL = { ok: false } as const;
 
@@ -54,6 +64,8 @@ beforeEach(() => {
   vi.clearAllMocks();
   _resetRateLimitStore();
   vi.mocked(findUserByEmail).mockResolvedValue(null);
+  vi.mocked(googleEnabled).mockReturnValue(true);
+  vi.mocked(currentUser).mockResolvedValue(null);
 });
 
 describe("signInAction", () => {
@@ -84,6 +96,31 @@ describe("signInAction", () => {
     // Deliberately does not distinguish "no such user" from "wrong password" —
     // that difference is an account-enumeration oracle.
     expect(state).toMatchObject({ ok: false, message: "Invalid email or password." });
+  });
+
+  it("points an account created with Google at Google, not at a password", async () => {
+    signInRejectsCredentials();
+    vi.mocked(findUserByEmail).mockResolvedValue({ passwordHash: null } as never);
+
+    const state = await signInAction(
+      INITIAL,
+      formData({ email: "google@frag.test", password: "anything-at-all" }),
+    );
+
+    expect(state.message).toMatch(/signs in with Google/);
+  });
+
+  it("refuses a protocol-relative `next`, falling back to the feed", async () => {
+    signInSucceeds();
+
+    await expectRedirect(
+      signInAction(
+        INITIAL,
+        formData({ email: "owner@frag.test", password: "correct-horse", next: "//evil.example" }),
+      ),
+    );
+
+    expect(vi.mocked(signIn).mock.calls[0]![1]).toMatchObject({ redirectTo: "/feed" });
   });
 
   it("honours a relative `next` destination", async () => {
@@ -254,5 +291,55 @@ describe("signOutAction", () => {
     await signOutAction();
 
     expect(signOut).toHaveBeenCalledWith({ redirectTo: "/" });
+  });
+});
+
+describe("signInWithGoogleAction", () => {
+  it("hands off to Google, returning to the requested page", async () => {
+    signInSucceeds("https://accounts.google.com/o/oauth2/v2/auth");
+
+    await expectRedirect(signInWithGoogleAction(formData({ next: "/clubs" })));
+
+    expect(signIn).toHaveBeenCalledWith("google", { redirectTo: "/clubs" });
+  });
+
+  it("returns to the feed for a missing or off-site `next`", async () => {
+    signInSucceeds();
+
+    await expectRedirect(signInWithGoogleAction(formData({ next: "//evil.example" })));
+    await expectRedirect(signInWithGoogleAction(formData({})));
+
+    expect(vi.mocked(signIn).mock.calls.map((c) => c[1])).toEqual([
+      { redirectTo: "/feed" },
+      { redirectTo: "/feed" },
+    ]);
+  });
+
+  it("does nothing but return to sign-in when Google is not configured", async () => {
+    vi.mocked(googleEnabled).mockReturnValue(false);
+
+    expect(await expectRedirect(signInWithGoogleAction(formData({})))).toBe("/sign-in");
+    expect(signIn).not.toHaveBeenCalled();
+  });
+});
+
+describe("connectGoogleAction", () => {
+  it("requires a signed-in user", async () => {
+    expect(await expectRedirect(connectGoogleAction())).toBe("/sign-in?next=/profile");
+    expect(signIn).not.toHaveBeenCalled();
+  });
+
+  it("links Google to the signed-in account and returns to the profile", async () => {
+    vi.mocked(currentUser).mockResolvedValue({
+      id: "u1",
+      email: "owner@frag.test",
+      name: null,
+      image: null,
+    });
+    signInSucceeds();
+
+    await expectRedirect(connectGoogleAction());
+
+    expect(signIn).toHaveBeenCalledWith("google", { redirectTo: "/profile?connected=google" });
   });
 });

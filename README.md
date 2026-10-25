@@ -55,7 +55,8 @@ pnpm db:seed                  # catalogue + two dev accounts and a club
 pnpm dev
 ```
 
-Open http://localhost:3000 and sign in with a seeded development account:
+Open http://localhost:3000 and sign in with a seeded development account (or
+set up Google sign-in, below):
 
 | Account | Email            | Password         | What it has                                         |
 | ------- | ---------------- | ---------------- | --------------------------------------------------- |
@@ -75,6 +76,20 @@ and nothing else. Override with `SEED_DEV_USER=true`.
 > **Note on `.env` vs `.env.local`:** Prisma CLI only reads `.env`. Use `.env` for `DATABASE_URL` and `AUTH_SECRET`. Both are gitignored.
 >
 > **Note on Postgres port:** the docker-compose config binds host port **55432** (not 5432) to avoid clashing with a native Postgres install on your machine.
+
+### Google sign-in (optional)
+
+1. In Google Cloud Console → APIs & Services → Credentials, create an OAuth
+   client ID of type **Web application**.
+2. Add the authorised redirect URIs `http://localhost:3000/api/auth/callback/google`
+   and, for production, `https://<your-domain>/api/auth/callback/google`.
+3. Set `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` in `.env` (and in Vercel).
+
+Without them the Google button is hidden. A first Google sign-in creates an
+account (the feed then asks for a username). If the email already has a
+password account, Google is refused rather than linked, because password
+accounts never verified their email; sign in with the password and use
+**Connect Google** on the profile instead.
 
 ### The catalogue
 
@@ -140,7 +155,7 @@ Deeper reading:
 
 ## Security posture
 
-- Auth.js v5 sessions (JWT strategy — required by the Credentials provider).
+- Auth.js v5 sessions (JWT strategy — required by the Credentials provider). Google sign-in requires a Google-verified email and never links itself to an existing account by email.
 - Passwords bcrypt-hashed (12 rounds).
 - Every server action and route handler derives `userId` from the server session — never from a client field or URL parameter. Every data function takes `userId` as its **first** argument and includes it in every `where` clause.
 - Zod validates every server-action input, every URL param, and every external API response (Open-Meteo).
@@ -163,6 +178,8 @@ Set these under **Settings → Environment Variables**:
 | `DATABASE_URL`        | **Pooled** connection string                  |
 | `DIRECT_DATABASE_URL` | **Unpooled** connection string, same database |
 | `AUTH_SECRET`         | `pnpm dlx auth secret` — min 16 chars         |
+| `AUTH_GOOGLE_ID`      | Optional: Google OAuth client ID              |
+| `AUTH_GOOGLE_SECRET`  | Optional: Google OAuth client secret          |
 
 Two URLs are required because Prisma opens a connection per serverless instance
 (so runtime needs a pooler) while `prisma migrate` cannot run through a

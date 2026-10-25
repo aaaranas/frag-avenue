@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 const INITIAL: FormState = { ok: false };
 
-/** Shown to accounts created before usernames existed. */
+/** Shown to accounts without a username: older accounts, and new Google sign-ups. */
 export function UsernamePrompt() {
   const { state, pending, formProps } = useFormAction(setUsernameAction, INITIAL);
   if (state.ok) return null;
@@ -20,7 +20,7 @@ export function UsernamePrompt() {
         Choose a username
       </h2>
       <p className="mt-1 mb-3 text-sm text-[color:var(--fg-muted)]">
-        People find and follow you by it. Your existing wears stay private until you share new ones.
+        People find and follow you by it.
       </p>
       <form {...formProps} className="flex flex-col gap-3 sm:flex-row sm:items-start" noValidate>
         <div className="flex-1">

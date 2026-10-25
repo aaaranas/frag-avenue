@@ -28,3 +28,15 @@ export function createUserWithPassword(input: {
     select: { id: true, email: true, name: true },
   });
 }
+
+/** How this user can sign in: a password, Google, or both. */
+export async function findSignInMethods(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { passwordHash: true, accounts: { select: { provider: true } } },
+  });
+  return {
+    password: Boolean(user?.passwordHash),
+    google: user?.accounts.some((a) => a.provider === "google") ?? false,
+  };
+}

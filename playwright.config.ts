@@ -52,6 +52,11 @@ export default defineConfig({
       // Fixed weather readings instead of calling Open-Meteo: deterministic,
       // and CI need not reach the internet. Never set in production.
       WEATHER_PROVIDER: "static",
+      // A fake Google OAuth client, so the "Continue with Google" button shows
+      // and the hand-off to Google can be asserted. The test intercepts the
+      // request to Google; nothing reaches it.
+      AUTH_GOOGLE_ID: "e2e-google-client",
+      AUTH_GOOGLE_SECRET: "e2e-google-secret",
     },
   },
 });

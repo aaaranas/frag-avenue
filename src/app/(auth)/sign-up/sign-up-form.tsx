@@ -4,6 +4,7 @@ import { useFormAction } from "@/components/forms/use-form-action";
 import { signUpAction, type FormState } from "@/modules/auth";
 import { Field } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { PasswordField } from "@/components/auth/password-field";
 import { DeviceTimeZoneInput } from "@/components/forms/device-time-zone-input";
 
 const INITIAL: FormState = { ok: false };
@@ -14,13 +15,6 @@ export function SignUpForm() {
   return (
     <form {...formProps} className="flex flex-col gap-5" noValidate>
       <DeviceTimeZoneInput />
-      <Field
-        name="name"
-        type="text"
-        label="Name (optional)"
-        autoComplete="name"
-        error={state.fieldErrors?.name}
-      />
       <Field
         name="username"
         type="text"
@@ -42,9 +36,8 @@ export function SignUpForm() {
         required
         error={state.fieldErrors?.email}
       />
-      <Field
+      <PasswordField
         name="password"
-        type="password"
         label="Password"
         autoComplete="new-password"
         required
@@ -52,12 +45,19 @@ export function SignUpForm() {
         hint="At least 8 characters."
         error={state.fieldErrors?.password}
       />
+      <Field
+        name="name"
+        type="text"
+        label="Display name (optional)"
+        autoComplete="name"
+        error={state.fieldErrors?.name}
+      />
       {state.message ? (
         <p role="alert" className="form-error">
           {state.message}
         </p>
       ) : null}
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending} className="mt-1">
         {pending ? "Creating account…" : "Create account"}
       </Button>
     </form>

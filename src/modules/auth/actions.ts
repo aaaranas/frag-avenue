@@ -9,6 +9,8 @@ import { logger } from "@/lib/logger";
 import { hashPassword } from "./passwords";
 import { SignInInput, SignUpInput } from "./schema";
 import { createUserWithPassword, findUserByEmail, isUsernameTaken } from "./data";
+import { googleEnabled } from "./google";
+import { currentUser } from "./session";
 import { Prisma } from "@prisma/client";
 
 export type FormState = {
@@ -45,6 +47,11 @@ function firstIssueByField(issues: readonly { path: (string | number)[]; message
   return out;
 }
 
+/** Where to go after signing in: a same-origin path only, else the feed. */
+function safeNext(raw: FormDataEntryValue | null): string {
+  return typeof raw === "string" && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/feed";
+}
+
 export async function signInAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const raw = {
     email: formData.get("email"),
@@ -66,8 +73,7 @@ export async function signInAction(_prev: FormState, formData: FormData): Promis
     };
   }
 
-  const nextRaw = formData.get("next");
-  const next = typeof nextRaw === "string" && nextRaw.startsWith("/") ? nextRaw : "/feed";
+  const next = safeNext(formData.get("next"));
 
   try {
     await signIn("credentials", {
@@ -78,6 +84,14 @@ export async function signInAction(_prev: FormState, formData: FormData): Promis
   } catch (err) {
     // `signIn` throws a redirect on success — that must propagate.
     if (err instanceof AuthError) {
+      // Accounts created with Google have no password to check.
+      const user = await findUserByEmail(parsed.data.email);
+      if (user && !user.passwordHash) {
+        return {
+          ok: false,
+          message: "This account signs in with Google. Use Continue with Google.",
+        };
+      }
       return { ok: false, message: "Invalid email or password." };
     }
     throw err;
@@ -155,6 +169,26 @@ export async function signUpAction(_prev: FormState, formData: FormData): Promis
   }
 
   return INITIAL;
+}
+
+/**
+ * Starts Google sign-in (or sign-up: a first-time Google user gets an account,
+ * and picks a username on the feed). Throws Auth.js's redirect to Google.
+ */
+export async function signInWithGoogleAction(formData: FormData): Promise<void> {
+  if (!googleEnabled()) redirect("/sign-in");
+  await signIn("google", { redirectTo: safeNext(formData.get("next")) });
+}
+
+/**
+ * Links Google to the signed-in account. Auth.js attaches the Google account to
+ * the session's user; failures come back to /profile as `?error=<code>`.
+ */
+export async function connectGoogleAction(): Promise<void> {
+  const user = await currentUser();
+  if (!user) redirect("/sign-in?next=/profile");
+  if (!googleEnabled()) redirect("/profile");
+  await signIn("google", { redirectTo: "/profile?connected=google" });
 }
 
 export async function signOutAction(): Promise<void> {
