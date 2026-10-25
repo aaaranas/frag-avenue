@@ -6,11 +6,11 @@ vi.mock("next/navigation", async () =>
   (await import("@/tests/helpers/next-redirect")).nextNavigationMock(),
 );
 vi.mock("@/modules/auth/session", () => ({ requireUser: vi.fn() }));
-vi.mock("./data", () => ({ updateUserTimeZone: vi.fn() }));
+vi.mock("./data", () => ({ updateUserTimeZone: vi.fn(), updateProfile: vi.fn() }));
 
 import { requireUser } from "@/modules/auth/session";
-import { updateUserTimeZone } from "./data";
-import { updateTimeZoneAction } from "./actions";
+import { updateProfile, updateUserTimeZone } from "./data";
+import { setUsernameAction, updateProfileAction, updateTimeZoneAction } from "./actions";
 
 const SESSION_USER = { id: "user_session", email: "owner@frag.test", name: null, image: null };
 const INITIAL = { ok: false } as const;
@@ -49,5 +49,65 @@ describe("updateTimeZoneAction", () => {
       /NEXT_REDIRECT/,
     );
     expect(updateUserTimeZone).not.toHaveBeenCalled();
+  });
+});
+
+describe("updateProfileAction", () => {
+  const profile = (o: Record<string, string> = {}) =>
+    formData({
+      username: "@Andrea",
+      name: " Andrea ",
+      bio: "",
+      defaultVisibility: "PUBLIC",
+      units: "IMPERIAL",
+      ...o,
+    });
+
+  it("saves normalised fields for the session user", async () => {
+    vi.mocked(updateProfile).mockResolvedValue("ok");
+    const state = await updateProfileAction(INITIAL, profile({ userId: "user_attacker" }));
+    expect(state.ok).toBe(true);
+    expect(updateProfile).toHaveBeenCalledWith(SESSION_USER.id, {
+      username: "andrea",
+      name: "Andrea",
+      bio: null,
+      defaultVisibility: "PUBLIC",
+      units: "IMPERIAL",
+    });
+  });
+
+  it("reports a taken username", async () => {
+    vi.mocked(updateProfile).mockResolvedValue("taken");
+    const state = await updateProfileAction(INITIAL, profile());
+    expect(state.fieldErrors?.username).toMatch(/taken/);
+  });
+
+  it("validates without writing", async () => {
+    const state = await updateProfileAction(
+      INITIAL,
+      profile({ username: "x", defaultVisibility: "FRIENDS" }),
+    );
+    expect(Object.keys(state.fieldErrors ?? {}).sort()).toEqual(["defaultVisibility", "username"]);
+    expect(updateProfile).not.toHaveBeenCalled();
+  });
+});
+
+describe("setUsernameAction", () => {
+  it("claims a username for the session user", async () => {
+    vi.mocked(updateProfile).mockResolvedValue("ok");
+    expect((await setUsernameAction(INITIAL, formData({ username: "Mika" }))).ok).toBe(true);
+    expect(updateProfile).toHaveBeenCalledWith(SESSION_USER.id, { username: "mika" });
+  });
+
+  it("redirects to sign-in without a session", async () => {
+    vi.mocked(requireUser).mockImplementation(() => {
+      throw new (class extends Error {
+        digest = "NEXT_REDIRECT;replace;/sign-in;307;";
+      })("NEXT_REDIRECT");
+    });
+    await expect(setUsernameAction(INITIAL, formData({ username: "mika" }))).rejects.toThrow(
+      /NEXT_REDIRECT/,
+    );
+    expect(updateProfile).not.toHaveBeenCalled();
   });
 });

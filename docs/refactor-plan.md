@@ -1,6 +1,6 @@
 # Frag Avenue — Refactor Plan (Phase 0 audit)
 
-Status: **approved 2026-10-25** (see §11 for the decisions). Phases 1–4 complete; later phases pending.
+Status: **approved 2026-10-25** (see §11 for the decisions). Phases 1–5 complete; later phases pending.
 
 Target: refactor the existing personal-analytics PWA into a Strava-style wear-log platform (Feed · Wardrobe · Log · Stats · Clubs) without breaking the app or losing data at any point.
 
@@ -367,3 +367,13 @@ Non-blocking defaults I'll use unless you object: delete Advisor/recommendations
 - Pages: `/wears` (list), `/wears/[id]` (detail, check-ins, edit/delete), `/wears/[id]/edit`. Legacy `/wear`, `/wear/new`, `/wear/:id/edit` redirect (query strings carry over); the legacy wear form, weather fieldset, and pages are deleted, as is the "log a sample without an item" path.
 - Fixed in passing: React 19 resets a `<form action>` after every action call, so a validation error silently reverted typed values (on the log form, "When" reset to now and a resubmit logged the wrong time). All multi-field forms (log, edit wear, wardrobe, submit fragrance, sign-in, sign-up) now use `useFormAction`, which submits in a transition without the reset.
 - Web Push (P9) still needs a scheduler decision: Vercel Hobby cron is daily-only.
+
+### Phase 5 notes
+
+- Visibility is one pure rule (`src/modules/social/visibility.ts`): owner → all; anyone signed in → PUBLIC; followers → also FOLLOWERS; PRIVATE → owner only. Feed = own wears + visible wears of people you follow; profiles = that person's wears the viewer may see. Unit-tested as a matrix and e2e-tested across two real accounts.
+- `/feed` (Pick for today, check-in prompts, cards with scent, sprays, occasion, mood, temperature, check-in summary, kudos, comment count; cursor "Load more"), `/u/[username]` (counts, follow/unfollow), `/people` (search by username prefix or name), and the wear page opened to permitted viewers with kudos and comments (authors delete their comments; owners any comment on their wear). Kudos are not allowed on your own wear.
+- Usernames: required at sign-up, canonical lowercase, reserved names refused; pre-existing accounts get a prompt on the feed. `/profile` edits username, display name, bio, default visibility, and units.
+- Rate limits (per user, in-memory — see D5): kudos 120/h, comments 20/10 min, follows 60/h.
+- The legacy dashboard and advisor moved under the Stats tab (linked from Insights as "Overview") until Phase 6 replaces them.
+- Seed: dev is `@dev`; a local-only friend `@mika` (mika@frag.test / devpassword123) with public, followers-only, and private wears, mutual follows, kudos, and a comment.
+- Fixed in passing: tapping "Don't attach" while the location or weather preview was still loading could be overridden by the late result, attaching weather anyway (caught by a flaky e2e run; now guarded and repeated 15× green).

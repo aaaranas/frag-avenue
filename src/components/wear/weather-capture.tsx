@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CONDITION_LABEL, type WeatherBucket } from "@/modules/weather";
 import { formatTemperature, type UnitSystem } from "@/lib/units";
 
@@ -21,8 +21,18 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
  */
 export function WeatherCapture({ units }: { units: UnitSystem }) {
   const [state, setState] = useState<State>({ kind: "locating" });
+  // Bumped by every new lookup and by "Don't attach", so a late geolocation or
+  // preview result can never override a newer choice.
+  const generation = useRef(0);
+
+  const optOut = () => {
+    generation.current += 1;
+    setState({ kind: "removed" });
+  };
 
   const locate = useCallback(() => {
+    const gen = ++generation.current;
+    const current = () => gen === generation.current;
     if (!("geolocation" in navigator)) {
       setState({ kind: "off", reason: "This browser can't share a location." });
       return;
@@ -30,17 +40,22 @@ export function WeatherCapture({ units }: { units: UnitSystem }) {
     setState({ kind: "locating" });
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
+        if (!current()) return;
         const lat = round2(pos.coords.latitude);
         const lon = round2(pos.coords.longitude);
         setState({ kind: "ready", lat, lon, preview: null });
         try {
           const res = await fetch(`/api/weather?lat=${lat}&lon=${lon}`);
-          if (res.ok) setState({ kind: "ready", lat, lon, preview: (await res.json()) as Preview });
+          const preview = res.ok ? ((await res.json()) as Preview) : null;
+          if (preview && current()) setState({ kind: "ready", lat, lon, preview });
         } catch {
           /* preview is optional; the server still tries at submit */
         }
       },
-      () => setState({ kind: "off", reason: "Location is off, so no weather will be attached." }),
+      () => {
+        if (current())
+          setState({ kind: "off", reason: "Location is off, so no weather will be attached." });
+      },
       { enableHighAccuracy: false, timeout: 10_000, maximumAge: 30 * 60_000 },
     );
   }, []);
@@ -79,7 +94,7 @@ export function WeatherCapture({ units }: { units: UnitSystem }) {
           // permission prompt must not leave the user stuck waiting.
           <button
             type="button"
-            onClick={() => setState({ kind: "removed" })}
+            onClick={optOut}
             className="min-h-11 px-2 text-sm underline underline-offset-4"
           >
             Don&rsquo;t attach

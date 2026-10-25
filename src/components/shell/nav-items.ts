@@ -15,7 +15,7 @@ export type NavItem = {
 };
 
 export const TABS: readonly NavItem[] = [
-  { id: "feed", href: "/feed", label: "Feed", prefixes: ["/feed", "/dashboard", "/advisor"] },
+  { id: "feed", href: "/feed", label: "Feed", prefixes: ["/feed", "/u", "/people"] },
   {
     id: "wardrobe",
     href: "/wardrobe",
@@ -23,7 +23,13 @@ export const TABS: readonly NavItem[] = [
     prefixes: ["/wardrobe", "/fragrances"],
   },
   { id: "log", href: "/log", label: "Log", prefixes: ["/log", "/wears"] },
-  { id: "stats", href: "/stats", label: "Stats", prefixes: ["/stats", "/insights"] },
+  {
+    id: "stats",
+    href: "/stats",
+    label: "Stats",
+    // The legacy overview and advisor live here until Phase 6 replaces them.
+    prefixes: ["/stats", "/insights", "/dashboard", "/advisor"],
+  },
   { id: "clubs", href: "/clubs", label: "Clubs", prefixes: ["/clubs"] },
 ];
 

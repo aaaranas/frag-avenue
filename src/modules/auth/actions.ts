@@ -8,7 +8,8 @@ import { requestIp } from "@/lib/request-ip";
 import { logger } from "@/lib/logger";
 import { hashPassword } from "./passwords";
 import { SignInInput, SignUpInput } from "./schema";
-import { createUserWithPassword, findUserByEmail } from "./data";
+import { createUserWithPassword, findUserByEmail, isUsernameTaken } from "./data";
+import { Prisma } from "@prisma/client";
 
 export type FormState = {
   ok: boolean;
@@ -92,6 +93,7 @@ export async function signUpAction(_prev: FormState, formData: FormData): Promis
     name: formData.get("name") ?? undefined,
     password: formData.get("password"),
     timezone: formData.get("timezone"),
+    username: formData.get("username"),
   };
   const parsed = SignUpInput.safeParse(raw);
   if (!parsed.success) {
@@ -114,13 +116,29 @@ export async function signUpAction(_prev: FormState, formData: FormData): Promis
     return { ok: false, fieldErrors: { email: "An account with this email already exists." } };
   }
 
+  if (await isUsernameTaken(parsed.data.username)) {
+    return { ok: false, fieldErrors: { username: "That username is taken." } };
+  }
+
   const passwordHash = await hashPassword(parsed.data.password);
-  await createUserWithPassword({
-    email: parsed.data.email,
-    name: parsed.data.name,
-    passwordHash,
-    timezone: parsed.data.timezone,
-  });
+  try {
+    await createUserWithPassword({
+      email: parsed.data.email,
+      name: parsed.data.name,
+      passwordHash,
+      timezone: parsed.data.timezone,
+      username: parsed.data.username,
+    });
+  } catch (err) {
+    // Lost a race for the email or username between the checks and the insert.
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      const target = String(err.meta?.target ?? "");
+      return target.includes("username")
+        ? { ok: false, fieldErrors: { username: "That username is taken." } }
+        : { ok: false, fieldErrors: { email: "An account with this email already exists." } };
+    }
+    throw err;
+  }
 
   try {
     await signIn("credentials", {

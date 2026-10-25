@@ -25,13 +25,14 @@ vi.mock("./passwords", () => ({
 vi.mock("./data", () => ({
   createUserWithPassword: vi.fn(),
   findUserByEmail: vi.fn(),
+  isUsernameTaken: vi.fn(async () => false),
 }));
 
 import { AuthError } from "next-auth";
 import { signIn, signOut } from "@/auth";
 import { _resetRateLimitStore } from "@/lib/rate-limit";
 import { hashPassword } from "./passwords";
-import { createUserWithPassword, findUserByEmail } from "./data";
+import { createUserWithPassword, findUserByEmail, isUsernameTaken } from "./data";
 import { signInAction, signOutAction, signUpAction } from "./actions";
 
 const INITIAL = { ok: false } as const;
@@ -140,7 +141,12 @@ describe("signInAction", () => {
 });
 
 describe("signUpAction", () => {
-  const validSignUp = { email: "new@frag.test", name: "New User", password: "long-enough-pw" };
+  const validSignUp = {
+    email: "new@frag.test",
+    name: "New User",
+    password: "long-enough-pw",
+    username: "New_User",
+  };
 
   it("creates the account with a hashed password and signs the user in", async () => {
     signInSucceeds();
@@ -154,6 +160,7 @@ describe("signUpAction", () => {
       name: "New User",
       passwordHash: "hashed:long-enough-pw",
       timezone: "UTC",
+      username: "new_user",
     });
     // The plaintext must never reach the data layer.
     const persisted = JSON.stringify(vi.mocked(createUserWithPassword).mock.calls[0]![0]);
@@ -174,6 +181,20 @@ describe("signUpAction", () => {
       signUpAction(INITIAL, formData({ ...validSignUp, timezone: "Not/AZone" })),
     );
     expect(vi.mocked(createUserWithPassword).mock.calls[0]![0].timezone).toBe("UTC");
+  });
+
+  it("refuses a taken username", async () => {
+    vi.mocked(isUsernameTaken).mockResolvedValueOnce(true);
+    const state = await signUpAction(INITIAL, formData(validSignUp));
+    expect(state.fieldErrors?.username).toMatch(/taken/);
+    expect(isUsernameTaken).toHaveBeenCalledWith("new_user");
+    expect(createUserWithPassword).not.toHaveBeenCalled();
+  });
+
+  it("requires a valid username", async () => {
+    const state = await signUpAction(INITIAL, formData({ ...validSignUp, username: "ab" }));
+    expect(state.fieldErrors?.username).toBeDefined();
+    expect(createUserWithPassword).not.toHaveBeenCalled();
   });
 
   it("refuses an email that already has an account", async () => {

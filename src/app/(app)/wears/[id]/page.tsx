@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/modules/auth/session";
-import { findLogDefaults, findWearForUser } from "@/modules/wear-logs/data";
+import { findLogDefaults } from "@/modules/wear-logs/data";
+import { findVisibleWear, type VisibleWear } from "@/modules/social/data";
+import { deleteCommentAction } from "@/modules/social";
 import {
   CHECK_IN_LABEL,
   MOOD_LABEL,
   OCCASION_LABEL,
   VISIBILITY_LABEL,
+  checkInSummary,
   checkInTimeline,
   deleteWearAction,
   type TimelineEntry,
@@ -17,6 +20,9 @@ import { formatTemperature } from "@/lib/units";
 import { Button } from "@/components/ui/button";
 import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
 import { CheckInButtons } from "@/components/wear/check-in-buttons";
+import { Avatar, displayName } from "@/components/social/avatar";
+import { KudosButton } from "@/components/social/kudos-button";
+import { CommentForm } from "@/components/social/comment-form";
 
 type Params = Promise<{ id: string }>;
 
@@ -26,24 +32,25 @@ export default async function WearPage({ params }: { params: Params }) {
   const { id } = await params;
   const user = await requireUser(`/wears/${id}`);
   const [wear, defaults] = await Promise.all([
-    findWearForUser(user.id, id),
+    findVisibleWear(user.id, id),
     findLogDefaults(user.id),
   ]);
-  // Someone else's wear and a missing one look the same.
+  // Missing, or not visible to this viewer (private, or followers-only and not
+  // following): both look the same.
   if (!wear) notFound();
 
-  const timeline = checkInTimeline(wear.wornAt, wear.checkIns, new Date());
+  const own = wear.userId === user.id;
+  const author = displayName(wear.user);
   const attribution = weatherAttribution(wear.weatherProvider);
   const condition = conditionLabel(wear.weatherCondition);
-  const remove = deleteWearAction.bind(null, wear.id);
 
   return (
     <article className="mx-auto max-w-xl">
       <Link
-        href="/wears"
+        href={own ? "/wears" : wear.user.username ? `/u/${wear.user.username}` : "/feed"}
         className="inline-flex min-h-11 items-center text-sm text-[color:var(--fg-muted)] hover:text-[color:var(--fg)]"
       >
-        ← Your wears
+        ← {own ? "Your wears" : author}
       </Link>
 
       <header className="mt-2 flex items-center gap-4 border-b border-[color:var(--rule)] pb-6">
@@ -55,6 +62,7 @@ export default async function WearPage({ params }: { params: Params }) {
           <p className="label-caps">{wear.fragrance.brand.name}</p>
           <h1 className="text-2xl font-semibold tracking-tight">{wear.fragrance.name}</h1>
           <p className="text-sm text-[color:var(--fg-muted)]">
+            {own ? "" : `${author} · `}
             {formatDateTime(wear.wornAt, wear.timeZone)}
           </p>
         </div>
@@ -67,7 +75,7 @@ export default async function WearPage({ params }: { params: Params }) {
           value={OCCASION_LABEL[wear.occasion as keyof typeof OCCASION_LABEL] ?? wear.occasion}
         />
         <Item label="Mood" value={wear.mood ? MOOD_LABEL[wear.mood] : "—"} />
-        <Item label="Visible to" value={VISIBILITY_LABEL[wear.visibility]} />
+        {own ? <Item label="Visible to" value={VISIBILITY_LABEL[wear.visibility]} /> : null}
         <div className="col-span-2">
           <dt className="text-xs text-[color:var(--fg-muted)]">Weather</dt>
           <dd className="mt-0.5">
@@ -112,41 +120,129 @@ export default async function WearPage({ params }: { params: Params }) {
         <h2 id="checkins-heading" className="mb-4 text-lg font-semibold">
           Check-ins
         </h2>
-        <ol className="flex flex-col gap-4">
-          {timeline.map((entry) => (
-            <li key={entry.offsetHours} className="flex flex-col gap-2">
-              <div className="flex items-baseline justify-between gap-4 text-sm">
-                <span className="font-medium">{entry.offsetHours} hours</span>
-                <span className="text-[color:var(--fg-muted)]">
-                  {describe(entry, wear.timeZone)}
-                </span>
-              </div>
-              {entry.status === "open" ? (
-                <CheckInButtons
-                  wearId={wear.id}
-                  offsetHours={entry.offsetHours}
-                  label={`How is it doing at ${entry.offsetHours} hours?`}
-                />
-              ) : null}
-            </li>
-          ))}
-        </ol>
+        {own ? (
+          <OwnerTimeline wear={wear} />
+        ) : (
+          <p className="text-sm">{checkInSummary(wear.checkIns) ?? "None yet."}</p>
+        )}
       </section>
 
-      <div className="flex flex-wrap items-center gap-3 py-6">
-        <Button asChild variant="outline">
-          <Link href={`/wears/${wear.id}/edit`}>Edit</Link>
-        </Button>
-        <form action={remove}>
-          <button
-            type="submit"
-            className="min-h-11 rounded-md border border-[color:var(--fg)] px-4 text-sm font-medium hover:bg-[color:var(--bg-sunken)]"
-          >
-            Delete wear
-          </button>
-        </form>
-      </div>
+      <Comments wear={wear} viewerId={user.id} own={own} author={author} />
+
+      {own ? (
+        <div className="flex flex-wrap items-center gap-3 py-6">
+          <Button asChild variant="outline">
+            <Link href={`/wears/${wear.id}/edit`}>Edit</Link>
+          </Button>
+          <form action={deleteWearAction.bind(null, wear.id)}>
+            <button
+              type="submit"
+              className="min-h-11 rounded-md border border-[color:var(--fg)] px-4 text-sm font-medium hover:bg-[color:var(--bg-sunken)]"
+            >
+              Delete wear
+            </button>
+          </form>
+        </div>
+      ) : null}
     </article>
+  );
+}
+
+/** The owner's interactive view: each check-in's state, with buttons when open. */
+function OwnerTimeline({ wear }: { wear: VisibleWear }) {
+  const timeline = checkInTimeline(wear.wornAt, wear.checkIns, new Date());
+  return (
+    <ol className="flex flex-col gap-4">
+      {timeline.map((entry) => (
+        <li key={entry.offsetHours} className="flex flex-col gap-2">
+          <div className="flex items-baseline justify-between gap-4 text-sm">
+            <span className="font-medium">{entry.offsetHours} hours</span>
+            <span className="text-[color:var(--fg-muted)]">{describe(entry, wear.timeZone)}</span>
+          </div>
+          {entry.status === "open" ? (
+            <CheckInButtons
+              wearId={wear.id}
+              offsetHours={entry.offsetHours}
+              label={`How is it doing at ${entry.offsetHours} hours?`}
+            />
+          ) : null}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function Comments({
+  wear,
+  viewerId,
+  own,
+  author,
+}: {
+  wear: VisibleWear;
+  viewerId: string;
+  own: boolean;
+  author: string;
+}) {
+  return (
+    <section
+      aria-labelledby="comments-heading"
+      id="comments"
+      className="border-b border-[color:var(--rule)] py-6"
+    >
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <h2 id="comments-heading" className="text-lg font-semibold">
+          Comments
+        </h2>
+        <KudosButton
+          wearId={wear.id}
+          count={wear._count.kudos}
+          given={wear.kudos.length > 0}
+          own={own}
+          label={own ? wear.fragrance.name : `${author}'s ${wear.fragrance.name}`}
+        />
+      </div>
+      {wear.comments.length === 0 ? (
+        <p className="mb-4 text-sm text-[color:var(--fg-muted)]">No comments yet.</p>
+      ) : (
+        <ol className="mb-6 flex flex-col gap-4" aria-label="Comments">
+          {wear.comments.map((c) => {
+            const mine = c.userId === viewerId;
+            const name = mine ? "You" : displayName(c.user);
+            return (
+              <li key={c.id} className="flex gap-3">
+                <Avatar name={displayName(c.user)} className="size-8 text-xs" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm">
+                    {c.user.username && !mine ? (
+                      <Link href={`/u/${c.user.username}`} className="font-medium hover:underline">
+                        {name}
+                      </Link>
+                    ) : (
+                      <span className="font-medium">{name}</span>
+                    )}
+                  </p>
+                  <p className="text-sm break-words whitespace-pre-line">{c.body}</p>
+                  {/* Authors can delete their comments; owners any comment on their wear. */}
+                  {mine || own ? (
+                    <form action={deleteCommentAction}>
+                      <input type="hidden" name="commentId" value={c.id} />
+                      <button
+                        type="submit"
+                        className="min-h-11 text-xs text-[color:var(--fg-muted)] underline underline-offset-2 hover:text-[color:var(--fg)]"
+                        aria-label={`Delete comment by ${name}`}
+                      >
+                        Delete
+                      </button>
+                    </form>
+                  ) : null}
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+      <CommentForm wearId={wear.id} />
+    </section>
   );
 }
 

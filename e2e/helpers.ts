@@ -21,24 +21,25 @@ export async function signIn(page: Page, email: string, password: string): Promi
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
-  // /feed forwards to the legacy dashboard until the feed ships.
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page).toHaveURL(/\/feed$/);
 }
 
-/** Signs up a fresh, unique account. Returns its email. */
-export async function signUpFreshUser(page: Page): Promise<string> {
+/** Signs up a fresh, unique account. Returns its email and username. */
+export async function signUpFreshUser(page: Page): Promise<{ email: string; username: string }> {
   // Unique per test AND per worker, so parallel workers cannot collide.
-  const email = `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@frag.test`;
+  const suffix = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+  const email = `e2e-${suffix}@frag.test`;
+  const username = `e2e_${suffix}`.slice(0, 20);
   await page.goto("/sign-up");
   // The browser's zone is filled in after hydration; wait for it so the account
   // gets the context's zone rather than the UTC fallback.
   await expect(page.locator('input[name="timezone"]')).not.toHaveValue("");
+  await page.getByLabel("Username").fill(username);
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("e2e-password-123");
   await page.getByRole("button", { name: /create account/i }).click();
-  // /feed forwards to the legacy dashboard until the feed ships.
-  await expect(page).toHaveURL(/\/dashboard$/);
-  return email;
+  await expect(page).toHaveURL(/\/feed$/);
+  return { email, username };
 }
 
 /** Adds a catalogue fragrance to the signed-in user's wardrobe. Returns the item id. */

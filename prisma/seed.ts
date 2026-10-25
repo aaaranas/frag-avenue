@@ -25,6 +25,7 @@ import {
 import bcrypt from "bcryptjs";
 // Shared with user submissions so seeded and submitted entries dedupe on slug.
 import { slugify } from "../src/modules/fragrances/slug";
+import { addDays, localDate, zonedWallTimeToUtc } from "../src/lib/time-zone";
 
 const prisma = new PrismaClient();
 
@@ -371,8 +372,18 @@ export const DEV_USER = {
   email: "dev@frag.test",
   password: "devpassword123",
   name: "Dev Avenue",
+  username: "dev",
   timezone: "Asia/Manila",
   currency: "PHP",
+} as const;
+
+/** A second local account, so the feed, follows, kudos, and comments have someone to show. */
+export const FRIEND_USER = {
+  email: "mika@frag.test",
+  password: "devpassword123",
+  name: "Mika",
+  username: "mika",
+  timezone: "Asia/Manila",
 } as const;
 
 // Mirrors ROUNDS in src/modules/auth/passwords.ts. That module is `server-only`
@@ -622,10 +633,16 @@ async function seedDevUser() {
 
   const user = await prisma.user.upsert({
     where: { email: DEV_USER.email },
-    update: { passwordHash, name: DEV_USER.name, timezone: DEV_USER.timezone },
+    update: {
+      passwordHash,
+      name: DEV_USER.name,
+      username: DEV_USER.username,
+      timezone: DEV_USER.timezone,
+    },
     create: {
       email: DEV_USER.email,
       name: DEV_USER.name,
+      username: DEV_USER.username,
       passwordHash,
       timezone: DEV_USER.timezone,
       defaultCurrency: DEV_USER.currency,
@@ -693,11 +710,111 @@ async function seedDevUser() {
       longevityHours: w.longevityHours,
       projection: w.projection,
       enjoyment: w.enjoyment,
+      // Shared with followers, so the friend account's feed has something in it.
+      visibility: "FOLLOWERS",
       createdAt: daysAgo(w.days),
     })),
   });
 
+  await seedFriend(user.id, idsByKey, passwordHash);
   return { collection: COLLECTION.length, wears: WEARS.length };
+}
+
+/**
+ * The friend account: three wears (one public, one for followers, one private),
+ * mutual follows with the dev account, and a little kudos and conversation.
+ * Rebuilt every run, like the dev account; touches only these two accounts.
+ */
+async function seedFriend(devUserId: string, idsByKey: Map<string, string>, passwordHash: string) {
+  const friend = await prisma.user.upsert({
+    where: { email: FRIEND_USER.email },
+    update: { passwordHash, name: FRIEND_USER.name, username: FRIEND_USER.username },
+    create: {
+      email: FRIEND_USER.email,
+      name: FRIEND_USER.name,
+      username: FRIEND_USER.username,
+      passwordHash,
+      timezone: FRIEND_USER.timezone,
+    },
+    select: { id: true },
+  });
+  const both = [devUserId, friend.id];
+  await prisma.follow.deleteMany({
+    where: { OR: [{ followerId: { in: both } }, { followeeId: { in: both } }] },
+  });
+  await prisma.wear.deleteMany({ where: { userId: friend.id } });
+  await prisma.wardrobeItem.deleteMany({ where: { userId: friend.id } });
+
+  const item = async (key: string, sizeMl: number) =>
+    prisma.wardrobeItem.create({
+      data: {
+        userId: friend.id,
+        fragranceId: idsByKey.get(key)!,
+        bottleSizeMl: sizeMl,
+        remainingMl: sizeMl,
+      },
+      select: { id: true, fragranceId: true },
+    });
+  const layton = await item("parfums-de-marly/layton", 125);
+  const br540 = await item("maison-francis-kurkdjian/baccarat-rouge-540", 70);
+
+  const wear = (
+    it: { id: string; fragranceId: string },
+    days: number,
+    visibility: "PUBLIC" | "FOLLOWERS" | "PRIVATE",
+    extra: { occasion: Occasion; sprays: number; notes?: string },
+  ) =>
+    prisma.wear.create({
+      data: {
+        userId: friend.id,
+        fragranceId: it.fragranceId,
+        collectionItemId: it.id,
+        // 7 PM in the friend's own zone, whatever zone the seed runs in.
+        wornAt: zonedWallTimeToUtc(
+          `${addDays(localDate(new Date(), FRIEND_USER.timezone), -days)}T19:00`,
+          FRIEND_USER.timezone,
+        ),
+        timeZone: FRIEND_USER.timezone,
+        visibility,
+        temperatureC: 29,
+        humidityPct: 80,
+        weatherCondition: "clouds",
+        weatherSource: WeatherSource.MANUAL,
+        ...extra,
+      },
+      select: { id: true },
+    });
+  const publicWear = await wear(layton, 1, "PUBLIC", {
+    occasion: Occasion.DATE,
+    sprays: 3,
+    notes: "Dinner out.",
+  });
+  await wear(br540, 2, "FOLLOWERS", { occasion: Occasion.WORK, sprays: 2 });
+  await wear(layton, 3, "PRIVATE", { occasion: Occasion.CASUAL, sprays: 4 });
+
+  await prisma.follow.createMany({
+    data: [
+      { followerId: devUserId, followeeId: friend.id },
+      { followerId: friend.id, followeeId: devUserId },
+    ],
+  });
+
+  const devLatest = await prisma.wear.findFirst({
+    where: { userId: devUserId },
+    orderBy: { wornAt: "desc" },
+    select: { id: true },
+  });
+  await prisma.kudos.createMany({
+    data: [
+      { wearId: publicWear.id, userId: devUserId },
+      ...(devLatest ? [{ wearId: devLatest.id, userId: friend.id }] : []),
+    ],
+  });
+  if (devLatest) {
+    await prisma.comment.create({
+      data: { wearId: devLatest.id, userId: friend.id, body: "Perfect weather for it." },
+    });
+  }
 }
 
 async function main() {
@@ -719,7 +836,8 @@ async function main() {
   const { collection, wears } = await seedDevUser();
   console.log(
     `Dev account seeded: ${DEV_USER.email} / ${DEV_USER.password} ` +
-      `(${collection} wardrobe items, ${wears} wears).`,
+      `(${collection} wardrobe items, ${wears} wears).\n` +
+      `Friend account seeded: ${FRIEND_USER.email} / ${FRIEND_USER.password} (@${FRIEND_USER.username}).`,
   );
 }
 

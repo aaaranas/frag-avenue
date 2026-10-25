@@ -2,31 +2,57 @@ import { requireUser } from "@/modules/auth/session";
 import { signOutAction } from "@/modules/auth";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { findUserPreferences } from "@/modules/users/data";
+import Link from "next/link";
+import { findProfileSettings, findUserPreferences } from "@/modules/users/data";
+import { ProfileForm } from "./profile-form";
 import { selectableTimeZones } from "@/lib/time-zones";
 import { TimeZoneForm } from "./time-zone-form";
 
 export default async function ProfilePage() {
   const user = await requireUser("/profile");
-  const prefs = await findUserPreferences(user.id);
+  const [prefs, settings] = await Promise.all([
+    findUserPreferences(user.id),
+    findProfileSettings(user.id),
+  ]);
   const timezone = prefs?.timezone ?? "UTC";
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader eyebrow="Account" title="Profile" />
+      <PageHeader
+        eyebrow="Account"
+        title="Profile"
+        actions={
+          settings?.username ? (
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/u/${settings.username}`}>View your profile</Link>
+            </Button>
+          ) : undefined
+        }
+      />
 
-      <dl className="flex flex-col divide-y divide-[color:var(--rule)] border-y border-[color:var(--rule)] text-sm">
-        <Row label="Email" value={user.email} />
-        {user.name ? <Row label="Name" value={user.name} /> : null}
-        <Row label="User ID" value={<span className="font-mono text-xs">{user.id}</span>} />
-      </dl>
+      <ProfileForm
+        defaults={{
+          username: settings?.username ?? "",
+          name: settings?.name ?? "",
+          bio: settings?.bio ?? "",
+          defaultVisibility: settings?.defaultVisibility ?? "FOLLOWERS",
+          units: settings?.units ?? "METRIC",
+        }}
+      />
 
-      <section aria-labelledby="prefs-heading" className="mt-10">
-        <h2 id="prefs-heading" className="eyebrow mb-4">
-          Preferences
+      <section
+        aria-labelledby="tz-heading"
+        className="mt-10 border-t border-[color:var(--rule)] pt-8"
+      >
+        <h2 id="tz-heading" className="mb-4 text-lg font-semibold">
+          Time zone
         </h2>
         <TimeZoneForm current={timezone} zones={selectableTimeZones(timezone)} />
       </section>
+
+      <dl className="mt-10 flex flex-col divide-y divide-[color:var(--rule)] border-y border-[color:var(--rule)] text-sm">
+        <Row label="Email" value={user.email} />
+      </dl>
 
       <form
         action={async () => {

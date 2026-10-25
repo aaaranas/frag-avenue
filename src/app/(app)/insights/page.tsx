@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { requireUser } from "@/modules/auth/session";
 import { getInsights } from "@/modules/analytics/insights-data";
 import { formatMoney } from "@/modules/analytics";
@@ -37,6 +38,12 @@ export default async function InsightsPage() {
         eyebrow="Intelligence"
         title="Insights"
         subtitle="Everything here is counted from your own wear log."
+        actions={
+          // The totals overview moved off the Feed tab; Phase 6 folds it into Stats.
+          <Button asChild variant="outline" size="sm">
+            <Link href="/dashboard">Overview</Link>
+          </Button>
+        }
       />
 
       {insights.totalWears < MIN_WEARS_FOR_INSIGHTS ? (

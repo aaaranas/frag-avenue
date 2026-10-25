@@ -18,8 +18,10 @@ describe("primary tabs", () => {
   });
 
   it("claims the legacy routes each tab still forwards to", () => {
-    expect(activeTab("/dashboard")).toEqual(["feed"]);
-    expect(activeTab("/advisor")).toEqual(["feed"]);
+    expect(activeTab("/u/mika")).toEqual(["feed"]);
+    expect(activeTab("/people")).toEqual(["feed"]);
+    expect(activeTab("/dashboard")).toEqual(["stats"]);
+    expect(activeTab("/advisor")).toEqual(["stats"]);
     expect(activeTab("/wardrobe/abc")).toEqual(["wardrobe"]);
     expect(activeTab("/fragrances/xyz")).toEqual(["wardrobe"]);
     expect(activeTab("/wears/abc/edit")).toEqual(["log"]);

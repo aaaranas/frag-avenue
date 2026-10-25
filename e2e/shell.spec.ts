@@ -36,7 +36,7 @@ const DESTINATIONS = [
   { tab: "Log a wear", url: /\/log$/ },
   { tab: "Stats", url: /\/insights$/ },
   { tab: "Clubs", url: /\/clubs$/ },
-  { tab: "Feed", url: /\/dashboard$/ },
+  { tab: "Feed", url: /\/feed$/ },
 ];
 
 for (const { tab, url } of DESTINATIONS) {

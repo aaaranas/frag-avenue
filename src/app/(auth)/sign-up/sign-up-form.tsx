@@ -22,6 +22,19 @@ export function SignUpForm() {
         error={state.fieldErrors?.name}
       />
       <Field
+        name="username"
+        type="text"
+        label="Username"
+        autoComplete="username"
+        autoCapitalize="none"
+        spellCheck={false}
+        required
+        minLength={3}
+        maxLength={20}
+        hint="3–20 letters, numbers, or _. People find you by it."
+        error={state.fieldErrors?.username}
+      />
+      <Field
         name="email"
         type="email"
         label="Email"
