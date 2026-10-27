@@ -64,10 +64,10 @@ describe("parseCatalogue", () => {
   });
 
   it("needs only house and fragrance, in any order and case, and fills the rest with defaults", () => {
-    const { entries, errors } = parseCatalogue("Fragrance, BRAND\nRayhaan Elixir,Rasasi\n");
+    const { entries, errors } = parseCatalogue("Fragrance, BRAND\nRayhaan Elixir,Rayhaan\n");
     expect(errors).toEqual([]);
     expect(entries[0]).toMatchObject({
-      house: "Rasasi",
+      house: "Rayhaan",
       name: "Rayhaan Elixir",
       concentration: "OTHER",
       releaseYear: null,
@@ -167,11 +167,11 @@ describe("appendCatalogueRows", () => {
   it("adds missing rows in the file's column order and keeps existing rows as they are", () => {
     const { text, added } = appendCatalogueRows(csv, [
       { house: "Rasasi", fragrance: "hawas ice" },
-      { house: "Rasasi", fragrance: "Rayhaan Elixir" },
-      { house: "Rasasi", fragrance: "Rayhaan Elixir" },
+      { house: "Rayhaan", fragrance: "Rayhaan Elixir" },
+      { house: "Rayhaan", fragrance: "Rayhaan Elixir" },
     ]);
-    expect(added).toEqual([{ house: "Rasasi", fragrance: "Rayhaan Elixir" }]);
-    expect(text).toBe("fragrance,house,year\nHawas Ice,Rasasi,2022\nRayhaan Elixir,Rasasi,\n");
+    expect(added).toEqual([{ house: "Rayhaan", fragrance: "Rayhaan Elixir" }]);
+    expect(text).toBe("fragrance,house,year\nHawas Ice,Rasasi,2022\nRayhaan Elixir,Rayhaan,\n");
     expect(parseCatalogue(text).errors).toEqual([]);
   });
 

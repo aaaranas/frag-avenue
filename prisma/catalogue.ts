@@ -43,6 +43,8 @@ export function photoPath(houseSlug: string, slug: string): string {
 export const CATALOGUE_MOVES: Array<{ slug: string; fromBrand: string; toBrand: string }> = [
   // Hawas Ice is made by Rasasi; "Hawas" is the line, not the house.
   { slug: "hawas-ice", fromBrand: "Hawas", toBrand: "Rasasi" },
+  // Rayhaan Elixir is made by Rayhaan, not Rasasi.
+  { slug: "rayhaan-elixir", fromBrand: "Rasasi", toBrand: "Rayhaan" },
 ];
 
 /** Reads and validates the CSV, attaching each row's photo if its file exists. Throws on any problem. */
