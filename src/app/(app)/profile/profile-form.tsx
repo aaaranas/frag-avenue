@@ -7,6 +7,7 @@ import { Field } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 const INITIAL: FormState = { ok: false };
 
@@ -40,10 +41,8 @@ export function ProfileForm({ defaults }: { defaults: ProfileDefaults }) {
         defaultValue={defaults.name}
         error={err.name}
       />
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="bio" className="field-label">
-          Bio (optional)
-        </label>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="bio">Bio (optional)</Label>
         <Textarea
           id="bio"
           name="bio"
@@ -75,8 +74,8 @@ export function ProfileForm({ defaults }: { defaults: ProfileDefaults }) {
         legend="Units"
         initial={defaults.units}
         options={[
-          { value: "METRIC", label: "°C · ml" },
-          { value: "IMPERIAL", label: "°F · fl oz" },
+          { value: "METRIC", label: "Metric (°C, ml)" },
+          { value: "IMPERIAL", label: "Imperial (°F, fl oz)" },
         ]}
         error={err.units}
       />

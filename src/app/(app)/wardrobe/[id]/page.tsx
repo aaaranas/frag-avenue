@@ -39,9 +39,11 @@ export default async function EditWardrobeItemPage({ params }: { params: Params 
       <header className="mt-4 mb-8 flex items-center gap-4">
         <FragranceThumb imagePath={item.fragrance.imagePath} kind={item.kind} />
         <div className="min-w-0">
-          <p className="label-caps">{item.fragrance.brand.name}</p>
-          <h1 className="text-2xl font-semibold tracking-tight">{item.fragrance.name}</h1>
-          <p className="text-sm text-[color:var(--fg-muted)]">{wearCountLabel(wears)} logged</p>
+          <h1 className="text-[1.625rem] leading-tight font-semibold tracking-tight font-stretch-semi-condensed">
+            {item.fragrance.name}
+          </h1>
+          <p className="text-sm text-[color:var(--fg-muted)]">{item.fragrance.brand.name}</p>
+          <p className="mt-1 text-sm">{wearCountLabel(wears)} logged</p>
         </div>
       </header>
 

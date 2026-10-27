@@ -14,7 +14,7 @@
  * Bump `VERSION` to force an upgrade — old caches are dropped on `activate`.
  */
 
-const VERSION = "v2";
+const VERSION = "v3";
 const STATIC_CACHE = `frag-static-${VERSION}`;
 const RUNTIME_CACHE = `frag-runtime-${VERSION}`;
 

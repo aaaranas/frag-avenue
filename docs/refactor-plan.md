@@ -404,3 +404,12 @@ Non-blocking defaults I'll use unless you object: delete Advisor/recommendations
 - Seed: users, follows, kudos, comments, wears, and a club were added across Phases 5–7; nothing further was needed.
 - Docs: README, `CLAUDE.md`, `ARCHITECTURE`, `DATA_MODEL`, `ROADMAP`, the `frag-domain` skill, and the agent definitions describe the wear-log product; `docs/RECOMMENDATION_ENGINE.md` is deleted.
 - e2e coverage: sign in, add to wardrobe, log a wear, check in, kudos and comments, follow, join a club, stats, installability, and auth redirects.
+
+### UI refresh (2026-10-27)
+
+- Accent: amber (`#8c5c00` light / `#e3a64a` dark), the colour of the juice in the bottle, replaces the placeholder indigo (`#4f46e5` / `#a5b4fc`). AA re-checked; the app mark, PNG icons, and the service worker version follow.
+- Type: Instrument Sans replaces Inter. It has tabular figures (stats still align) and a width axis; page titles and fragrance names are set semi-condensed (`font-stretch-semi-condensed`).
+- Auth: sign-in and sign-up are a shadcn `Card` (flat on a phone) with a visible page title and a link to the other screen in the footer; the accent glow is gone. Text inputs app-wide are the shadcn `Input` and `Label` (`Field` and `PasswordField` compose them).
+- Fragrance names come first with the house beneath in muted text; the tracked-caps brand eyebrow (`.label-caps`, `Eyebrow`) is removed. Row lists (log picker, wears, catalogue, people, clubs) are one grouped list instead of a stack of cards. Repeated row actions (Log wear on wardrobe rows) are outline, not the accent.
+- Fixed: the destructive button and badge were white text on near-white ink in dark mode; `global-error.tsx` still used the old cream/serif palette.
+- Open: on WebKit (mobile-safari) "sprays are 1 to 10, and a time in the future is refused" fails at HEAD too — after `fill("10")` the + button stays enabled. Chromium passes.

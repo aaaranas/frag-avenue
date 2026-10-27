@@ -29,8 +29,10 @@ export default async function EditWearPage({ params }: { params: Params }) {
   return (
     <div className="mx-auto max-w-xl">
       <BackLink href={`/wears/${wear.id}`}>Back to wear</BackLink>
-      <p className="label-caps mt-2">{wear.fragrance.brand.name}</p>
-      <h1 className="mb-8 text-2xl font-semibold tracking-tight">Edit {wear.fragrance.name}</h1>
+      <h1 className="mt-2 text-[1.625rem] leading-tight font-semibold tracking-tight font-stretch-semi-condensed">
+        Edit {wear.fragrance.name}
+      </h1>
+      <p className="mb-8 text-sm text-[color:var(--fg-muted)]">{wear.fragrance.brand.name}</p>
       <EditWearForm
         action={updateWearAction.bind(null, wear.id)}
         defaults={{

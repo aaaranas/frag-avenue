@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { updateTimeZoneAction, type FormState } from "@/modules/users";
 import { deviceTimeZone } from "@/components/forms/device-time-zone-input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 const INITIAL: FormState = { ok: false };
 
@@ -15,9 +16,7 @@ export function TimeZoneForm({ current, zones }: { current: string; zones: reado
 
   return (
     <form action={action} className="flex flex-col gap-3" noValidate>
-      <label htmlFor="tz" className="field-label">
-        Time zone
-      </label>
+      <Label htmlFor="tz">Time zone</Label>
       <select
         id="tz"
         name="timezone"

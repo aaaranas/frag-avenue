@@ -11,8 +11,7 @@ type Props = {
  * The title row of a tab page: a semibold title, optional one-line support
  * text, and actions on the right at every width (they wrap under the title
  * only when there is no room). No eyebrow: the tab bar already says where you
- * are, and on a phone the old eyebrow + accent rule + title + action stack
- * cost a third of the first screen.
+ * are.
  */
 export function PageHeader({ title, subtitle, actions, className }: Props) {
   return (
@@ -20,7 +19,7 @@ export function PageHeader({ title, subtitle, actions, className }: Props) {
       className={cn("mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-3", className)}
     >
       <div className="min-w-0 flex-1 basis-48">
-        <h1 className="text-[1.625rem] leading-tight font-semibold tracking-tight md:text-3xl">
+        <h1 className="text-[1.625rem] leading-tight font-semibold tracking-tight font-stretch-semi-condensed md:text-3xl">
           {title}
         </h1>
         {subtitle ? (

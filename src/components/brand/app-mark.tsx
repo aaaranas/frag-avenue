@@ -16,7 +16,7 @@ export function AppMark({ className }: { className?: string }) {
       <rect x="168" y="108" width="56" height="248" fill="#fafafa" />
       <rect x="168" y="108" width="176" height="52" fill="#fafafa" />
       <rect x="168" y="212" width="136" height="48" fill="#fafafa" />
-      <rect x="168" y="384" width="176" height="20" fill="#a5b4fc" />
+      <rect x="168" y="384" width="176" height="20" fill="#e3a64a" />
     </svg>
   );
 }

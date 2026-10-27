@@ -9,11 +9,11 @@ import { findUserPreferences } from "@/modules/users/data";
 import {
   ITEM_KINDS,
   KIND_FILTER_LABEL,
-  KIND_LABEL,
   WardrobeFilter,
   fillLabel,
   fillRatio,
   itemCostPerWearMinor,
+  itemLabel,
   wearCountLabel,
   type ItemKind,
 } from "@/modules/wardrobe";
@@ -152,17 +152,21 @@ function ItemCard({ item, units }: { item: WardrobeListItem; units: UnitSystem }
     <li className="flex gap-4 rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-4">
       <FragranceThumb imagePath={item.fragrance.imagePath} kind={item.kind} fillRatio={ratio} />
 
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
+      <div className="flex min-w-0 flex-1 flex-col gap-3">
         <div>
-          <p className="label-caps truncate">{item.fragrance.brand.name}</p>
-          <h2 className="truncate text-base font-medium">{item.fragrance.name}</h2>
-          <p className="text-sm text-[color:var(--fg-muted)]">
-            {KIND_LABEL[item.kind]}
-            {item.bottleSizeMl !== null ? <> · {formatVolume(item.bottleSizeMl, units)}</> : null}
+          <h2 className="truncate text-lg leading-tight font-semibold tracking-tight font-stretch-semi-condensed">
+            {item.fragrance.name}
+          </h2>
+          <p className="truncate text-sm text-[color:var(--fg-muted)]">
+            {item.fragrance.brand.name}
+          </p>
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-sm">
+            {itemLabel(
+              item.kind,
+              item.bottleSizeMl !== null ? formatVolume(item.bottleSizeMl, units) : null,
+            )}
             {item.fragrance.status === "PENDING" ? (
-              <Badge variant="outline" className="ml-2 align-middle">
-                Pending review
-              </Badge>
+              <Badge variant="outline">Pending review</Badge>
             ) : null}
           </p>
         </div>
@@ -191,15 +195,17 @@ function ItemCard({ item, units }: { item: WardrobeListItem; units: UnitSystem }
           )}
         </dl>
 
-        <div className="mt-1 flex flex-wrap gap-2">
+        {/* Outline, not the accent: a filled button on every row would drown
+            the page's own action. */}
+        <div className="flex flex-wrap gap-2">
           {wishlist ? null : (
-            <Button asChild size="sm">
+            <Button asChild size="sm" variant="outline">
               <Link href={`/log?item=${item.id}`} aria-label={`Log a wear of ${name}`}>
                 Log wear
               </Link>
             </Button>
           )}
-          <Button asChild size="sm" variant="outline">
+          <Button asChild size="sm" variant="ghost">
             <Link href={`/wardrobe/${item.id}`} aria-label={`Edit ${name}`}>
               Edit
             </Link>

@@ -1,4 +1,5 @@
-import { cn } from "@/lib/utils";
+import { Input } from "./input";
+import { Label } from "./label";
 
 type FieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
   label: string;
@@ -7,12 +8,9 @@ type FieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
 };
 
 /**
- * Accessible text input. Label above, error in its own slot below.
- *
- * Appearance comes from the shared `.field-input` / `.field-label` utilities so
- * this control and the hand-built selects on the wear and collection forms
- * cannot drift apart. The invalid state is driven off `aria-invalid`, which the
- * input already sets — no second source of truth for "this field is wrong".
+ * A labelled shadcn Input with its hint or error below. The invalid state is
+ * driven off `aria-invalid`, so there is one source of truth for "this field
+ * is wrong", and the error is tied to the input with aria-describedby.
  */
 export function Field({ id, label, error, hint, className, ...rest }: FieldProps) {
   const inputId = id ?? rest.name;
@@ -20,19 +18,17 @@ export function Field({ id, label, error, hint, className, ...rest }: FieldProps
   const hintId = hint && inputId ? `${inputId}-hint` : undefined;
   const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
   return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={inputId} className="field-label">
-        {label}
-      </label>
-      <input
+    <div className="flex flex-col gap-2">
+      <Label htmlFor={inputId}>{label}</Label>
+      <Input
         id={inputId}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
-        className={cn("field-input", className)}
+        className={className}
         {...rest}
       />
       {hint && !error ? (
-        <p id={hintId} className="text-xs text-[color:var(--fg-faint)]">
+        <p id={hintId} className="text-xs text-[color:var(--fg-muted)]">
           {hint}
         </p>
       ) : null}

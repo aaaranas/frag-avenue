@@ -5,7 +5,6 @@ import { findFragranceById } from "@/modules/fragrances/data";
 import { addToWardrobeAction } from "@/modules/wardrobe";
 import { findUserPreferences } from "@/modules/users/data";
 import { Chip } from "@/components/ui/chip";
-import { Eyebrow } from "@/components/ui/eyebrow";
 import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
 import { WardrobeItemForm } from "@/components/wardrobe/wardrobe-item-form";
 import { Badge } from "@/components/ui/badge";
@@ -43,11 +42,13 @@ export default async function FragranceDetailPage({ params }: { params: Params }
       <header className="mt-4 flex flex-col gap-6 border-b border-[color:var(--rule)] pb-8 sm:flex-row sm:items-end">
         <FragranceThumb imagePath={f.imagePath} size="lg" />
         <div className="min-w-0">
-          <Eyebrow>{f.brand.name}</Eyebrow>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">{f.name}</h1>
+          <h1 className="text-3xl leading-tight font-semibold tracking-tight font-stretch-semi-condensed md:text-4xl">
+            {f.name}
+          </h1>
+          <p className="mt-0.5 text-base text-[color:var(--fg-muted)]">{f.brand.name}</p>
           {f.status === "PENDING" ? (
             <Badge variant="outline" className="mt-2">
-              Pending review · only you can see this
+              Pending review. Only you can see it.
             </Badge>
           ) : null}
           <dl className="mt-4 flex flex-wrap gap-x-8 gap-y-3 text-sm">

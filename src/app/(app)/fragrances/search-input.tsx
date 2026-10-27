@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 export function SearchInput({ initialQ }: { initialQ: string }) {
   const router = useRouter();
@@ -37,16 +38,16 @@ export function SearchInput({ initialQ }: { initialQ: string }) {
       </label>
       <Search
         aria-hidden
-        className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[color:var(--fg-faint)]"
+        className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-[color:var(--fg-muted)]"
       />
-      <input
+      <Input
         id="fragrance-search"
         type="search"
         inputMode="search"
         placeholder="Search by fragrance or brand…"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        className="field-input pl-9"
+        className="pl-10"
       />
     </div>
   );

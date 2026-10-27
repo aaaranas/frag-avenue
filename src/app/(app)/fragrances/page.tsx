@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
 import { SearchInput } from "./search-input";
 import { Badge } from "@/components/ui/badge";
-import { SearchX } from "lucide-react";
+import { BackLink } from "@/components/ui/back-link";
+import { ChevronRight, SearchX } from "lucide-react";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -27,10 +28,15 @@ export default async function FragrancesPage({ searchParams }: { searchParams: S
   });
 
   return (
-    <div className="mx-auto max-w-5xl">
-      <PageHeader title="Catalogue" subtitle="Find a fragrance to add to your wardrobe." />
+    <div className="mx-auto max-w-2xl">
+      <BackLink href="/wardrobe">Wardrobe</BackLink>
+      <PageHeader
+        className="mt-2"
+        title="Catalogue"
+        subtitle="Find a fragrance to add to your wardrobe."
+      />
 
-      <div className="mb-8 max-w-md">
+      <div className="mb-6">
         <SearchInput initialQ={input.q ?? ""} />
       </div>
 
@@ -38,7 +44,7 @@ export default async function FragrancesPage({ searchParams }: { searchParams: S
         <ResultGrid input={input} userId={user.id} />
       </Suspense>
 
-      <p className="mt-10 text-sm text-[color:var(--fg-muted)]">
+      <p className="mt-8 text-sm text-[color:var(--fg-muted)]">
         Can&rsquo;t find it?{" "}
         <Link
           href="/fragrances/new"
@@ -64,27 +70,23 @@ async function ResultGrid({ input, userId }: { input: FragranceListInput; userId
 
 function Grid({ result }: { result: FragranceListResult }) {
   return (
-    <ul className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2">
+    <ul className="divide-y divide-[color:var(--rule)] overflow-hidden rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)]">
       {result.items.map((f) => (
         <li key={f.id}>
           <Link
             href={`/fragrances/${f.id}`}
-            className="flex min-h-11 items-center gap-4 rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-3 transition-colors hover:border-[color:var(--rule-strong)]"
+            className="flex min-h-11 items-center gap-4 p-3 transition-colors hover:bg-[color:var(--bg-sunken)]"
           >
             <FragranceThumb imagePath={f.imagePath} />
-            <div className="min-w-0">
-              <p className="label-caps truncate">{f.brand.name}</p>
-              <p className="truncate font-medium">{f.name}</p>
-              <p className="text-sm text-[color:var(--fg-muted)]">
-                {f.concentration}
-                {f.releaseYear ? <> · {f.releaseYear}</> : null}
-                {f.status === "PENDING" ? (
-                  <Badge variant="outline" className="ml-2 align-middle">
-                    Pending review
-                  </Badge>
-                ) : null}
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-semibold">{f.name}</p>
+              <p className="truncate text-sm text-[color:var(--fg-muted)]">{f.brand.name}</p>
+              <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[color:var(--fg-muted)]">
+                {[f.concentration, f.releaseYear].filter(Boolean).join(", ")}
+                {f.status === "PENDING" ? <Badge variant="outline">Pending review</Badge> : null}
               </p>
             </div>
+            <ChevronRight aria-hidden className="size-5 shrink-0 text-[color:var(--fg-faint)]" />
           </Link>
         </li>
       ))}
@@ -106,9 +108,10 @@ function Pager({ result, q }: { result: FragranceListResult; q?: string }) {
   };
 
   return (
-    <nav aria-label="Pagination" className="mt-12 flex items-center justify-between text-xs">
+    <nav aria-label="Pagination" className="mt-6 flex items-center justify-between gap-4 text-sm">
       <p className="text-[color:var(--fg-muted)]">
-        Page {result.page} of {pages} · {result.total} total
+        {result.total} {result.total === 1 ? "fragrance" : "fragrances"}, page {result.page} of{" "}
+        {pages}
       </p>
       <div className="flex gap-2">
         <PagerLink href={prevPage ? href(prevPage) : null} label="Previous" />
@@ -119,26 +122,24 @@ function Pager({ result, q }: { result: FragranceListResult; q?: string }) {
 }
 
 function PagerLink({ href, label }: { href: string | null; label: string }) {
-  const base =
-    "inline-flex min-h-11 items-center rounded-sm border border-[color:var(--rule-strong)] px-3 tracking-wide";
   if (!href) {
     return (
-      <span aria-disabled className={`${base} text-[color:var(--fg-faint)]`}>
+      <Button variant="outline" size="sm" disabled>
         {label}
-      </span>
+      </Button>
     );
   }
   return (
-    <Link href={href} className={`${base} hover:bg-[color:var(--bg-elev)]`}>
-      {label}
-    </Link>
+    <Button asChild variant="outline" size="sm">
+      <Link href={href}>{label}</Link>
+    </Button>
   );
 }
 
 function EmptyStateWithQ({ q }: { q?: string }) {
   return (
     <EmptyState
-      title={q ? "No matches." : "The catalogue is empty."}
+      title={q ? "No matches" : "The catalogue is empty"}
       icon={<SearchX />}
       action={
         <Button asChild variant="outline">
@@ -153,9 +154,7 @@ function EmptyStateWithQ({ q }: { q?: string }) {
           Nothing matches <span className="font-medium">&ldquo;{q}&rdquo;</span>.
         </>
       ) : (
-        <>
-          Run <code className="font-mono">pnpm db:seed</code> to load examples.
-        </>
+        "Submit the first fragrance and add it to your wardrobe."
       )}
     </EmptyState>
   );
@@ -163,12 +162,12 @@ function EmptyStateWithQ({ q }: { q?: string }) {
 
 function GridSkeleton() {
   return (
-    <ul className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2" aria-hidden>
+    <ul
+      className="divide-y divide-[color:var(--rule)] overflow-hidden rounded-xl border border-[color:var(--rule)]"
+      aria-hidden
+    >
       {Array.from({ length: 6 }).map((_, i) => (
-        <li
-          key={i}
-          className="flex animate-pulse items-center gap-4 rounded-xl border border-[color:var(--rule)] p-3"
-        >
+        <li key={i} className="flex animate-pulse items-center gap-4 p-3">
           <div className="h-24 w-16 rounded-md bg-[color:var(--bg-sunken)]" />
           <div className="flex-1">
             <div className="h-3 w-20 rounded bg-[color:var(--bg-sunken)]" />

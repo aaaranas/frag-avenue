@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { Eyebrow } from "@/components/ui/eyebrow";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function AppError({
   error,
@@ -15,23 +16,23 @@ export default function AppError({
   }, [error]);
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-6 py-12">
-      <Eyebrow>Something went wrong</Eyebrow>
-      <h1 className="mt-3 font-serif text-4xl leading-tight">We hit a snag.</h1>
-      <p className="mt-4 text-sm text-[color:var(--fg-muted)]">
-        The last action didn&rsquo;t complete. Your data is unchanged. Try again in a moment.
+    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-12">
+      <h1 className="text-[1.625rem] leading-tight font-semibold tracking-tight font-stretch-semi-condensed">
+        Something went wrong
+      </h1>
+      <p className="mt-2 text-[color:var(--fg-muted)]">
+        This screen didn&rsquo;t load. Try again, or go back to your feed.
       </p>
       {error.digest ? (
-        <p className="mt-2 font-mono text-xs text-[color:var(--fg-faint)]">Ref: {error.digest}</p>
+        <p className="mt-3 text-xs text-[color:var(--fg-faint)]">Error reference {error.digest}</p>
       ) : null}
-      <div className="mt-10">
-        <button
-          type="button"
-          onClick={reset}
-          className="rounded-sm bg-[color:var(--fg)] px-5 py-2.5 text-sm font-medium tracking-wide text-[color:var(--bg)] transition hover:opacity-90"
-        >
+      <div className="mt-8 flex flex-wrap gap-3">
+        <Button type="button" onClick={reset}>
           Try again
-        </button>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/feed">Go to your feed</Link>
+        </Button>
       </div>
     </div>
   );

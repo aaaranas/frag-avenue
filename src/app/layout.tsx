@@ -1,12 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Instrument_Sans } from "next/font/google";
 import "./globals.css";
 import { RegisterServiceWorker } from "@/components/pwa/register-sw";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-const inter = Inter({
+const instrument = Instrument_Sans({
   subsets: ["latin"],
-  variable: "--font-sans",
+  // The width axis is what lets titles set semi-condensed.
+  axes: ["wdth"],
+  variable: "--font-instrument",
   display: "swap",
 });
 
@@ -45,7 +47,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={inter.variable}>
+    <html lang="en" suppressHydrationWarning className={instrument.variable}>
       <body className="min-h-dvh antialiased">
         <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
         <RegisterServiceWorker />

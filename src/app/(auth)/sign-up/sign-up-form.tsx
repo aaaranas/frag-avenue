@@ -16,21 +16,6 @@ export function SignUpForm() {
     <form {...formProps} className="flex flex-col gap-5" noValidate>
       <DeviceTimeZoneInput />
       <Field
-        className="h-12"
-        name="username"
-        type="text"
-        label="Username"
-        autoComplete="username"
-        autoCapitalize="none"
-        spellCheck={false}
-        required
-        minLength={3}
-        maxLength={20}
-        hint="3–20 letters, numbers, or _. People find you by it."
-        error={state.fieldErrors?.username}
-      />
-      <Field
-        className="h-12"
         name="email"
         type="email"
         label="Email"
@@ -39,7 +24,6 @@ export function SignUpForm() {
         error={state.fieldErrors?.email}
       />
       <PasswordField
-        className="h-12"
         name="password"
         label="Password"
         autoComplete="new-password"
@@ -49,7 +33,21 @@ export function SignUpForm() {
         error={state.fieldErrors?.password}
       />
       <Field
-        className="h-12"
+        name="username"
+        type="text"
+        label="Username"
+        // Not "username": you sign in with your email, and password managers
+        // would save this handle as the login instead.
+        autoComplete="nickname"
+        autoCapitalize="none"
+        spellCheck={false}
+        required
+        minLength={3}
+        maxLength={20}
+        hint="3–20 letters, numbers, or _. People find you by it."
+        error={state.fieldErrors?.username}
+      />
+      <Field
         name="name"
         type="text"
         label="Display name (optional)"
@@ -61,7 +59,7 @@ export function SignUpForm() {
           {state.message}
         </p>
       ) : null}
-      <Button type="submit" size="lg" disabled={pending} className="mt-1">
+      <Button type="submit" size="lg" disabled={pending} className="mt-1 w-full">
         {pending ? "Creating account…" : "Create account"}
       </Button>
     </form>

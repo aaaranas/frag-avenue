@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/modules/auth/session";
 import { findLogDefaults, findWearableItem, listWearableItems } from "@/modules/wear-logs/data";
-import { KIND_LABEL, fillLabel, fillRatio } from "@/modules/wardrobe";
+import { KIND_LABEL, fillLabel, fillRatio, itemLabel } from "@/modules/wardrobe";
 import { formatVolume } from "@/lib/units";
 import { localDate, daysBetween, wallTime } from "@/lib/time-zone";
 import { PageHeader } from "@/components/ui/page-header";
@@ -46,13 +46,15 @@ export default async function LogPage({ searchParams }: { searchParams: SearchPa
             fillRatio={fillRatio(item.bottleSizeMl, item.remainingMl)}
           />
           <div className="min-w-0">
-            <p className="label-caps">{item.fragrance.brand.name}</p>
-            <p className="text-xl font-semibold tracking-tight">{item.fragrance.name}</p>
-            <p className="text-sm text-[color:var(--fg-muted)]">
-              {KIND_LABEL[item.kind]}
-              {item.bottleSizeMl !== null
-                ? ` · ${formatVolume(item.bottleSizeMl, defaults.units)}`
-                : ""}
+            <p className="text-[1.625rem] leading-tight font-semibold tracking-tight font-stretch-semi-condensed">
+              {item.fragrance.name}
+            </p>
+            <p className="text-sm text-[color:var(--fg-muted)]">{item.fragrance.brand.name}</p>
+            <p className="mt-1 text-sm">
+              {itemLabel(
+                item.kind,
+                item.bottleSizeMl !== null ? formatVolume(item.bottleSizeMl, defaults.units) : null,
+              )}
             </p>
           </div>
         </div>
@@ -92,7 +94,10 @@ export default async function LogPage({ searchParams }: { searchParams: SearchPa
           Add a bottle, decant, or sample to your wardrobe first.
         </EmptyState>
       ) : (
-        <ul className="flex flex-col gap-2" aria-label="Your wearable items">
+        <ul
+          className="divide-y divide-[color:var(--rule)] overflow-hidden rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)]"
+          aria-label="Your wearable items"
+        >
           {items.map((item) => {
             const last = item.wears[0]?.wornAt;
             const ago = last ? daysBetween(localDate(last, defaults.timezone), today) : null;
@@ -101,7 +106,7 @@ export default async function LogPage({ searchParams }: { searchParams: SearchPa
               <li key={item.id}>
                 <Link
                   href={`/log?item=${item.id}`}
-                  className="flex min-h-11 items-center gap-4 rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-3 transition-colors hover:border-[color:var(--accent-color)]"
+                  className="flex min-h-11 items-center gap-4 p-3 transition-colors hover:bg-[color:var(--bg-sunken)]"
                 >
                   <FragranceThumb
                     imagePath={item.fragrance.imagePath}
@@ -109,20 +114,24 @@ export default async function LogPage({ searchParams }: { searchParams: SearchPa
                     fillRatio={fillRatio(item.bottleSizeMl, item.remainingMl)}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="label-caps truncate">{item.fragrance.brand.name}</p>
-                    <p className="truncate font-medium">{item.fragrance.name}</p>
-                    <p className="text-sm text-[color:var(--fg-muted)]">
-                      {KIND_LABEL[item.kind]}
-                      {fill ? ` · ${fill}` : ""}
+                    <p className="truncate font-semibold">{item.fragrance.name}</p>
+                    <p className="truncate text-sm text-[color:var(--fg-muted)]">
+                      {item.fragrance.brand.name}
                     </p>
-                    <p className="text-xs text-[color:var(--fg-muted)]">
-                      {ago === null
-                        ? "Never worn"
-                        : ago === 0
-                          ? "Worn today"
-                          : ago === 1
-                            ? "Worn yesterday"
-                            : `Last worn ${ago} days ago`}
+                    <p className="mt-1 text-xs text-[color:var(--fg-muted)]">
+                      {[
+                        KIND_LABEL[item.kind],
+                        fill,
+                        ago === null
+                          ? "never worn"
+                          : ago === 0
+                            ? "worn today"
+                            : ago === 1
+                              ? "worn yesterday"
+                              : `last worn ${ago} days ago`,
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}
                     </p>
                   </div>
                   <ChevronRight

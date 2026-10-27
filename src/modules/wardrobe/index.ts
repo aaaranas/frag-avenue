@@ -10,4 +10,4 @@ export {
   minorToDecimalString,
 } from "./schema";
 export type { ItemKind } from "./schema";
-export { itemCostPerWearMinor, fillRatio, fillLabel, wearCountLabel } from "./view";
+export { itemCostPerWearMinor, fillRatio, fillLabel, itemLabel, wearCountLabel } from "./view";

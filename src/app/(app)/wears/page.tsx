@@ -41,7 +41,7 @@ export default async function WearsPage({ searchParams }: { searchParams: Search
       />
       {rows.length === 0 ? (
         <EmptyState
-          title="No wears logged yet."
+          title="No wears logged yet"
           icon={<Plus />}
           action={
             <Button asChild>
@@ -53,7 +53,10 @@ export default async function WearsPage({ searchParams }: { searchParams: Search
         </EmptyState>
       ) : (
         <>
-          <ul className="flex flex-col gap-2" aria-label="Wears">
+          <ul
+            className="divide-y divide-[color:var(--rule)] overflow-hidden rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)]"
+            aria-label="Wears"
+          >
             {rows.map((w) => (
               <WearRow key={w.id} wear={w} units={defaults.units} />
             ))}
@@ -77,21 +80,23 @@ function WearRow({ wear, units }: { wear: WearListRow; units: UnitSystem }) {
     <li>
       <Link
         href={`/wears/${wear.id}`}
-        className="flex min-h-11 gap-4 rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-3 transition-colors hover:border-[color:var(--rule-strong)]"
+        className="flex min-h-11 gap-4 p-3 transition-colors hover:bg-[color:var(--bg-sunken)]"
       >
         <FragranceThumb
           imagePath={wear.fragrance.imagePath}
           kind={wear.collectionItem?.kind ?? "BOTTLE"}
         />
         <div className="min-w-0 flex-1">
-          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[color:var(--fg-muted)]">
+          <p className="truncate font-semibold">{wear.fragrance.name}</p>
+          <p className="truncate text-sm text-[color:var(--fg-muted)]">
+            {wear.fragrance.brand.name}
+          </p>
+          <p className="mt-1 text-sm">{details.join(", ")}</p>
+          {summary ? <p className="text-sm">{summary}</p> : null}
+          <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[color:var(--fg-muted)]">
             {formatDateTime(wear.wornAt, wear.timeZone)}
             <VisibilityBadge visibility={wear.visibility} />
           </p>
-          <p className="label-caps mt-1 truncate">{wear.fragrance.brand.name}</p>
-          <p className="truncate font-medium">{wear.fragrance.name}</p>
-          <p className="text-sm text-[color:var(--fg-muted)]">{details.join(" · ")}</p>
-          {summary ? <p className="mt-1 text-sm">{summary}</p> : null}
         </div>
       </Link>
     </li>
@@ -105,7 +110,7 @@ function Pager({ page, pages, total }: { page: number; pages: number; total: num
   return (
     <nav aria-label="Pagination" className="mt-6 flex items-center justify-between gap-4">
       <p className="text-sm text-[color:var(--fg-muted)]">
-        Page {page} of {pages} · {total} wears
+        {total} wears, page {page} of {pages}
       </p>
       <div className="flex gap-2">
         {page > 1 ? (

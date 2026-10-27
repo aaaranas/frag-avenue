@@ -31,11 +31,11 @@ export default async function ClubsPage() {
       />
 
       <section aria-labelledby="challenges-heading" className="mb-10">
-        <h2 id="challenges-heading" className="text-lg font-semibold">
+        <h2 id="challenges-heading" className="text-lg font-semibold tracking-tight">
           Your challenges
         </h2>
-        <p className="mt-1 mb-4 text-sm text-[color:var(--fg-muted)]">
-          Live from your wears over the last 30 days, ending today.
+        <p className="mt-0.5 mb-3 text-sm text-[color:var(--fg-muted)]">
+          Counted from your wears in the last 30 days.
         </p>
         <div className="flex flex-col gap-3">
           {progress.map(({ challenge, status }) => (
@@ -60,7 +60,7 @@ export default async function ClubsPage() {
         id="others"
         title={mine.length > 0 ? "More clubs" : "Clubs"}
         clubs={others}
-        empty="No other clubs yet. Start one!"
+        empty="No other clubs yet. Start one and invite people in."
       />
     </div>
   );
@@ -79,27 +79,29 @@ function ClubSection({
 }) {
   return (
     <section aria-labelledby={`${id}-heading`} className="mb-10">
-      <h2 id={`${id}-heading`} className="mb-4 text-lg font-semibold">
+      <h2 id={`${id}-heading`} className="mb-3 text-lg font-semibold tracking-tight">
         {title}
       </h2>
       {clubs.length === 0 ? (
         <EmptyState>{empty}</EmptyState>
       ) : (
-        <ul className="flex flex-col gap-2" aria-labelledby={`${id}-heading`}>
+        <ul
+          className="divide-y divide-[color:var(--rule)] overflow-hidden rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)]"
+          aria-labelledby={`${id}-heading`}
+        >
           {clubs.map((c) => (
-            <li
-              key={c.id}
-              className="flex items-center gap-3 rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-3"
-            >
+            <li key={c.id} className="flex items-center gap-3 p-3">
               <Link
                 href={`/clubs/${c.slug}`}
                 className="flex min-h-11 min-w-0 flex-1 flex-col justify-center hover:underline"
               >
-                <span className="truncate font-medium">{c.name}</span>
-                <span className="truncate text-sm text-[color:var(--fg-muted)]">
+                <span className="truncate font-semibold">{c.name}</span>
+                <span className="text-sm text-[color:var(--fg-muted)]">
                   {c._count.memberships} {c._count.memberships === 1 ? "member" : "members"}
-                  {c.description ? ` · ${c.description}` : ""}
                 </span>
+                {c.description ? (
+                  <span className="mt-0.5 line-clamp-1 text-sm">{c.description}</span>
+                ) : null}
               </Link>
               <MembershipButton
                 clubId={c.id}

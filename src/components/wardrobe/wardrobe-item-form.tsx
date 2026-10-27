@@ -7,6 +7,7 @@ import { Field } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 export type WardrobeFormDefaults = {
   kind: ItemKind;
@@ -143,10 +144,8 @@ export function WardrobeItemForm({
         />
       )}
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="personalNotes" className="field-label">
-          Notes (optional)
-        </label>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="personalNotes">Notes (optional)</Label>
         <Textarea
           id="personalNotes"
           name="personalNotes"

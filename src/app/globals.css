@@ -4,27 +4,29 @@
 /*
  * Frag Avenue design tokens — greyscale wireframe + one accent.
  *
- * Everything is a neutral grey except `--accent-color`, the single accent. It
- * marks the primary action, the current tab, focus, and links — nothing else.
- * Tints of it (washes, lines) are derived with color-mix, never new hues.
- * State is never carried by colour alone: errors have text and role="alert",
- * the current tab has aria-current and a bar.
+ * Everything is a neutral grey except `--accent-color`, the single accent: an
+ * amber, the colour of the juice in the bottle. It marks the primary action,
+ * the current tab, focus, links, and liquid (fill levels, bars) — nothing
+ * else. Tints of it (washes, lines) are derived with color-mix, never new
+ * hues. State is never carried by colour alone: errors have text and
+ * role="alert", the current tab has aria-current and a bar.
  *
  * Contrast (WCAG AA), light / dark:
  *   --fg          18.1 / 16.9   body text
  *   --fg-muted     8.1 / 10.1   secondary text
  *   --fg-faint     5.1 /  6.7   metadata — the floor for any text
- *   --accent-color 6.0 /  9.5   links, accent text; --accent-fg on it: 6.3 / 9.5
+ *   --accent-color 5.5 /  8.8   links, accent text; --accent-fg on it: 5.8 / 8.8
  *   --rule-strong  3.3 /  3.7   input borders, icons (non-text, needs 3:1)
  * Ratios against --bg. On --bg-elev and --bg-sunken every text token stays
  * >= 4.5:1 and --rule-strong >= 3:1 (lowest: --fg-faint on --bg-sunken, 4.7).
  *
- * One type family: the old serif is gone, and `--font-serif` resolves to the
- * sans so existing `font-serif` call sites need no edit.
+ * One type family, Instrument Sans. Titles and fragrance names use its
+ * semi-condensed width (`font-stretch-semi-condensed`), like the type on a
+ * bottle's label; everything else is set at normal width.
  */
 @theme {
   --font-sans:
-    var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    var(--font-instrument), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-serif: var(--font-sans);
 
   --color-grey-0: #ffffff;
@@ -48,7 +50,7 @@
   color-scheme: light;
 
   /* The one accent. Change this line to re-theme the app. */
-  --accent-color: #4f46e5;
+  --accent-color: #8c5c00;
   --accent-fg: #ffffff;
   --accent-wash: color-mix(in oklab, var(--accent-color) 8%, var(--bg));
   --accent-line: color-mix(in oklab, var(--accent-color) 30%, var(--bg));
@@ -62,13 +64,11 @@
   --rule: var(--color-grey-200);
   --rule-strong: var(--color-grey-400);
 
-  /* Legacy names from the previous palette, kept so existing pages restyle
-     without edits. All resolve to greys or the single accent. */
+  /* Aliases still used by a few call sites. All resolve to the accent. */
   --brand: var(--accent-color);
   --brand-fg: var(--accent-fg);
   --brand-wash: var(--accent-wash);
   --brand-line: var(--accent-line);
-  --accent-amber: var(--accent-color);
 
   --focus: color-mix(in oklab, var(--accent-color) 70%, transparent);
   --radius: 0.625rem;
@@ -101,7 +101,7 @@
   :root {
     color-scheme: dark;
 
-    --accent-color: #a5b4fc;
+    --accent-color: #e3a64a;
     --accent-fg: #111111;
 
     --bg: var(--color-grey-900);
@@ -153,15 +153,11 @@
 
 /*
  * In @layer base, not bare: Tailwind v4 utilities live in a layer, and any
- * unlayered rule beats every layered one. The old bare `button { color:
- * inherit }` silently overrode `text-primary-foreground` on every button.
+ * unlayered rule beats every layered one.
  */
 @layer base {
-  /*
-   * Tailwind 4 draws a bare `border` in currentColor. shadcn components (and
-   * our own bare `border`, `border-b`, …) expect the hairline rule token, so
-   * without this every outline button and dialog got a text-coloured border.
-   */
+  /* Tailwind 4 draws a bare `border` in currentColor; shadcn components (and
+     our own bare `border`, `border-b`, …) expect the hairline rule token. */
   *,
   ::before,
   ::after {
@@ -176,7 +172,6 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
   /* Headings break into even lines; paragraphs avoid a lone last word. */
@@ -223,24 +218,8 @@
 @layer components {
   /* Tabular figures, so columns of numbers align. */
   .numeric {
-    font-family: var(--font-sans);
     font-variant-numeric: lining-nums tabular-nums;
-    font-feature-settings: "tnum", "lnum";
     letter-spacing: -0.01em;
-  }
-
-  /*
-   * Small caps label. Previously every label on every page used the same 10px
-   * uppercase 0.22em treatment, which flattened the hierarchy — a section
-   * heading and a table column read identically. This is now reserved for
-   * column headers and metadata, and section headings use real headings.
-   */
-  .label-caps {
-    font-size: 0.6875rem;
-    font-weight: 500;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--fg-faint);
   }
 
   /* ------------------------------------------------------------------ */
@@ -248,20 +227,16 @@
   /* ------------------------------------------------------------------ */
 
   /*
-   * One definition for every text input, number input, and select in the app.
-   * These two rules were previously copy-pasted as string constants into five
-   * separate form files, so the inputs drifted and none of them picked up a
-   * palette change.
+   * Text inputs are the shadcn `Input` (src/components/ui/input.tsx). These
+   * classes style what it cannot render — native selects, textareas, and
+   * fieldset legends — so they match it exactly.
    *
-   * Labels are sentence case rather than 0.14em uppercase: with every label,
-   * heading, and column header set in tracked caps, nothing on a form read as
-   * more or less important than anything else.
+   * Form errors are ink and weight, not red: the single accent is reserved,
+   * and errors are announced via role="alert" and tied to their field with
+   * aria-describedby / aria-invalid, so colour carries nothing.
    */
-  /* Form errors: ink and weight, not red — the single accent is reserved, and
-     errors are announced via role="alert" and tied to their field with
-     aria-describedby / aria-invalid, so colour carries nothing. */
   .form-error {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 600;
     color: var(--fg);
   }
@@ -269,6 +244,7 @@
   .field-label {
     font-size: 0.875rem;
     font-weight: 500;
+    line-height: 1.25rem;
     color: var(--fg);
   }
 
@@ -282,6 +258,7 @@
     /* 16px: iOS Safari zooms the page into any field set smaller. */
     font-size: 1rem;
     color: var(--fg);
+    outline: none;
     transition:
       border-color 150ms,
       box-shadow 150ms;
@@ -292,10 +269,9 @@
   .field-input:hover {
     border-color: var(--fg-faint);
   }
-  .field-input:focus,
   .field-input:focus-visible {
-    border-color: var(--brand);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 22%, transparent);
+    border-color: var(--ring);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 25%, transparent);
   }
   .field-input[aria-invalid="true"] {
     border-color: var(--destructive);

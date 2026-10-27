@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fillLabel, fillRatio, itemCostPerWearMinor, wearCountLabel } from "./view";
+import { fillLabel, fillRatio, itemCostPerWearMinor, itemLabel, wearCountLabel } from "./view";
 
 describe("itemCostPerWearMinor", () => {
   it("is price divided by wears, rounded to a minor unit", () => {
@@ -42,5 +42,21 @@ describe("wearCountLabel", () => {
     expect(wearCountLabel(0)).toBe("0 wears");
     expect(wearCountLabel(1)).toBe("1 wear");
     expect(wearCountLabel(12)).toBe("12 wears");
+  });
+});
+
+describe("itemLabel", () => {
+  it("puts the size before an owned item's kind", () => {
+    expect(itemLabel("BOTTLE", "100 ml")).toBe("100 ml bottle");
+    expect(itemLabel("DECANT", "3.4 fl oz")).toBe("3.4 fl oz decant");
+  });
+
+  it("is just the kind when the size is unknown", () => {
+    expect(itemLabel("SAMPLE", null)).toBe("Sample");
+  });
+
+  it("names a wishlist entry first", () => {
+    expect(itemLabel("WISHLIST", "50 ml")).toBe("Wishlist, 50 ml");
+    expect(itemLabel("WISHLIST", null)).toBe("Wishlist");
   });
 });

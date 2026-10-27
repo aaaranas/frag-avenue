@@ -5,7 +5,8 @@ import { useEffect } from "react";
 /**
  * Root-layout error boundary. Fires when the root layout itself throws —
  * `error.tsx` cannot recover from that. Ships its own <html>/<body> because
- * the root layout may not have rendered.
+ * the root layout (and so globals.css) may not have rendered; the inline
+ * colours are the light theme's tokens.
  */
 export default function GlobalError({
   error,
@@ -22,64 +23,40 @@ export default function GlobalError({
     <html lang="en">
       <body
         style={{
-          background: "#f7f6f4",
-          color: "#16150f",
-          fontFamily:
-            "Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+          background: "#fafafa",
+          color: "#111111",
+          fontFamily: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
           margin: 0,
           minHeight: "100dvh",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          padding: "2rem",
+          padding: "2rem 1rem",
         }}
       >
-        <div style={{ maxWidth: "28rem" }}>
-          <p
-            style={{
-              fontSize: "0.75rem",
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-              color: "#8f8b7f",
-            }}
-          >
-            Frag Avenue
-          </p>
-          <h1
-            style={{
-              fontFamily: "'Cormorant Garamond', Georgia, serif",
-              fontSize: "2rem",
-              margin: "1rem 0 0",
-              fontWeight: 500,
-            }}
-          >
-            The app failed to load.
+        <div style={{ maxWidth: "28rem", width: "100%" }}>
+          <h1 style={{ fontSize: "1.625rem", lineHeight: 1.2, fontWeight: 600, margin: 0 }}>
+            Frag Avenue didn&rsquo;t load
           </h1>
-          <p style={{ color: "#4d4a44", marginTop: "1rem", lineHeight: 1.6, fontSize: "0.9rem" }}>
-            Refresh the page. If it keeps happening, something is wrong on our side.
+          <p style={{ color: "#4d4d4d", marginTop: "0.5rem", lineHeight: 1.5 }}>
+            Refresh the page. If it keeps happening, the problem is on our side.
           </p>
           {error.digest ? (
-            <p
-              style={{
-                fontFamily: "ui-monospace, monospace",
-                fontSize: "0.75rem",
-                color: "#8f8b7f",
-                marginTop: "0.5rem",
-              }}
-            >
-              Ref: {error.digest}
+            <p style={{ fontSize: "0.75rem", color: "#6b6b6b", marginTop: "0.75rem" }}>
+              Error reference {error.digest}
             </p>
           ) : null}
           <button
             type="button"
             onClick={reset}
             style={{
-              marginTop: "1.5rem",
-              background: "#16150f",
-              color: "#f7f6f4",
+              marginTop: "2rem",
+              minHeight: "2.75rem",
+              background: "#8c5c00",
+              color: "#ffffff",
               border: 0,
-              borderRadius: 2,
-              padding: "0.625rem 1.25rem",
+              borderRadius: "0.5rem",
+              padding: "0 1rem",
               font: "inherit",
               fontSize: "0.875rem",
               fontWeight: 500,

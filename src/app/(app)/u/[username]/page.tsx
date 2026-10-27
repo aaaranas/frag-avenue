@@ -44,17 +44,22 @@ export default async function ProfilePage({
       <header className="mb-8 flex items-start gap-4">
         <Avatar name={name} image={profile.image} className="size-16 text-xl" />
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-2xl font-semibold tracking-tight">{name}</h1>
+          <h1 className="truncate text-[1.625rem] leading-tight font-semibold tracking-tight font-stretch-semi-condensed">
+            {name}
+          </h1>
           <p className="text-sm text-[color:var(--fg-muted)]">@{profile.username}</p>
           {profile.bio ? <p className="mt-2 text-sm whitespace-pre-line">{profile.bio}</p> : null}
-          <p className="mt-2 text-sm">
-            <span className="font-medium tabular-nums">{profile._count.followers}</span>{" "}
-            <span className="text-[color:var(--fg-muted)]">
-              {profile._count.followers === 1 ? "follower" : "followers"}
+          <p className="mt-2 flex gap-4 text-sm">
+            <span>
+              <span className="font-semibold tabular-nums">{profile._count.followers}</span>{" "}
+              <span className="text-[color:var(--fg-muted)]">
+                {profile._count.followers === 1 ? "follower" : "followers"}
+              </span>
             </span>
-            {" · "}
-            <span className="font-medium tabular-nums">{profile._count.following}</span>{" "}
-            <span className="text-[color:var(--fg-muted)]">following</span>
+            <span>
+              <span className="font-semibold tabular-nums">{profile._count.following}</span>{" "}
+              <span className="text-[color:var(--fg-muted)]">following</span>
+            </span>
           </p>
           <div className="mt-3">
             {self ? (

@@ -75,13 +75,13 @@ export function WearCard({
             kind={wear.collectionItem?.kind ?? "BOTTLE"}
           />
           <div className="min-w-0">
-            <p className="label-caps truncate">{wear.fragrance.brand.name}</p>
-            <p className="mt-0.5 truncate text-xl font-semibold tracking-tight">
+            <p className="truncate text-xl leading-tight font-semibold tracking-tight font-stretch-semi-condensed">
               {wear.fragrance.name}
             </p>
-            {summary ? (
-              <p className="mt-1 text-sm text-[color:var(--fg-muted)]">{summary}</p>
-            ) : null}
+            <p className="truncate text-sm text-[color:var(--fg-muted)]">
+              {wear.fragrance.brand.name}
+            </p>
+            {summary ? <p className="mt-1.5 text-sm">{summary}</p> : null}
           </div>
         </div>
         <WearStats stats={stats} className="mt-4" />

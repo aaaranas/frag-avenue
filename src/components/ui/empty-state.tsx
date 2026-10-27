@@ -34,7 +34,7 @@ export function EmptyState({
         </div>
       ) : null}
       {title ? <p className="text-base font-semibold text-[color:var(--fg)]">{title}</p> : null}
-      <div className="mt-1.5 max-w-sm text-sm leading-relaxed text-[color:var(--fg-muted)]">
+      <div className="mt-1.5 max-w-sm text-sm leading-relaxed text-balance text-[color:var(--fg-muted)]">
         {children}
       </div>
       {action ? <div className="mt-5">{action}</div> : null}

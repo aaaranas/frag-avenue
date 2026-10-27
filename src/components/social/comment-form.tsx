@@ -5,6 +5,7 @@ import { addCommentAction, type FormState } from "@/modules/social";
 import { useFormAction } from "@/components/forms/use-form-action";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 const INITIAL: FormState = { ok: false };
 
@@ -22,9 +23,7 @@ export function CommentForm({ wearId }: { wearId: string }) {
   return (
     <form {...formProps} className="flex flex-col gap-2" noValidate>
       <input type="hidden" name="wearId" value={wearId} />
-      <label htmlFor="comment-body" className="field-label">
-        Add a comment
-      </label>
+      <Label htmlFor="comment-body">Add a comment</Label>
       <Textarea
         id="comment-body"
         name="body"

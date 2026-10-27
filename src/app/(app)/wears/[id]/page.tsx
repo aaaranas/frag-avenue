@@ -59,13 +59,15 @@ export default async function WearPage({ params }: { params: Params }) {
           kind={wear.collectionItem?.kind ?? "BOTTLE"}
         />
         <div className="min-w-0">
-          <p className="label-caps">{wear.fragrance.brand.name}</p>
-          <h1 className="mt-0.5 text-2xl leading-tight font-semibold tracking-tight">
+          <h1 className="text-[1.625rem] leading-tight font-semibold tracking-tight font-stretch-semi-condensed">
             {wear.fragrance.name}
           </h1>
-          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[color:var(--fg-muted)]">
-            {own ? "" : `${author} · `}
-            {formatDateTime(wear.wornAt, wear.timeZone)}
+          <p className="text-sm text-[color:var(--fg-muted)]">{wear.fragrance.brand.name}</p>
+          <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+            {own ? null : <span className="font-medium">{author}</span>}
+            <span className="text-[color:var(--fg-muted)]">
+              {formatDateTime(wear.wornAt, wear.timeZone)}
+            </span>
             {own ? <VisibilityBadge visibility={wear.visibility} /> : null}
           </p>
         </div>
@@ -84,7 +86,7 @@ export default async function WearPage({ params }: { params: Params }) {
           ]}
         />
 
-        <dl className="flex flex-col gap-4 border-b border-[color:var(--rule)] py-5 text-sm">
+        <dl className="flex flex-col gap-4 py-5 text-sm">
           <div>
             <dt className="text-xs text-[color:var(--fg-muted)]">Weather</dt>
             <dd className="mt-0.5 text-base">
@@ -123,6 +125,16 @@ export default async function WearPage({ params }: { params: Params }) {
             </div>
           ) : null}
         </dl>
+        {/* Pulled left by the button's padding, so the heart lines up with the text above. */}
+        <div className="border-b border-[color:var(--rule)] py-1 [&>*]:-ml-3">
+          <KudosButton
+            wearId={wear.id}
+            count={wear._count.kudos}
+            given={wear.kudos.length > 0}
+            own={own}
+            label={own ? wear.fragrance.name : `${author}'s ${wear.fragrance.name}`}
+          />
+        </div>
       </section>
 
       <section
@@ -139,7 +151,7 @@ export default async function WearPage({ params }: { params: Params }) {
         )}
       </section>
 
-      <Comments wear={wear} viewerId={user.id} own={own} author={author} />
+      <Comments wear={wear} viewerId={user.id} own={own} />
 
       {own ? (
         <div className="flex flex-wrap items-center gap-3 py-6">
@@ -183,35 +195,16 @@ function OwnerTimeline({ wear }: { wear: VisibleWear }) {
   );
 }
 
-function Comments({
-  wear,
-  viewerId,
-  own,
-  author,
-}: {
-  wear: VisibleWear;
-  viewerId: string;
-  own: boolean;
-  author: string;
-}) {
+function Comments({ wear, viewerId, own }: { wear: VisibleWear; viewerId: string; own: boolean }) {
   return (
     <section
       aria-labelledby="comments-heading"
       id="comments"
       className="border-b border-[color:var(--rule)] py-6"
     >
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <h2 id="comments-heading" className="text-lg font-semibold">
-          Comments
-        </h2>
-        <KudosButton
-          wearId={wear.id}
-          count={wear._count.kudos}
-          given={wear.kudos.length > 0}
-          own={own}
-          label={own ? wear.fragrance.name : `${author}'s ${wear.fragrance.name}`}
-        />
-      </div>
+      <h2 id="comments-heading" className="mb-4 text-lg font-semibold">
+        Comments
+      </h2>
       {wear.comments.length === 0 ? (
         <p className="mb-4 text-sm text-[color:var(--fg-muted)]">No comments yet.</p>
       ) : (

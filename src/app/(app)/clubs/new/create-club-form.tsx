@@ -5,6 +5,7 @@ import { useFormAction } from "@/components/forms/use-form-action";
 import { Field } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 const INITIAL: FormState = { ok: false };
 
@@ -14,10 +15,8 @@ export function CreateClubForm() {
   return (
     <form {...formProps} className="flex flex-col gap-5" noValidate>
       <Field name="name" label="Club name" required maxLength={60} error={err.name} />
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="description" className="field-label">
-          Description (optional)
-        </label>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="description">Description (optional)</Label>
         <Textarea
           id="description"
           name="description"

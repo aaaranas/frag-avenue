@@ -138,8 +138,8 @@ export default async function StatsPage({ searchParams }: { searchParams: Search
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{name(u.fragranceId)}</p>
                   <p className="text-xs text-[color:var(--fg-muted)]">
-                    {KIND_LABEL[u.kind]} ·{" "}
-                    {u.daysSince === null ? "Never worn" : `${u.daysSince} days since last wear`}
+                    {u.daysSince === null ? "Never worn" : `Not worn for ${u.daysSince} days`}
+                    {u.kind === "BOTTLE" ? "" : `, ${KIND_LABEL[u.kind].toLowerCase()}`}
                   </p>
                 </div>
                 <Button asChild size="sm" variant="outline">
@@ -163,8 +163,9 @@ export default async function StatsPage({ searchParams }: { searchParams: Search
       >
         <div className="rounded-xl border border-dashed border-[color:var(--rule-strong)] p-4 text-sm">
           <p>
-            Coming soon. It needs wears with both weather attached and a check-in answered:{" "}
-            <span className="numeric font-medium">
+            Shows up once {WEATHER_CHART_MIN_POINTS} of your wears have weather attached and a
+            check-in answered.{" "}
+            <span className="numeric font-semibold">
               {Math.min(stats.weatherPerformancePoints, WEATHER_CHART_MIN_POINTS)} of{" "}
               {WEATHER_CHART_MIN_POINTS}
             </span>{" "}

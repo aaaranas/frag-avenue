@@ -2,7 +2,7 @@
  * Pure presentation logic for wardrobe items. No Prisma, no React.
  */
 import { costPerWearMinor } from "@/modules/analytics";
-import type { ItemKind } from "./schema";
+import { KIND_LABEL, type ItemKind } from "./schema";
 
 /**
  * Cost per wear in minor units: price ÷ wears. Null (shown as "—") for a
@@ -35,4 +35,14 @@ export function fillLabel(ratio: number | null): string | null {
 /** "1 wear" / "12 wears". */
 export function wearCountLabel(wears: number): string {
   return `${wears} ${wears === 1 ? "wear" : "wears"}`;
+}
+
+/**
+ * What an item is, in words: "100 ml bottle", "Sample", "Wishlist, 50 ml".
+ * `size` is already formatted in the viewer's units, or null when unknown.
+ */
+export function itemLabel(kind: ItemKind, size: string | null): string {
+  if (kind === "WISHLIST") return size ? `Wishlist, ${size}` : "Wishlist";
+  const noun = KIND_LABEL[kind];
+  return size ? `${size} ${noun.toLowerCase()}` : noun;
 }

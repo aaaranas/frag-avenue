@@ -4,7 +4,7 @@ test("the root URL sends a signed-out visitor to sign-in", async ({ page }) => {
   await page.goto("/");
 
   await expect(page).toHaveURL(/\/sign-in$/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Frag Avenue");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sign in");
   await expect(page.getByLabel("Email")).toBeVisible();
   await expect(page.getByLabel("Password")).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
@@ -12,21 +12,14 @@ test("the root URL sends a signed-out visitor to sign-in", async ({ page }) => {
 
 test("sign-in and sign-up link to each other", async ({ page }) => {
   await page.goto("/sign-in");
-  const switcher = page.getByRole("navigation", { name: "Account" });
-  await expect(switcher.getByRole("link", { name: "Sign in" })).toHaveAttribute(
-    "aria-current",
-    "page",
-  );
-  await switcher.getByRole("link", { name: "Create account" }).click();
+  await page.getByRole("link", { name: "Create an account" }).click();
   await expect(page).toHaveURL(/\/sign-up$/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Frag Avenue");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Create your account");
   await expect(page.getByRole("button", { name: /create account/i })).toBeVisible();
 
-  await page
-    .getByRole("navigation", { name: "Account" })
-    .getByRole("link", { name: "Sign in" })
-    .click();
+  await page.getByRole("link", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL(/\/sign-in$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sign in");
 });
 
 const PROTECTED = [

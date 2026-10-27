@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -80,7 +81,7 @@ export function InstallPrompt() {
     >
       <p className="flex-1 text-[color:var(--fg-muted)]">
         {event ? (
-          "Install Frag Avenue for one-tap access from your home screen."
+          "Add Frag Avenue to your home screen to log a wear in one tap."
         ) : (
           <>
             To install, tap <span className="font-medium text-[color:var(--fg)]">Share</span>, then{" "}
@@ -89,22 +90,20 @@ export function InstallPrompt() {
         )}
       </p>
       {event ? (
-        <button
-          type="button"
-          onClick={install}
-          className="min-h-11 rounded-md bg-[color:var(--fg)] px-4 font-medium text-[color:var(--bg)]"
-        >
+        <Button type="button" size="sm" variant="outline" onClick={install}>
           Install
-        </button>
+        </Button>
       ) : null}
-      <button
+      <Button
         type="button"
+        size="sm"
+        variant="ghost"
         onClick={dismiss}
-        className="min-h-11 px-2 text-[color:var(--fg-muted)] hover:text-[color:var(--fg)]"
         aria-label="Dismiss install prompt"
+        className="text-[color:var(--fg-muted)]"
       >
         Not now
-      </button>
+      </Button>
     </div>
   );
 }

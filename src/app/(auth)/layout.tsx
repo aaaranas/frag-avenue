@@ -3,11 +3,7 @@ import { redirect } from "next/navigation";
 import { currentUser } from "@/modules/auth/session";
 import { AppMark } from "@/components/brand/app-mark";
 
-/**
- * Sign-in / sign-up: the app name and the form, nothing else. A soft glow of
- * the accent behind the mark is the only decoration (a tint of the one accent,
- * not a new colour).
- */
+/** Sign-in / sign-up: the app name and the form, nothing else. */
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const user = await currentUser();
   if (user) {
@@ -20,16 +16,12 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   }
 
   return (
-    <main className="relative isolate flex min-h-dvh flex-col items-center px-4 pt-14 pb-10 sm:justify-center sm:pt-10">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-96 bg-[radial-gradient(60%_100%_at_50%_0%,color-mix(in_oklab,var(--accent-color)_16%,transparent),transparent)]"
-      />
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center gap-4 text-center">
-          <AppMark className="size-14 shadow-md" />
-          <h1 className="text-[1.75rem] leading-none font-semibold tracking-tight">Frag Avenue</h1>
-        </div>
+    <main className="flex min-h-dvh flex-col items-center px-4 pt-12 pb-10 sm:justify-center sm:bg-[color:var(--bg-sunken)] sm:py-10">
+      <div className="flex w-full max-w-sm flex-col gap-8">
+        <p className="flex items-center gap-2.5 self-center text-lg font-semibold tracking-tight">
+          <AppMark className="size-8" />
+          Frag Avenue
+        </p>
         {children}
       </div>
     </main>

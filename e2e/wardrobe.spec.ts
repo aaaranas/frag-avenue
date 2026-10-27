@@ -22,7 +22,7 @@ test("golden path: add a bottle, log a wear, and see wear count and cost per wea
 }) => {
   await signUpFreshUser(page);
 
-  await openFragrance(page, "Aventus", /Creed.*Aventus/);
+  await openFragrance(page, "Aventus", /Aventus.*Creed/);
   await page.getByRole("radio", { name: /^Bottle/ }).check();
   await page.getByLabel("Size, ml").fill("100");
   await page.getByLabel("Left, ml").fill("80");
@@ -32,7 +32,7 @@ test("golden path: add a bottle, log a wear, and see wear count and cost per wea
 
   await expect(page).toHaveURL(/\/wardrobe\?type=bottle$/);
   const card = page.getByRole("listitem").filter({ hasText: "Aventus" });
-  await expect(card).toContainText("Bottle · 100 ml");
+  await expect(card).toContainText("100 ml bottle");
   await expect(card).toContainText("80% full");
   await expect(card).toContainText("₱10,000.00");
   await expect(card).toContainText("— (0 wears)");
@@ -115,7 +115,7 @@ test("a submitted fragrance is visible only to its submitter until reviewed", as
   await signUpFreshUser(otherPage);
   await otherPage.goto(`/fragrances?q=${encodeURIComponent(house)}`);
   // Scoped to main: while the page streams, a hidden copy can exist briefly.
-  await expect(otherPage.getByRole("main").getByText("No matches.")).toBeVisible();
+  await expect(otherPage.getByRole("main").getByText("No matches", { exact: true })).toBeVisible();
   await otherPage.goto(pendingUrl);
   await expect(otherPage.getByText("Not in the catalogue")).toBeVisible();
   await other.close();
@@ -154,7 +154,7 @@ test.describe("the seeded wardrobe", () => {
     await expect(page).toHaveURL(/type=decant$/);
     const items = page.getByRole("list", { name: "Wardrobe items" }).getByRole("listitem");
     await expect(items).toHaveCount(1);
-    await expect(items.first()).toContainText("Decant · 10 ml");
+    await expect(items.first()).toContainText("10 ml decant");
   });
 
   test("shows price, fill level, wear count, and cost per wear", async ({ page }) => {

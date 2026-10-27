@@ -9,6 +9,7 @@ import {
 } from "@/modules/fragrances";
 import { Field } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 const INITIAL: FormState = { ok: false };
 
@@ -35,10 +36,8 @@ export function SubmitFragranceForm({ defaultName }: { defaultName: string }) {
         defaultValue={defaultName}
         error={err.name}
       />
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="concentration" className="field-label">
-          Concentration
-        </label>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="concentration">Concentration</Label>
         <select
           id="concentration"
           name="concentration"

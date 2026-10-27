@@ -17,6 +17,8 @@ import {
 import { Field } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 export type WearFieldDefaults = {
   wornAt: string; // YYYY-MM-DDTHH:mm, in the wear's zone
@@ -69,10 +71,8 @@ export function WearFields({
         initial={defaults.mood}
         error={errors.mood}
       />
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="notes" className="field-label">
-          Note (optional)
-        </label>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="notes">Note (optional)</Label>
         <Textarea
           id="notes"
           name="notes"
@@ -111,10 +111,8 @@ function SpraysStepper({ initial, error }: { initial: number; error?: string }) 
   const step =
     "flex size-11 items-center justify-center rounded-md border border-[color:var(--rule-strong)] text-lg disabled:opacity-40";
   return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor="sprays" className="field-label">
-        Sprays
-      </label>
+    <div className="flex flex-col gap-2">
+      <Label htmlFor="sprays">Sprays</Label>
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -126,7 +124,7 @@ function SpraysStepper({ initial, error }: { initial: number; error?: string }) 
         >
           −
         </button>
-        <input
+        <Input
           id="sprays"
           name="sprays"
           type="number"
@@ -137,7 +135,7 @@ function SpraysStepper({ initial, error }: { initial: number; error?: string }) 
           required
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className="field-input w-20 text-center tabular-nums"
+          className="w-20 text-center tabular-nums"
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? "sprays-error" : "sprays-hint"}
         />

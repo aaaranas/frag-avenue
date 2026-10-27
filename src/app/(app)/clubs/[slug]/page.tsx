@@ -12,7 +12,7 @@ import { BackLink } from "@/components/ui/back-link";
 type Params = Promise<{ slug: string }>;
 
 export async function generateMetadata({ params }: { params: Params }) {
-  return { title: `Club · ${(await params).slug}` };
+  return { title: `Club ${(await params).slug}` };
 }
 
 const UNIT = { UNIQUE_FRAGRANCES: "scents", UNIQUE_HOUSES: "houses" } as const;
@@ -31,7 +31,9 @@ export default async function ClubPage({ params }: { params: Params }) {
       <BackLink href="/clubs">Clubs</BackLink>
       <header className="mt-2 mb-8 flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight">{club.name}</h1>
+          <h1 className="text-[1.625rem] leading-tight font-semibold tracking-tight font-stretch-semi-condensed">
+            {club.name}
+          </h1>
           <p className="text-sm text-[color:var(--fg-muted)]">
             {count} {count === 1 ? "member" : "members"}
           </p>
