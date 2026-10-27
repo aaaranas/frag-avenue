@@ -2,6 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slug";
 import { visibleWearsWhere } from "@/modules/social";
+import { findUserSettings } from "@/modules/users/data";
 
 /**
  * Clubs and challenge data. `viewerId` / `userId` come from the server
@@ -55,8 +56,10 @@ export function listChallengeWears(
   });
 }
 
-export function findUserZone(userId: string) {
-  return prisma.user.findUnique({ where: { id: userId }, select: { timezone: true } });
+/** Shares the request's one read of the user's settings (the shell layout reads it too). */
+export async function findUserZone(userId: string) {
+  const user = await findUserSettings(userId);
+  return user ? { timezone: user.timezone } : null;
 }
 
 export function listClubs(viewerId: string) {

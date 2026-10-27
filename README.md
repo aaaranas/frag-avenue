@@ -237,6 +237,16 @@ Preview deployments run that same command. If previews share the production
 database, a branch carrying a migration will apply it to production — scope
 `DATABASE_URL` to the Production environment, or give previews their own database.
 
+### Region
+
+Put the functions in the database's region: **Settings → Functions → Function
+Region** in Vercel, matched to the region your Neon / Supabase project was
+created in. A page makes two to five queries one after another, and each one
+crosses the distance between the two. Vercel's default region is Washington,
+D.C.; with a database in Singapore, each query takes about 200 ms, so a page
+waits around a second on the network alone. Closest to your users is best, as
+long as both move together.
+
 ### The catalogue in production
 
 Every deploy applies `prisma/data/catalogue.csv` (and the Wikidata snapshot,

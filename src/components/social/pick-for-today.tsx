@@ -2,6 +2,9 @@ import Link from "next/link";
 import { findPickForToday } from "@/modules/social/data";
 import { fillRatio } from "@/modules/wardrobe";
 import { daysBetween, localDate } from "@/lib/time-zone";
+import { fragranceHref } from "@/lib/back-to";
+import { isVisibleToUser } from "@/modules/fragrances";
+import { MaybeLink } from "@/components/ui/maybe-link";
 import { Button } from "@/components/ui/button";
 import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
 
@@ -22,6 +25,10 @@ export async function PickForToday({ userId, timeZone }: { userId: string; timeZ
       : days === 0
         ? "You've worn everything you own today."
         : `Last worn ${days === 1 ? "yesterday" : `${days} days ago`}, the longest gap in your wardrobe.`;
+  // A rejected submission has no page any more.
+  const scentHref = isVisibleToUser(item.fragrance, userId)
+    ? fragranceHref(item.fragrance.id, "/feed")
+    : null;
 
   return (
     <section aria-labelledby="pick-heading" className="mb-8">
@@ -30,18 +37,24 @@ export async function PickForToday({ userId, timeZone }: { userId: string; timeZ
       </h2>
       <div className="rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-4">
         <div className="flex items-center gap-4">
-          <FragranceThumb
-            imagePath={item.fragrance.imagePath}
-            kind={item.kind}
-            fillRatio={fillRatio(item.bottleSizeMl, item.remainingMl)}
-          />
+          {/* The photo and the name both open the scent's page; the name is the
+              link announced to screen readers. */}
+          <MaybeLink href={scentHref} decorative className="shrink-0 rounded-md">
+            <FragranceThumb
+              imagePath={item.fragrance.imagePath}
+              kind={item.kind}
+              fillRatio={fillRatio(item.bottleSizeMl, item.remainingMl)}
+            />
+          </MaybeLink>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-xl leading-tight font-semibold tracking-tight font-stretch-semi-condensed">
-              {item.fragrance.name}
-            </p>
-            <p className="truncate text-sm text-[color:var(--fg-muted)]">
-              {item.fragrance.brand.name}
-            </p>
+            <MaybeLink href={scentHref} className="block min-h-11">
+              <p className="truncate text-xl leading-tight font-semibold tracking-tight font-stretch-semi-condensed group-hover:underline group-hover:underline-offset-4">
+                {item.fragrance.name}
+              </p>
+              <p className="truncate text-sm text-[color:var(--fg-muted)]">
+                {item.fragrance.brand.name}
+              </p>
+            </MaybeLink>
             <p className="mt-2 text-sm">{why}</p>
           </div>
         </div>

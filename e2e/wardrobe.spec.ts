@@ -88,7 +88,7 @@ test("a submitted fragrance is visible only to its submitter until reviewed", as
   page,
   browser,
 }) => {
-  await signUpFreshUser(page);
+  const author = await signUpFreshUser(page);
   const house = `E2E House ${Date.now()}`;
 
   await page.goto("/fragrances/new");
@@ -105,9 +105,16 @@ test("a submitted fragrance is visible only to its submitter until reviewed", as
   await page.getByLabel("Size, ml").fill("2");
   await page.getByRole("radio", { name: /^Sample/ }).check();
   await page.getByRole("button", { name: "Add to wardrobe" }).click();
-  await expect(page.getByRole("listitem").filter({ hasText: "Test Scent" })).toContainText(
-    "Pending review",
-  );
+  const item = page.getByRole("listitem").filter({ hasText: "Test Scent" });
+  await expect(item).toContainText("Pending review");
+  // Its page is open to the submitter, so the name links there…
+  await expect(item.getByRole("link", { name: /^Test Scent/ })).toBeVisible();
+
+  // …and a wear of it can be shared.
+  await item.getByRole("link", { name: /^Log a wear of/ }).click();
+  await page.getByRole("radio", { name: /^Everyone/ }).check();
+  await page.getByRole("button", { name: "Log wear" }).click();
+  await expect(page).toHaveURL(/\/wears\/\w+$/);
 
   // Another user sees nothing: not in search, and not by URL.
   const other = await browser.newContext();
@@ -118,6 +125,11 @@ test("a submitted fragrance is visible only to its submitter until reviewed", as
   await expect(otherPage.getByRole("main").getByText("No matches", { exact: true })).toBeVisible();
   await otherPage.goto(pendingUrl);
   await expect(otherPage.getByText("Not in the catalogue")).toBeVisible();
+  // They see the shared wear, with no link to the page they can't open.
+  await otherPage.goto(`/u/${author.username}`);
+  const wear = otherPage.getByRole("article").filter({ hasText: "Test Scent" });
+  await expect(wear).toBeVisible();
+  await expect(wear.getByRole("link", { name: /^Test Scent/ })).toHaveCount(0);
   await other.close();
 });
 
@@ -137,6 +149,19 @@ test("a fresh account sees empty states rather than errors", async ({ page }) =>
 test.describe("the seeded wardrobe", () => {
   // Read-only: this account is shared across workers and projects.
   test.use({ storageState: STORAGE_STATE });
+
+  test("a perfume opens its page, and Back returns to the wardrobe", async ({ page }) => {
+    await page.goto("/wardrobe");
+    await page
+      .getByRole("listitem")
+      .filter({ hasText: "Hawas Ice" })
+      .getByRole("link", { name: /^Hawas Ice/ })
+      .click();
+    await expect(page.getByRole("heading", { level: 1, name: "Hawas Ice" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Scent profile" })).toBeVisible();
+    await page.getByRole("main").getByRole("link", { name: "Wardrobe" }).click();
+    await expect(page).toHaveURL(/\/wardrobe$/);
+  });
 
   test("filters by type, with a count on each tab", async ({ page }) => {
     await page.goto("/wardrobe");

@@ -9,8 +9,10 @@ import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
 import { WardrobeItemForm } from "@/components/wardrobe/wardrobe-item-form";
 import { Badge } from "@/components/ui/badge";
 import { BackLink } from "@/components/ui/back-link";
+import { backTo } from "@/lib/back-to";
 
 type Params = Promise<{ id: string }>;
+type SearchParams = Promise<{ from?: string | string[] }>;
 
 export async function generateMetadata({ params }: { params: Params }) {
   const { id } = await params;
@@ -19,8 +21,16 @@ export async function generateMetadata({ params }: { params: Params }) {
   return { title: f ? `${f.brand.name} ${f.name}` : "Not found" };
 }
 
-export default async function FragranceDetailPage({ params }: { params: Params }) {
+export default async function FragranceDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: SearchParams;
+}) {
   const { id } = await params;
+  // Linked from a wear, the feed, the wardrobe…: Back returns there.
+  const back = backTo((await searchParams).from, { href: "/fragrances", label: "Catalogue" });
   const user = await requireUser(`/fragrances/${id}`);
   const [f, prefs] = await Promise.all([
     findFragranceById(user.id, id),
@@ -37,7 +47,7 @@ export default async function FragranceDetailPage({ params }: { params: Params }
 
   return (
     <article className="mx-auto max-w-3xl">
-      <BackLink href="/fragrances">Catalogue</BackLink>
+      <BackLink href={back.href}>{back.label}</BackLink>
 
       <header className="mt-4 flex flex-col gap-6 border-b border-[color:var(--rule)] pb-8 sm:flex-row sm:items-end">
         <FragranceThumb imagePath={f.imagePath} size="lg" />

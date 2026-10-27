@@ -36,6 +36,14 @@ const SECURITY_HEADERS = [
 const config: NextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
+  experimental: {
+    // Keep a page the browser has just shown for 30 seconds, so going back to a
+    // tab you left a moment ago is instant instead of another trip to the
+    // server. Every server action that writes revalidates, and signing in or
+    // out changes cookies; both clear this cache, so your own changes show
+    // straight away.
+    staleTimes: { dynamic: 30 },
+  },
   // The Wardrobe replaced the Collection (refactor Phase 3). Old links and
   // bookmarks keep working.
   async redirects() {

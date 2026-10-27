@@ -150,6 +150,23 @@ test.describe("the seeded feed", () => {
     await expect(cards(page).first()).toBeVisible();
   });
 
+  test("a perfume in the feed opens its notes, and Back returns to the feed", async ({ page }) => {
+    await page.goto("/feed");
+    await cards(page)
+      .filter({ hasText: "Aventus" })
+      .first()
+      .getByRole("link", { name: /^Aventus/ })
+      .click();
+    await expect(page).toHaveURL(/\/fragrances\/\w+\?from=%2Ffeed$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Aventus" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Scent profile" })).toBeVisible();
+    await expect(page.getByRole("term").filter({ hasText: "Top" })).toBeVisible();
+
+    // Back is in the page, not the tab bar's own "Feed".
+    await page.getByRole("main").getByRole("link", { name: "Feed" }).click();
+    await expect(page).toHaveURL(/\/feed$/);
+  });
+
   test("a profile shows follower counts and its owner's shared wears", async ({ page }) => {
     await page.goto("/u/mika");
     await expect(page.getByRole("heading", { name: "Mika" })).toBeVisible();

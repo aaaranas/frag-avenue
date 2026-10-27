@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { findUserSettings } from "@/modules/users/data";
 import { buildStats, type StatRange } from "./stats";
 import type { AccordWeight } from "./wear-stats";
 
@@ -10,7 +11,8 @@ import type { AccordWeight } from "./wear-stats";
  */
 export async function getStatsForUser(userId: string, range: StatRange, now: Date) {
   const [user, wears, items] = await Promise.all([
-    prisma.user.findUnique({ where: { id: userId }, select: { timezone: true, units: true } }),
+    // The shell layout reads the same row; this shares that read.
+    findUserSettings(userId),
     prisma.wear.findMany({
       where: { userId },
       select: {
@@ -38,6 +40,8 @@ export async function getStatsForUser(userId: string, range: StatRange, now: Dat
       id: true,
       name: true,
       imagePath: true,
+      status: true,
+      submittedById: true,
       brand: { select: { name: true } },
       accords: { select: { strength: true, accord: { select: { name: true } } } },
     },
@@ -72,7 +76,16 @@ export async function getStatsForUser(userId: string, range: StatRange, now: Dat
     stats,
     units: user?.units ?? "METRIC",
     fragrances: new Map(
-      fragrances.map((f) => [f.id, { name: f.name, brand: f.brand.name, imagePath: f.imagePath }]),
+      fragrances.map((f) => [
+        f.id,
+        {
+          name: f.name,
+          brand: f.brand.name,
+          imagePath: f.imagePath,
+          status: f.status,
+          submittedById: f.submittedById,
+        },
+      ]),
     ),
   };
 }

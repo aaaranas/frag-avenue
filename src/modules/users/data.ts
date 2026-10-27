@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
@@ -8,23 +9,50 @@ export type UserPreferences = {
   defaultCurrency: string;
 };
 
-/** Preferences for the signed-in user. Null only if the account was deleted mid-session. */
-export function findUserPreferences(userId: string): Promise<UserPreferences | null> {
-  return prisma.user.findUnique({
+/**
+ * The signed-in user's own settings, read once per request: the shell layout,
+ * the page, and the page's components each ask for some of them, and each read
+ * would otherwise be another round trip to the database. Null only if the
+ * account was deleted mid-session.
+ */
+export const findUserSettings = cache((userId: string) =>
+  prisma.user.findUnique({
     where: { id: userId },
-    select: { timezone: true, units: true, defaultCurrency: true },
-  });
+    select: {
+      timezone: true,
+      units: true,
+      defaultCurrency: true,
+      defaultVisibility: true,
+      username: true,
+      name: true,
+      bio: true,
+    },
+  }),
+);
+
+/** Preferences for the signed-in user. Null only if the account was deleted mid-session. */
+export async function findUserPreferences(userId: string): Promise<UserPreferences | null> {
+  const user = await findUserSettings(userId);
+  return user
+    ? { timezone: user.timezone, units: user.units, defaultCurrency: user.defaultCurrency }
+    : null;
 }
 
 export async function updateUserTimeZone(userId: string, timezone: string): Promise<void> {
   await prisma.user.update({ where: { id: userId }, data: { timezone } });
 }
 
-export function findProfileSettings(userId: string) {
-  return prisma.user.findUnique({
-    where: { id: userId },
-    select: { username: true, name: true, bio: true, defaultVisibility: true, units: true },
-  });
+export async function findProfileSettings(userId: string) {
+  const user = await findUserSettings(userId);
+  return user
+    ? {
+        username: user.username,
+        name: user.name,
+        bio: user.bio,
+        defaultVisibility: user.defaultVisibility,
+        units: user.units,
+      }
+    : null;
 }
 
 /**

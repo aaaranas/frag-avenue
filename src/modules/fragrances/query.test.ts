@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { buildFragranceListWhere, paginationOffset, totalPages, visibleToUserWhere } from "./query";
+import {
+  buildFragranceListWhere,
+  isVisibleToUser,
+  paginationOffset,
+  totalPages,
+  visibleToUserWhere,
+} from "./query";
 import { DEFAULT_PAGE_SIZE, FragranceListInput } from "./schema";
 
 const parse = (input: unknown) => FragranceListInput.parse(input);
@@ -9,6 +15,13 @@ describe("fragrance list query builder", () => {
     expect(visibleToUserWhere("user_1")).toEqual({
       OR: [{ status: "APPROVED" }, { status: "PENDING", submittedById: "user_1" }],
     });
+  });
+
+  it("checks a loaded row by the same rule", () => {
+    expect(isVisibleToUser({ status: "APPROVED", submittedById: null }, "user_1")).toBe(true);
+    expect(isVisibleToUser({ status: "PENDING", submittedById: "user_1" }, "user_1")).toBe(true);
+    expect(isVisibleToUser({ status: "PENDING", submittedById: "user_2" }, "user_1")).toBe(false);
+    expect(isVisibleToUser({ status: "REJECTED", submittedById: "user_1" }, "user_1")).toBe(false);
   });
 
   it("applies only visibility when q is missing or blank", () => {

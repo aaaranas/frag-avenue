@@ -25,7 +25,15 @@ function cardSelect(viewerId: string) {
     temperatureC: true,
     user: { select: { id: true, username: true, name: true, image: true } },
     fragrance: {
-      select: { id: true, name: true, imagePath: true, brand: { select: { name: true } } },
+      select: {
+        id: true,
+        name: true,
+        imagePath: true,
+        // Whether the viewer may open the scent's page (isVisibleToUser).
+        status: true,
+        submittedById: true,
+        brand: { select: { name: true } },
+      },
     },
     collectionItem: { select: { kind: true } },
     checkIns: { select: { offsetHours: true, result: true } },
@@ -205,7 +213,17 @@ export async function findPickForToday(userId: string) {
         createdAt: true,
         remainingMl: true,
         bottleSizeMl: true,
-        fragrance: { select: { name: true, imagePath: true, brand: { select: { name: true } } } },
+        fragrance: {
+          select: {
+            id: true,
+            name: true,
+            imagePath: true,
+            // Whether the viewer may open the scent's page (isVisibleToUser).
+            status: true,
+            submittedById: true,
+            brand: { select: { name: true } },
+          },
+        },
       },
     }),
     prisma.wear.groupBy({

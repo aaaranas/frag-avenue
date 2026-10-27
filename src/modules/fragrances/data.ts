@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import type { $Enums } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { FragranceListInput } from "./schema";
@@ -65,9 +66,12 @@ export async function listFragrances(
 
 export type FragranceDetail = Awaited<ReturnType<typeof findFragranceById>>;
 
-/** One catalogue entry, or null if it doesn't exist or `userId` may not see it. */
-export async function findFragranceById(userId: string, id: string) {
-  return prisma.fragrance.findFirst({
+/**
+ * One catalogue entry, or null if it doesn't exist or `userId` may not see it.
+ * Cached per request: the page's metadata and the page itself both ask.
+ */
+export const findFragranceById = cache((userId: string, id: string) =>
+  prisma.fragrance.findFirst({
     where: { id, ...visibleToUserWhere(userId) },
     select: {
       id: true,
@@ -93,8 +97,8 @@ export async function findFragranceById(userId: string, id: string) {
         },
       },
     },
-  });
-}
+  }),
+);
 
 export type SubmitFragranceResult =
   { kind: "created"; id: string } | { kind: "exists"; id: string } | { kind: "pending-elsewhere" };

@@ -19,6 +19,9 @@ import {
 } from "@/modules/wardrobe";
 import { formatMoney } from "@/modules/analytics";
 import { formatVolume, type UnitSystem } from "@/lib/units";
+import { fragranceHref } from "@/lib/back-to";
+import { isVisibleToUser } from "@/modules/fragrances";
+import { MaybeLink } from "@/components/ui/maybe-link";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
@@ -82,7 +85,7 @@ export default async function WardrobePage({ searchParams }: { searchParams: Sea
           ) : (
             <ul className="flex flex-col gap-3" aria-label="Wardrobe items">
               {items.map((item) => (
-                <ItemCard key={item.id} item={item} units={units} />
+                <ItemCard key={item.id} item={item} units={units} viewerId={user.id} />
               ))}
             </ul>
           )}
@@ -140,26 +143,44 @@ function FilterTabs({
   );
 }
 
-function ItemCard({ item, units }: { item: WardrobeListItem; units: UnitSystem }) {
+function ItemCard({
+  item,
+  units,
+  viewerId,
+}: {
+  item: WardrobeListItem;
+  units: UnitSystem;
+  viewerId: string;
+}) {
   const wishlist = item.kind === "WISHLIST";
   const wears = item._count.wears;
   const ratio = wishlist ? null : fillRatio(item.bottleSizeMl, item.remainingMl);
   const cpw = itemCostPerWearMinor(item.kind, item.purchasePriceMinor, wears);
   const money = (amountMinor: number) => formatMoney({ amountMinor, currency: item.currency! });
   const name = `${item.fragrance.brand.name} ${item.fragrance.name}`;
+  // A rejected submission has no page any more.
+  const scentHref = isVisibleToUser(item.fragrance, viewerId)
+    ? fragranceHref(item.fragrance.id, "/wardrobe")
+    : null;
 
   return (
     <li className="flex gap-4 rounded-xl border border-[color:var(--rule)] bg-[color:var(--bg-elev)] p-4">
-      <FragranceThumb imagePath={item.fragrance.imagePath} kind={item.kind} fillRatio={ratio} />
+      {/* The photo and the name both open the scent's page; the name is the
+          link announced to screen readers. */}
+      <MaybeLink href={scentHref} decorative className="shrink-0 self-start rounded-md">
+        <FragranceThumb imagePath={item.fragrance.imagePath} kind={item.kind} fillRatio={ratio} />
+      </MaybeLink>
 
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         <div>
-          <h2 className="truncate text-lg leading-tight font-semibold tracking-tight font-stretch-semi-condensed">
-            {item.fragrance.name}
-          </h2>
-          <p className="truncate text-sm text-[color:var(--fg-muted)]">
-            {item.fragrance.brand.name}
-          </p>
+          <MaybeLink href={scentHref} className="block min-h-11">
+            <h2 className="truncate text-lg leading-tight font-semibold tracking-tight font-stretch-semi-condensed group-hover:underline group-hover:underline-offset-4">
+              {item.fragrance.name}
+            </h2>
+            <p className="truncate text-sm text-[color:var(--fg-muted)]">
+              {item.fragrance.brand.name}
+            </p>
+          </MaybeLink>
           <p className="mt-1 flex flex-wrap items-center gap-2 text-sm">
             {itemLabel(
               item.kind,

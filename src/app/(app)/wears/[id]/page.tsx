@@ -28,6 +28,9 @@ import { VisibilityBadge } from "@/components/social/visibility-badge";
 import { WearStats } from "@/components/social/wear-stats";
 import { buildShareCard } from "@/components/share/share-card";
 import { ShareWearButton } from "@/components/share/share-wear-button";
+import { fragranceHref } from "@/lib/back-to";
+import { isVisibleToUser } from "@/modules/fragrances";
+import { MaybeLink } from "@/components/ui/maybe-link";
 
 type Params = Promise<{ id: string }>;
 
@@ -46,6 +49,10 @@ export default async function WearPage({ params }: { params: Params }) {
 
   const own = wear.userId === user.id;
   const author = displayName(wear.user);
+  // Someone else's pending submission has no page this viewer may open.
+  const scentHref = isVisibleToUser(wear.fragrance, user.id)
+    ? fragranceHref(wear.fragrance.id, `/wears/${wear.id}`)
+    : null;
   const attribution = weatherAttribution(wear.weatherProvider);
   const condition = conditionLabel(wear.weatherCondition);
 
@@ -56,15 +63,21 @@ export default async function WearPage({ params }: { params: Params }) {
       </BackLink>
 
       <header className="mt-2 flex items-center gap-4 pb-5">
-        <FragranceThumb
-          imagePath={wear.fragrance.imagePath}
-          kind={wear.collectionItem?.kind ?? "BOTTLE"}
-        />
+        {/* The photo and the name both open the scent's page; the name is the
+            link announced to screen readers. */}
+        <MaybeLink href={scentHref} decorative className="shrink-0 rounded-md">
+          <FragranceThumb
+            imagePath={wear.fragrance.imagePath}
+            kind={wear.collectionItem?.kind ?? "BOTTLE"}
+          />
+        </MaybeLink>
         <div className="min-w-0">
-          <h1 className="text-[1.625rem] leading-tight font-semibold tracking-tight font-stretch-semi-condensed">
-            {wear.fragrance.name}
-          </h1>
-          <p className="text-sm text-[color:var(--fg-muted)]">{wear.fragrance.brand.name}</p>
+          <MaybeLink href={scentHref} className="block">
+            <h1 className="text-[1.625rem] leading-tight font-semibold tracking-tight font-stretch-semi-condensed group-hover:underline group-hover:underline-offset-4">
+              {wear.fragrance.name}
+            </h1>
+            <p className="text-sm text-[color:var(--fg-muted)]">{wear.fragrance.brand.name}</p>
+          </MaybeLink>
           <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
             {own ? null : <span className="font-medium">{author}</span>}
             <span className="text-[color:var(--fg-muted)]">

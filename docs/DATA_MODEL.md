@@ -173,6 +173,10 @@ Adding a table "because we might need it" is a bug. Add it when a real query nee
 - Time: instants are UTC in the DB. A wear's day is its local date in `Wear.timeZone`; "today" is the local date in the user's current `User.timezone`. Conversions live in `src/lib/time-zone.ts`; never use `Date#getHours()`/`getDate()` (server-local) on user data.
 - Units: stored metric (°C, ml); converted for display by `src/lib/units.ts` according to `User.units`.
 
+## Loading
+
+The Prisma client has the `relationJoins` preview feature on: a nested `select` loads in one SQL statement (lateral joins) instead of one query per relation. Each query is a round trip to a database that can be a region away, and a feed page took fifteen of them in a row before. A query that misbehaves under joins can opt out with `relationLoadStrategy: "query"`.
+
 ## Renames and migrations
 
 Migrations are **expand-only**: they add types, tables, nullable or defaulted columns, indexes, and constraints, and never drop, rename, or narrow in the same release as the code change. Vercel applies migrations before the new build takes traffic, so the previous build must keep working against the new schema.

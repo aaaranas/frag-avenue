@@ -34,6 +34,7 @@ export function listWardrobeForUser(userId: string, kind?: ItemKind) {
           concentration: true,
           imagePath: true,
           status: true,
+          submittedById: true,
           brand: { select: { name: true } },
         },
       },

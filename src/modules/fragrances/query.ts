@@ -11,6 +11,17 @@ export function visibleToUserWhere(userId: string): Prisma.FragranceWhereInput {
   };
 }
 
+/** The same rule as `visibleToUserWhere`, for a row already loaded: may `userId` open its page? */
+export function isVisibleToUser(
+  fragrance: { status: "APPROVED" | "PENDING" | "REJECTED"; submittedById: string | null },
+  userId: string,
+): boolean {
+  return (
+    fragrance.status === "APPROVED" ||
+    (fragrance.status === "PENDING" && fragrance.submittedById === userId)
+  );
+}
+
 /**
  * Pure query-shape builder. Takes normalized input, returns a Prisma
  * `where` clause. Lives in its own file so it can be unit-tested without

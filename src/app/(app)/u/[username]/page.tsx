@@ -86,7 +86,12 @@ export default async function ProfilePage({
         <ol className="flex flex-col gap-3" aria-label="Wears">
           {wears.items.map((w) => (
             <li key={w.id}>
-              <WearCard wear={w} viewerId={viewer.id} units={defaults.units} />
+              <WearCard
+                wear={w}
+                viewerId={viewer.id}
+                units={defaults.units}
+                from={`/u/${profile.username ?? username}`}
+              />
             </li>
           ))}
         </ol>

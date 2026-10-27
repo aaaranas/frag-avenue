@@ -1,6 +1,7 @@
 import "server-only";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { findUserSettings } from "@/modules/users/data";
 import type { WearFields } from "./schema";
 import type { WeatherSnapshot } from "@/modules/weather";
 
@@ -15,10 +16,7 @@ const HOUR_MS = 60 * 60 * 1000;
 
 /** What the log form needs about the user. */
 export async function findLogDefaults(userId: string) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { timezone: true, defaultVisibility: true, units: true },
-  });
+  const user = await findUserSettings(userId);
   return {
     timezone: user?.timezone ?? "UTC",
     defaultVisibility: user?.defaultVisibility ?? "FOLLOWERS",
@@ -105,7 +103,8 @@ const wearSummarySelect = {
 } satisfies Prisma.WearSelect;
 
 export function listWearsForUser(userId: string, opts: { page: number; pageSize: number }) {
-  return prisma.$transaction([
+  // Two reads, not a transaction: BEGIN and COMMIT would be two more round trips.
+  return Promise.all([
     prisma.wear.count({ where: { userId } }),
     prisma.wear.findMany({
       where: { userId },

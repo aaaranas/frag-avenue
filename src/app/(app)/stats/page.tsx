@@ -10,6 +10,9 @@ import { Button } from "@/components/ui/button";
 import { BarList } from "@/components/stats/bar-list";
 import { SegmentedNav } from "@/components/ui/segmented-nav";
 import { Section } from "@/components/ui/section";
+import { fragranceHref } from "@/lib/back-to";
+import { isVisibleToUser } from "@/modules/fragrances";
+import { MaybeLink } from "@/components/ui/maybe-link";
 import { BarChart3 } from "lucide-react";
 
 export const metadata = { title: "Stats" };
@@ -32,6 +35,11 @@ export default async function StatsPage({ searchParams }: { searchParams: Search
   const name = (id: string) => {
     const f = fragrances.get(id);
     return f ? `${f.brand} ${f.name}` : "Unknown fragrance";
+  };
+  // A scent's page, unless this user can't open it (a rejected submission).
+  const scentHref = (id: string) => {
+    const f = fragrances.get(id);
+    return f && isVisibleToUser(f, user.id) ? fragranceHref(id, "/stats") : null;
   };
   const period = range === "all" ? "all time" : `the last ${RANGE_LABEL[range]}`;
 
@@ -91,6 +99,7 @@ export default async function StatsPage({ searchParams }: { searchParams: Search
                 name: name(m.fragranceId),
                 value: m.wears,
                 valueText: `${m.wears} ${m.wears === 1 ? "wear" : "wears"}`,
+                href: scentHref(m.fragranceId) ?? undefined,
               }))}
             />
           </Section>
@@ -135,13 +144,17 @@ export default async function StatsPage({ searchParams }: { searchParams: Search
           >
             {stats.untouched.map((u) => (
               <li key={u.itemId} className="flex items-center justify-between gap-4 py-2">
-                <div className="min-w-0">
+                <MaybeLink
+                  href={scentHref(u.fragranceId)}
+                  className="-mx-2 min-h-11 min-w-0 flex-1 rounded-md px-2 py-1"
+                  linkClassName="transition-colors hover:bg-[color:var(--bg-sunken)]/60"
+                >
                   <p className="truncate text-sm font-medium">{name(u.fragranceId)}</p>
                   <p className="text-xs text-[color:var(--fg-muted)]">
                     {u.daysSince === null ? "Never worn" : `Not worn for ${u.daysSince} days`}
                     {u.kind === "BOTTLE" ? "" : `, ${KIND_LABEL[u.kind].toLowerCase()}`}
                   </p>
-                </div>
+                </MaybeLink>
                 <Button asChild size="sm" variant="outline">
                   <Link
                     href={`/log?item=${u.itemId}`}

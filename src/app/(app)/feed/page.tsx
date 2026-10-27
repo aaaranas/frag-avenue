@@ -74,7 +74,7 @@ export default async function FeedPage({ searchParams }: { searchParams: SearchP
         <ol className="flex flex-col gap-3" aria-label="Wears">
           {feed.items.map((w) => (
             <li key={w.id}>
-              <WearCard wear={w} viewerId={user.id} units={defaults.units} />
+              <WearCard wear={w} viewerId={user.id} units={defaults.units} from="/feed" />
             </li>
           ))}
         </ol>
