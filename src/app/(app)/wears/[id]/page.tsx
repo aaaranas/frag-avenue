@@ -26,6 +26,8 @@ import { CommentForm } from "@/components/social/comment-form";
 import { BackLink } from "@/components/ui/back-link";
 import { VisibilityBadge } from "@/components/social/visibility-badge";
 import { WearStats } from "@/components/social/wear-stats";
+import { buildShareCard } from "@/components/share/share-card";
+import { ShareWearButton } from "@/components/share/share-wear-button";
 
 type Params = Promise<{ id: string }>;
 
@@ -155,6 +157,7 @@ export default async function WearPage({ params }: { params: Params }) {
 
       {own ? (
         <div className="flex flex-wrap items-center gap-3 py-6">
+          <ShareWearButton card={buildShareCard(wear, defaults.units)} variant="outline" />
           <Button asChild variant="outline">
             <Link href={`/wears/${wear.id}/edit`}>Edit</Link>
           </Button>

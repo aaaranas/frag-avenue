@@ -22,6 +22,7 @@ Five tabs: **Feed**, **Wardrobe**, **Log** (centre "+"), **Stats**, **Clubs**.
 4. **Feed** — your wears and those of people you follow (open follows), with scent, sprays, occasion, temperature, check-in summary, kudos, and comment count. A "Pick for today" card suggests the least recently worn owned item.
 5. **Stats** — total wears, unique scents, day streak, most worn, accord breakdown, items untouched for 30+ days; a placeholder for performance vs. weather.
 6. **Clubs and challenges** — join or leave clubs; "30 different scents in 30 days" and "5 different houses in 30 days" with live progress.
+7. **Share images** — from your own wear, a PNG for an Instagram Story (9:16) or a post (4:5): the bottle photo, the scent, when, and the stat strip, on a background drawn from the bottle's colour (or Midnight, Paper, the accent). Shared through the phone's share sheet, or saved.
 
 Derived-stat definitions are in `.claude/skills/frag-domain/SKILL.md`.
 
@@ -30,6 +31,7 @@ Derived-stat definitions are in `.claude/skills/frag-domain/SKILL.md`.
 - Each wear has a visibility: public, followers, or private. New wears default to followers.
 - Everything logged before the social features existed is private and stays private unless the user changes it.
 - No precise location is stored; weather is fetched for rounded coordinates and only the readings are kept.
+- Share images are offered only on your own wears: an image leaves the app, beyond the visibility its wear was given.
 
 ## Out of scope for the MVP
 

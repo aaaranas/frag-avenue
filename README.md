@@ -17,6 +17,10 @@ Your profile sits in the top bar (mobile) or the sidebar footer (desktop).
   visibility (Only me / Followers / Everyone). Kudos, comments, follow
   anyone, and profiles at `/u/[username]`. A "Pick for today" card suggests
   an owned scent you haven't worn lately.
+- **Share**: on your own wears, an image for an Instagram Story (1080×1920)
+  or a post (1080×1350): the bottle on a background taken from its colour,
+  or Midnight, Paper, or the accent, with the wear's stats. It goes to your
+  phone's share sheet (pick Instagram, then Story or Feed), or saves as a PNG.
 - **Wardrobe**: bottles, decants, samples, and a wishlist, with price, fill
   level, wear count, and cost per wear. Search the catalogue, or submit a
   missing fragrance (visible only to you until it is reviewed).
@@ -179,7 +183,7 @@ Deeper reading:
 ## Testing
 
 - **Vitest**: unit tests colocated as `*.test.ts(x)`. Stats, streaks, check-ins, visibility rules, challenges, cost per wear, time zones, units, and server-action validation and authorization.
-- **Playwright**: sign in, add to wardrobe, log a wear, check in, kudos and comments between two accounts, follow, join a club, stats, installability, and auth redirects for every protected route. A `setup` project signs in once and shares the session. Runs against a real Postgres and a built app with `WEATHER_PROVIDER=static`, on chromium and mobile-safari.
+- **Playwright**: sign in, add to wardrobe, log a wear, check in, kudos and comments between two accounts, follow, join a club, stats, share images, installability, and auth redirects for every protected route. A `setup` project signs in once and shares the session. Runs against a real Postgres and a built app with `WEATHER_PROVIDER=static`, on chromium and mobile-safari.
 - **CI**: `.github/workflows/ci.yml` runs typecheck / lint / unit on every push and PR, then Playwright with a Postgres service container. Reports uploaded on failure.
 
 ## Security posture

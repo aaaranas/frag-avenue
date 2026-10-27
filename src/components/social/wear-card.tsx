@@ -4,6 +4,8 @@ import { MOOD_LABEL, OCCASION_LABEL, checkInSummary } from "@/modules/wear-logs"
 import { formatDateTime } from "@/lib/format";
 import { formatTemperature, type UnitSystem } from "@/lib/units";
 import { FragranceThumb } from "@/components/wardrobe/fragrance-thumb";
+import { buildShareCard } from "@/components/share/share-card";
+import { ShareWearButton } from "@/components/share/share-wear-button";
 import { MessageCircle } from "lucide-react";
 import { Avatar, displayName } from "./avatar";
 import { KudosButton } from "./kudos-button";
@@ -13,7 +15,7 @@ import { WearStats, type WearStat } from "./wear-stats";
 /**
  * A wear in the feed or on a profile: who and when, the scent, a stat strip
  * (sprays, occasion, mood, temperature), the check-in summary, then kudos and
- * comments.
+ * comments — and, on your own wears, Share.
  */
 export function WearCard({
   wear,
@@ -102,6 +104,8 @@ export function WearCard({
           <MessageCircle className="size-4" aria-hidden />
           {comments} {comments === 1 ? "comment" : "comments"}
         </Link>
+        {/* Only your own: an image of someone else's wear could carry it past who they chose. */}
+        {own ? <ShareWearButton card={buildShareCard(wear, units)} /> : null}
       </footer>
     </article>
   );
